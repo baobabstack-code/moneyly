@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   
   const supabase = createClient()
   const router = useRouter()
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const handleGoogleLogin = async () => {
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -45,6 +47,7 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       if (isSignUp) {
@@ -56,7 +59,7 @@ export default function LoginPage() {
           },
         })
         if (error) throw error
-        alert('Check your email for the confirmation link!')
+        setSuccessMessage('Verification email sent! Please check your inbox.')
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -82,7 +85,7 @@ export default function LoginPage() {
             <div className="w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center font-black text-2xl shadow-xl shadow-primary/20 mb-4 transform transition-transform hover:scale-110 duration-300">
               H
             </div>
-            <h1 className="text-2xl font-black text-primary tracking-tighter mb-1">HTB GLOBAL</h1>
+            <h1 className="text-2xl font-black text-primary tracking-tighter mb-1 text-center">HTB GLOBAL</h1>
             <p className="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center opacity-60">Institutional Lending</p>
           </div>
 
@@ -102,6 +105,13 @@ export default function LoginPage() {
               <div className="bg-error/10 border border-error/20 text-error text-xs p-3 rounded-xl flex items-center gap-2 animate-in fade-in slide-in-from-top-1">
                 <span className="material-symbols-outlined text-sm">error</span>
                 {error}
+              </div>
+            )}
+
+            {successMessage && (
+              <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 text-xs p-4 rounded-xl flex items-start gap-3 animate-in fade-in slide-in-from-top-1">
+                <span className="material-symbols-outlined text-sm mt-0.5">check_circle</span>
+                <p className="font-medium">{successMessage}</p>
               </div>
             )}
 

@@ -212,7 +212,7 @@ export default function ApplicationLayout({
               }`}
             >
               <span className={`material-symbols-outlined transition-transform duration-300 ${pathname === "/" ? 'scale-110' : 'group-hover:scale-110'}`}>dashboard</span>
-              <span className="text-sm tracking-tight">User Dashboard</span>
+              <span className="text-sm tracking-tight">My Dashboard</span>
             </Link>
 
             <div className="pt-4 pb-2 px-5">

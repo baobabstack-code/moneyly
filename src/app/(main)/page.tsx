@@ -19,7 +19,10 @@ export default function LandingPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      // Use getSession for immediate client-side check
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      
       setUser(currentUser);
       if (currentUser) {
         const profileData = await getMyProfile();
@@ -38,9 +41,11 @@ export default function LandingPage() {
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
+        console.log("Auth event on LandingPage:", event);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
+        
         if (currentUser) {
           const profileData = await getMyProfile();
           setProfile(profileData);
@@ -56,6 +61,7 @@ export default function LandingPage() {
         }
         setCheckingAuth(false);
         setLoadingApps(false);
+        router.refresh();
       }
     );
 
@@ -87,8 +93,11 @@ export default function LandingPage() {
                 Buy what you need in-store today with our instant digital loan approvals. Tailored financial solutions for customers.
               </p>
               <div className="flex flex-col sm:flex-row items-center gap-5">
-                <Link href="/login" className="w-full sm:w-auto bg-secondary text-on-secondary px-10 py-4.5 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-2xl shadow-secondary/30 hover:opacity-90 transition-all active:scale-95 group">
-                  Apply Now
+                <Link 
+                  href={user ? "/store-selection" : "/login"} 
+                  className="w-full sm:w-auto bg-secondary text-on-secondary px-10 py-4.5 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-2xl shadow-secondary/30 hover:opacity-90 transition-all active:scale-95 group"
+                >
+                  {user ? "Continue to Application" : "Get Started"}
                   <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
                 </Link>
               </div>
@@ -176,8 +185,11 @@ export default function LandingPage() {
               </div>
             </div>
             <div className="mt-24 text-center">
-              <Link href="/login" className="inline-block bg-primary text-on-primary px-12 py-5 rounded-2xl font-bold hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all active:scale-95 shadow-xl text-lg">
-                Start Application Now
+              <Link 
+                href={user ? "/store-selection" : "/login"} 
+                className="inline-block bg-primary text-on-primary px-12 py-5 rounded-2xl font-bold hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all active:scale-95 shadow-xl text-lg"
+              >
+                {user ? "Go to My Dashboard" : "Start Application Now"}
               </Link>
             </div>
           </div>
@@ -191,8 +203,11 @@ export default function LandingPage() {
             <h2 className="font-h1 text-h1 text-on-secondary mb-8 leading-tight relative z-10">Ready to scale your dreams?</h2>
             <p className="text-body-lg mb-12 max-w-2xl mx-auto opacity-80 relative z-10 leading-relaxed">Join thousands of others who have simplified their financial journey with our modern institutional loan solutions.</p>
             <div className="flex flex-wrap justify-center gap-6 relative z-10">
-              <Link href="/login" className="inline-block bg-white text-secondary px-12 py-5 rounded-2xl font-bold hover:scale-105 transition-all shadow-xl active:scale-95 text-lg">
-                Apply for a Loan
+              <Link 
+                href={user ? "/store-selection" : "/login"} 
+                className="inline-block bg-white text-secondary px-12 py-5 rounded-2xl font-bold hover:scale-105 transition-all shadow-xl active:scale-95 text-lg"
+              >
+                {user ? "Resume Application" : "Apply for a Loan"}
               </Link>
             </div>
           </div>
