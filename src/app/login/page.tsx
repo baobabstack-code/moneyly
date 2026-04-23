@@ -7,12 +7,24 @@ import { useRouter } from 'next/navigation'
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   
   const supabase = createClient()
   const router = useRouter()
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user) {
+        router.push('/')
+      }
+    }
+    checkUser()
+  }, [supabase, router])
 
   const handleGoogleLogin = async () => {
     setLoading(true)
@@ -62,9 +74,9 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface-container-low flex items-center justify-center p-6 font-manrope">
-      <div className="max-w-md w-full bg-surface rounded-[2rem] border border-outline-variant shadow-2xl overflow-hidden transition-all duration-500 hover:shadow-primary/5">
-        <div className="p-8 md:p-10">
+    <div className="min-h-screen bg-surface-container-low flex items-center justify-center sm:p-6 font-manrope">
+      <div className="w-full sm:max-w-md h-screen sm:h-auto bg-surface sm:rounded-[2rem] border-x sm:border border-outline-variant shadow-2xl overflow-y-auto transition-all duration-500 hover:shadow-primary/5">
+        <div className="p-6 xs:p-8 md:p-10 flex flex-col min-h-full">
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center font-black text-2xl shadow-xl shadow-primary/20 mb-4 transform transition-transform hover:scale-110 duration-300">
@@ -115,13 +127,23 @@ export default function LoginPage() {
                 <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40 group-focus-within:text-primary transition-colors">lock</span>
                   <input 
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full pl-12 pr-4 py-3.5 bg-surface-container-low border border-outline-variant rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium"
+                    className="w-full pl-12 pr-12 py-3.5 bg-surface-container-low border border-outline-variant rounded-xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/5 transition-all text-sm font-medium"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-on-surface-variant/40 hover:text-primary transition-colors focus:outline-none"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                  >
+                    <span className="material-symbols-outlined text-xl">
+                      {showPassword ? 'visibility_off' : 'visibility'}
+                    </span>
+                  </button>
                 </div>
               </div>
 
