@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useApplicationStore, useNotificationStore } from "@/lib/store";
+import { useApplicationStore } from "@/lib/store";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useEffect } from "react";

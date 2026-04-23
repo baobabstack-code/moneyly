@@ -151,7 +151,7 @@ export default function LookupPage() {
                   </div>
                   <div>
                     <p className="font-bold text-green-800 dark:text-green-300">Identity Verified</p>
-                    <p className="text-sm text-green-700/70 dark:text-green-400/70">Existing profile record retrieved</p>
+                    <p className="text-sm text-green-700 dark:text-green-400">Existing profile record retrieved</p>
                   </div>
                 </div>
                 <div className="bg-surface rounded-xl p-6 border border-green-200 dark:border-green-800 flex items-center gap-4 shadow-sm">
@@ -180,7 +180,7 @@ export default function LookupPage() {
                   </div>
                   <div>
                     <p className="font-bold text-amber-800 dark:text-amber-300">Welcome to HTB</p>
-                    <p className="text-sm text-amber-700/70 dark:text-amber-400/70">No record found for ID: <span className="font-mono font-bold">{nationalId}</span></p>
+                    <p className="text-sm text-amber-700 dark:text-amber-400">No record found for ID: <span className="font-mono font-bold">{nationalId}</span></p>
                   </div>
                 </div>
                 <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-xl border border-amber-200 dark:border-amber-800">
