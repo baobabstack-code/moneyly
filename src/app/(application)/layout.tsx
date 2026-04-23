@@ -202,6 +202,22 @@ export default function ApplicationLayout({
             </div>
           </div>
           <nav className="flex-1 py-6 px-4 space-y-2">
+            <Link 
+              href="/" 
+              className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-300 group ${
+                pathname === "/" 
+                  ? "text-secondary bg-secondary/10 font-bold shadow-sm shadow-secondary/5 border border-secondary/20" 
+                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <span className={`material-symbols-outlined transition-transform duration-300 ${pathname === "/" ? 'scale-110' : 'group-hover:scale-110'}`}>dashboard</span>
+              <span className="text-sm tracking-tight">User Dashboard</span>
+            </Link>
+
+            <div className="pt-4 pb-2 px-5">
+              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Application Process</p>
+            </div>
+
             {steps.map((step) => {
               const isActive = pathname.includes(step.href);
               return (
@@ -221,13 +237,17 @@ export default function ApplicationLayout({
             })}
           </nav>
           <nav className="px-4 py-4 space-y-2 border-t border-outline-variant/30">
-            <Link 
-              href="/" 
-              className="flex items-center gap-3 px-5 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-300 group"
+            <button 
+              onClick={async () => {
+                const supabase = createClient();
+                await supabase.auth.signOut();
+                router.push("/login");
+              }}
+              className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-300 group"
             >
-              <span className="material-symbols-outlined text-[20px]">exit_to_app</span>
-              <span className="text-sm tracking-tight font-medium">Exit to Site</span>
-            </Link>
+              <span className="material-symbols-outlined text-[20px] group-hover:rotate-180 transition-transform duration-500">logout</span>
+              <span className="text-sm tracking-tight font-medium">Sign Out</span>
+            </button>
           </nav>
           <div className="p-8 border-t border-outline-variant/30 bg-surface-container-lowest">
             <button className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]">
