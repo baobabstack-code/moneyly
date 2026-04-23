@@ -1,3 +1,11 @@
+/**
+ * GLOBAL FOOTER
+ * 
+ * Features:
+ * - Institutional branding and copyright information.
+ * - Social/Language action buttons with interactive hover states.
+ * - Sticky-bottom support via flex-column layout in the parent.
+ */
 import Link from "next/link";
 
 export default function Footer() {
@@ -10,12 +18,12 @@ export default function Footer() {
             © 2026 DIGITAL ETHER. HTB GLOBAL is a secure institutional lending platform.
           </p>
         </div>
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
+        {/* <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">
           <Link className="text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy</Link>
           <Link className="text-on-surface-variant hover:text-primary transition-colors" href="#">Terms</Link>
           <Link className="text-on-surface-variant hover:text-primary transition-colors" href="#">Security</Link>
           {/* <Link className="text-on-surface-variant hover:text-primary transition-colors" href="#">Institutional</Link> */}
-        </div>
+        {/* </div> */} 
         <div className="flex gap-4">
           <div className="w-10 h-10 rounded-xl bg-surface border border-outline-variant flex items-center justify-center text-on-surface-variant hover:text-secondary hover:border-secondary cursor-pointer transition-all shadow-sm">
             <span className="material-symbols-outlined text-lg">public</span>

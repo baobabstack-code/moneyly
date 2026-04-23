@@ -1,3 +1,12 @@
+/**
+ * GLOBAL NAVIGATION BAR
+ * 
+ * Features:
+ * - Real-time authentication state handling via Supabase Auth.
+ * - Dynamic Profile/Sign-In display.
+ * - Glassmorphism design (backdrop-blur) for a premium feel.
+ * - Responsive layout with mobile-optimized menu/actions.
+ */
 'use client'
 
 import Link from "next/link";

@@ -11,28 +11,39 @@ import { persist, createJSONStorage } from "zustand/middleware";
  * is retrieved and passed to the backend API for processing and storage.
  */
 export interface ApplicationState {
+  /** System notifications for user feedback (success messages, errors, etc.) */
   notifications: Array<{ id: string; message: string; type: 'success' | 'info'; timestamp: number }>;
   addNotification: (message: string, type?: 'success' | 'info') => void;
   clearNotifications: () => void;
-  // Store Selection
+  
+  /** 
+   * Store Selection 
+   * Used in the first step to identify which branch the user is applying through.
+   */
   selectedStoreId: number | null;
   selectedStoreName: string;
   setSelectedStore: (id: number, name: string) => void;
 
-  // National ID Lookup
+  /** 
+   * National ID Lookup 
+   * Initial identity check using the user's National ID number.
+   */
   lookup: {
     nationalId: string;
     customerFound: boolean;
   };
   setLookup: (data: Partial<ApplicationState["lookup"]>) => void;
 
-  // Section 1: Personal Info (Basic Info)
+  /** 
+   * Section 1: Personal Info (Basic Info) 
+   * Core identity details including a selfie for verification.
+   */
   basicInfo: {
     firstName: string;
     lastName: string;
     dateOfBirth: string;
     gender: string; // "Male" | "Female"
-    photoUrl: string; // selfie data URL
+    photoUrl: string; // selfie data URL (Base64)
   };
   setBasicInfo: (info: Partial<ApplicationState["basicInfo"]>) => void;
 
@@ -44,12 +55,15 @@ export interface ApplicationState {
   };
   setContactDetails: (details: Partial<ApplicationState["contactDetails"]>) => void;
 
-  // Section 3: Employment Details
+  /** 
+   * Section 3: Employment Details 
+   * Income source verification. Civil servants have additional fields.
+   */
   employmentDetails: {
     employerName: string;
     isCivilServant: boolean | null; // null = not answered yet
-    employerNo: string;    // conditional: only if isCivilServant = true
-    ministry: string;      // conditional: only if isCivilServant = true
+    employerNo: string;    // EC Number (conditional: only if isCivilServant = true)
+    ministry: string;      // Ministry name (conditional: only if isCivilServant = true)
     phoneNumber: string;
   };
   setEmploymentDetails: (details: Partial<ApplicationState["employmentDetails"]>) => void;
