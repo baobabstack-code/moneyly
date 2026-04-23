@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
-import { useApplicationStore } from "@/lib/store";
+import { useApplicationStore, useNotificationStore } from "@/lib/store";
+import { createClient } from "@/utils/supabase/client";
+import { User } from "@supabase/supabase-js";
+import { useEffect } from "react";
+import { getMyProfile, UserProfile } from "@/lib/profile";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -15,7 +19,31 @@ export default function ApplicationLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const { notifications, clearNotifications } = useApplicationStore();
+
+  useEffect(() => {
+    const supabase = createClient();
+    const fetchUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUser(user);
+        const profileData = await getMyProfile();
+        setProfile(profileData);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const userInitial = profile?.full_name?.[0] || user?.user_metadata?.full_name?.[0] || user?.email?.[0] || "U";
+  const userInitials = (profile?.full_name || user?.user_metadata?.full_name || user?.email || "User")
+    .split(' ')
+    .map((n: string) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2);
+  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   const steps = [
     { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
@@ -142,7 +170,13 @@ export default function ApplicationLayout({
                 </div>
               )}
 
-              <div className="w-8 h-8 sm:w-9 sm:h-9 bg-surface-container-highest text-on-surface rounded-full flex items-center justify-center font-bold text-xs border border-outline-variant shadow-sm shrink-0">JD</div>
+              <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-full overflow-hidden border border-outline-variant shadow-sm shrink-0 flex items-center justify-center bg-secondary text-on-secondary">
+                {avatarUrl ? (
+                  <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="font-bold text-xs uppercase">{userInitials}</span>
+                )}
+              </div>
             </div>
           </div>
         </div>

@@ -107,7 +107,7 @@ export default function PurchaseDetailsPage() {
             <div className="flex items-center gap-2 mb-1">
               <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Balance Amount</span>
               <span className="material-symbols-outlined text-[16px] text-secondary/40 cursor-help">help</span>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl">
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl">
                 Remaining amount to be financed (Retail Price minus Deposit).
               </div>
             </div>

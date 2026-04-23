@@ -173,7 +173,7 @@ export default function LandingPage() {
       <section className="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-primary mb-2">
-            Welcome back, {profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
+            Welcome back, {profile?.full_name?.split(' ')[0] || user?.user_metadata?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
           </h1>
           <p className="text-on-surface-variant">Manage your institutional loan applications and facility details.</p>
         </div>
