@@ -167,7 +167,7 @@ export default function LookupPage() {
                     </p>
                   </div>
                 </div>
-                <p className="text-sm text-on-surface-variant bg-green-100/50 dark:bg-green-900/20 p-3 rounded-lg border border-green-200/50 dark:border-green-800/50">
+                <p className="text-sm text-on-surface bg-green-100 dark:bg-green-900/30 p-3 rounded-lg border border-green-200 dark:border-green-800 font-medium">
                   <strong>Note:</strong> We found your profile in our system. You can skip directly to entering your purchase details.
                 </p>
               </div>
@@ -183,8 +183,8 @@ export default function LookupPage() {
                     <p className="text-sm text-amber-700/70 dark:text-amber-400/70">No record found for ID: <span className="font-mono font-bold">{nationalId}</span></p>
                   </div>
                 </div>
-                <div className="bg-amber-100/50 dark:bg-amber-900/20 p-4 rounded-xl border border-amber-200/50 dark:border-amber-800/50">
-                   <p className="text-sm text-amber-900/80 dark:text-amber-200/80 leading-relaxed">
+                <div className="bg-amber-100 dark:bg-amber-900/30 p-4 rounded-xl border border-amber-200 dark:border-amber-800">
+                   <p className="text-sm text-amber-900 dark:text-amber-100 leading-relaxed font-medium">
                     You&apos;re new to HTB Global. We&apos;ll need to collect some basic details to get your application started.
                   </p>
                 </div>
