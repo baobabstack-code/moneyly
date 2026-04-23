@@ -1,21 +1,30 @@
 "use client";
 
-'use client'
-
 import Link from "next/link";
-import { useEffect } from "react";
 import { useApplicationStore, type ApplicationState } from "@/lib/store";
+import { generateLoanPDF } from "@/utils/pdf-generator";
 
 export default function SuccessPage() {
-  const resetStore = useApplicationStore((state: ApplicationState) => state.resetStore);
-  const lastReference = useApplicationStore((state: ApplicationState) => state.lastReference);
+  const store = useApplicationStore();
+  const { resetStore, lastReference } = store;
 
-  useEffect(() => {
-    resetStore();
-  }, [resetStore]);
+  const handleDownloadPDF = async () => {
+    try {
+      const pdfDataUri = await generateLoanPDF(store);
+      const link = document.createElement('a');
+      link.href = pdfDataUri;
+      link.download = `HTB-Application-${lastReference || 'Summary'}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (error) {
+      console.error("PDF Generation failed:", error);
+    }
+  };
+
   return (
     <div className="flex-grow flex items-center justify-center py-12">
-      <div className="max-w-4xl w-full">
+      <div className="max-w-4xl w-full px-4">
         {/* Success Hero Section */}
         <div className="bg-surface rounded-2xl border border-outline-variant p-12 shadow-xl text-center relative overflow-hidden">
           {/* Top gradient bar */}
@@ -33,12 +42,17 @@ export default function SuccessPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
               <Link 
+                onClick={() => resetStore()}
                 className="bg-secondary text-on-secondary px-12 py-3 rounded-lg font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
                 href="/"
               >
                 Go to My Dashboard
               </Link>
-              <button className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-lg font-bold transition-all active:scale-95 hover:bg-surface-container">
+              <button 
+                onClick={handleDownloadPDF}
+                className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-lg font-bold transition-all active:scale-95 hover:bg-surface-container flex items-center justify-center gap-2"
+              >
+                <span className="material-symbols-outlined text-[20px]">download</span>
                 View Application PDF
               </button>
             </div>

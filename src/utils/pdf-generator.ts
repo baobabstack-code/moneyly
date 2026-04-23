@@ -25,7 +25,7 @@ export async function generateLoanPDF(data: any) {
   doc.text('Institutional Lending Platform - Application Summary', 15, 30);
   
   doc.setFontSize(12);
-  doc.text(`Reference: LN-${Math.floor(Math.random() * 900000) + 100000}`, pageWidth - 70, 25);
+  doc.text(`Reference: ${data.lastReference || 'LN-' + (Math.floor(Math.random() * 900000) + 100000)}`, pageWidth - 70, 25);
 
   let currentY = 50;
 
