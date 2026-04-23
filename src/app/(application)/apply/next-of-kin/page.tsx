@@ -21,7 +21,7 @@ export default function NextOfKinPage() {
               <span className="text-secondary font-bold text-[10px] uppercase tracking-widest block">Step 7 of 8</span>
               <div className="group relative">
                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 cursor-help">help</span>
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-20 shadow-xl text-center">
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl text-center">
                   This person will be contacted only in case of emergency regarding this application.
                 </div>
               </div>
