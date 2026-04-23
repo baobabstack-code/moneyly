@@ -1,7 +1,34 @@
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/pwa-install-button";
+import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function LandingPage() {
+  const supabase = createClient();
+  const router = useRouter();
+  const [checkingAuth, setCheckingAuth] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.push("/login");
+      } else {
+        setCheckingAuth(false);
+      }
+    };
+    checkAuth();
+  }, [supabase, router]);
+
+  if (checkingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
     <main className="font-manrope">
       {/* Hero Section */}
