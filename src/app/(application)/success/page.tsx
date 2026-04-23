@@ -27,7 +27,7 @@ export default function SuccessPage() {
             </div>
             
             <h1 className="font-h1 text-4xl text-primary mb-4">Submission Successful</h1>
-            <p className="text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed font-body-md">
+            <p className="text-xl text-on-surface max-w-2xl mx-auto mb-10 leading-relaxed font-body-md">
               Congratulations! Your application has been received. Our systems are now processing your request, and an institutional officer will contact you shortly.
             </p>
             
@@ -54,7 +54,7 @@ export default function SuccessPage() {
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Reference Number</h3>
               <p className="text-2xl font-bold text-on-surface">{lastReference || '#HTB-XXXX'}</p>
             </div>
-            <p className="text-xs text-on-surface-variant/50 mt-4 italic">Please keep this for your records</p>
+            <p className="text-xs text-on-surface-variant/80 mt-4 italic">Please keep this for your records</p>
           </div>
 
           {/* Next Steps */}

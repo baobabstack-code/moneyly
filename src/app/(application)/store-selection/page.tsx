@@ -87,7 +87,7 @@ export default function StoreSelectionPage() {
                 {store.status && (
                   <span className="px-2.5 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full uppercase tracking-widest border border-secondary/20">{store.status}</span>
                 )}
-                <span className="text-[10px] text-on-surface-variant/50 font-mono uppercase">{store.code}</span>
+                <span className="text-[10px] text-on-surface-variant/80 font-mono uppercase">{store.code}</span>
               </div>
             </div>
             <div className="flex-1">

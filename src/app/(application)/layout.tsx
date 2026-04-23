@@ -197,7 +197,7 @@ export default function ApplicationLayout({
               <div className="w-10 h-10 bg-primary text-on-primary rounded-lg flex items-center justify-center font-black shadow-lg shadow-primary/20">H</div>
               <div>
                 <h2 className="text-base font-bold text-primary leading-none">Your Application</h2>
-                <p className="text-[10px] text-on-surface-variant/60 uppercase font-bold mt-1 tracking-wider">Ref: #LN-8820</p>
+                <p className="text-[10px] text-on-surface-variant/80 uppercase font-bold mt-1 tracking-wider">Ref: #LN-8820</p>
               </div>
             </div>
           </div>
