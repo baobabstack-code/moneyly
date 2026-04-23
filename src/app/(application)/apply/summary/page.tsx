@@ -75,7 +75,8 @@ export default function SummaryPage() {
       // 2. Generate PDF and email it
       const applicationData = {
         lookup, basicInfo, contactDetails, employmentDetails,
-        nextOfKin, purchaseDetails, selectedStoreName
+        nextOfKin, purchaseDetails, selectedStoreName,
+        lastReference: reference
       };
       const pdfDataUri = await generateLoanPDF(applicationData);
       const targetEmail = contactDetails.emailAddress || user?.email;
