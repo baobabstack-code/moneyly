@@ -15,6 +15,10 @@ export interface ApplicationState {
   notifications: Array<{ id: string; message: string; type: 'success' | 'info' | 'error'; timestamp: number }>;
   addNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
   clearNotifications: () => void;
+
+  /** Last submitted application reference number */
+  lastReference: string;
+  setLastReference: (ref: string) => void;
   
   /** 
    * Store Selection 
@@ -92,6 +96,7 @@ export interface ApplicationState {
 
 const initialState = {
   notifications: [],
+  lastReference: '',
   selectedStoreId: null,
   selectedStoreName: "",
   lookup: {
@@ -142,6 +147,7 @@ export const useApplicationStore = create<ApplicationState>()(
           ]
         })),
       clearNotifications: () => set({ notifications: [] }),
+      setLastReference: (ref) => set({ lastReference: ref }),
       setSelectedStore: (id, name) =>
         set({ selectedStoreId: id, selectedStoreName: name }),
       setLookup: (data) =>

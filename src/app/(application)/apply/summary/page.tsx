@@ -9,6 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 export default function SummaryPage() {
   const router = useRouter();
   const { basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails, selectedStoreName, selectedStoreId, lookup } = useApplicationStore();
+  const setLastReference = useApplicationStore((s) => s.setLastReference);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const retailPrice = parseFloat(purchaseDetails.retailPrice) || 0;
@@ -100,6 +101,7 @@ export default function SummaryPage() {
         'success'
       );
 
+      setLastReference(reference);
       router.push("/success");
     } catch (error: any) {
       console.error('Submission error:', error);

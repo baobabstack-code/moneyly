@@ -8,6 +8,7 @@ import { useApplicationStore, type ApplicationState } from "@/lib/store";
 
 export default function SuccessPage() {
   const resetStore = useApplicationStore((state: ApplicationState) => state.resetStore);
+  const lastReference = useApplicationStore((state: ApplicationState) => state.lastReference);
 
   useEffect(() => {
     resetStore();
@@ -51,7 +52,7 @@ export default function SuccessPage() {
             <div>
               <span className="material-symbols-outlined text-secondary mb-4">receipt_long</span>
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Reference Number</h3>
-              <p className="text-2xl font-bold text-on-surface">#HTB-8829-XQ</p>
+              <p className="text-2xl font-bold text-on-surface">{lastReference || '#HTB-XXXX'}</p>
             </div>
             <p className="text-xs text-on-surface-variant/50 mt-4 italic">Please keep this for your records</p>
           </div>
