@@ -1,5 +1,7 @@
 "use client";
 
+'use client'
+
 import Link from "next/link";
 import { useEffect } from "react";
 import { useApplicationStore, type ApplicationState } from "@/lib/store";
@@ -33,7 +35,7 @@ export default function SuccessPage() {
                 className="bg-secondary text-on-secondary px-12 py-3 rounded-lg font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
                 href="/"
               >
-                Go to Dashboard
+                Go to My Dashboard
               </Link>
               <button className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-lg font-bold transition-all active:scale-95 hover:bg-surface-container">
                 View Application PDF

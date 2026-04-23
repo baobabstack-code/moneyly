@@ -5,11 +5,15 @@ import { PWAInstallButton } from "@/components/pwa-install-button";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
+import { getMyProfile, UserProfile } from "@/lib/profile";
 
 export default function LandingPage() {
   const supabase = createClient();
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -17,6 +21,9 @@ export default function LandingPage() {
       if (!user) {
         router.push("/login");
       } else {
+        setUser(user);
+        const profileData = await getMyProfile();
+        setProfile(profileData);
         setCheckingAuth(false);
       }
     };
@@ -32,8 +39,96 @@ export default function LandingPage() {
   }
 
   return (
-    <main className="font-manrope">
-      {/* Hero Section */}
+    <main className="font-manrope min-h-screen bg-background">
+      {/* Dashboard View for Logged In Users */}
+      <section className="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
+        <div className="mb-12">
+          <h1 className="text-4xl font-bold text-primary mb-2">
+            Welcome back, {profile?.full_name?.split(' ')[0] || user?.email?.split('@')[0]}
+          </h1>
+          <p className="text-on-surface-variant">Manage your institutional loan applications and facility details.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
+          {/* Quick Start Card */}
+          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="relative z-10">
+              <span className="material-symbols-outlined text-4xl mb-4">add_circle</span>
+              <h2 className="text-2xl font-bold mb-2">New Application</h2>
+              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Start a new institutional loan application in minutes.</p>
+            </div>
+            <Link 
+              href="/store-selection" 
+              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95"
+            >
+              Start Now
+            </Link>
+          </div>
+
+          {/* Active Applications Card */}
+          <div className="bg-surface p-8 rounded-[32px] border border-outline-variant shadow-sm flex flex-col group">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+                <span className="material-symbols-outlined">pending_actions</span>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">In Progress</span>
+            </div>
+            <h2 className="text-xl font-bold text-primary mb-2">Your Drafts</h2>
+            <p className="text-on-surface-variant text-sm mb-8">You have a pending draft from your last session.</p>
+            <Link 
+              href="/apply/lookup" 
+              className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
+            >
+              Continue Application
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
+
+          {/* Facility Status Card */}
+          <div className="bg-surface p-8 rounded-[32px] border border-outline-variant shadow-sm flex flex-col group">
+            <div className="flex items-center justify-between mb-8">
+              <div className="w-12 h-12 bg-emerald-500/10 text-emerald-600 rounded-2xl flex items-center justify-center">
+                <span className="material-symbols-outlined">account_balance_wallet</span>
+              </div>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600/60">Active Facility</span>
+            </div>
+            <h2 className="text-xl font-bold text-primary mb-2">Credit Limit</h2>
+            <p className="text-emerald-600 text-3xl font-black mb-1">$0.00</p>
+            <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Available Balance</p>
+            <button className="mt-8 text-on-surface-variant/40 text-xs font-bold uppercase tracking-widest cursor-not-allowed">
+              View Statements
+            </button>
+          </div>
+        </div>
+
+        {/* Recent Activity */}
+        <div className="bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12">
+          <div className="flex items-center justify-between mb-10">
+            <h2 className="text-2xl font-bold text-primary">Recent Activity</h2>
+            <button className="text-sm font-bold text-secondary hover:underline">View All History</button>
+          </div>
+          
+          <div className="space-y-6">
+            <div className="flex items-center gap-6 p-4 rounded-2xl hover:bg-surface-container-low transition-colors group">
+              <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+                <span className="material-symbols-outlined">login</span>
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-primary">Account Login</p>
+                <p className="text-xs text-on-surface-variant">Logged in from new device</p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm font-bold text-primary">Just now</p>
+                <p className="text-[10px] text-on-surface-variant/40 uppercase font-bold tracking-widest">Security</p>
+              </div>
+            </div>
+            {/* Empty state or more rows */}
+          </div>
+        </div>
+      </section>
+
+      {/* PWA Promo for Logged In Users */}
       <section className="relative overflow-hidden pt-24 pb-32 px-6 md:px-12 bg-background">
         <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
           <div className="z-10">
