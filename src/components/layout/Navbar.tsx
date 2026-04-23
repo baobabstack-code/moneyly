@@ -15,23 +15,36 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
+import { getMyProfile, UserProfile } from "@/lib/profile";
 
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<UserProfile | null>(null);
   const supabase = createClient();
   const router = useRouter();
 
   useEffect(() => {
-    const getUser = async () => {
+    const getUserData = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
+      if (user) {
+        const profileData = await getMyProfile();
+        setProfile(profileData);
+      }
     };
 
-    getUser();
+    getUserData();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      async (_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          const profileData = await getMyProfile();
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
       }
     );
 
@@ -58,8 +71,21 @@ export default function Navbar() {
               <div className="flex items-center gap-4">
                 <div className="hidden sm:flex flex-col items-end">
                   <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">Account</span>
-                  <span className="text-xs font-bold text-on-surface max-w-[120px] truncate">{user.email}</span>
+                  <span className="text-xs font-bold text-on-surface max-w-[120px] truncate">
+                    {profile?.full_name || user.email}
+                  </span>
                 </div>
+                {profile?.avatar_url ? (
+                  <img 
+                    src={profile.avatar_url} 
+                    alt="Profile" 
+                    className="w-9 h-9 rounded-xl border border-outline-variant object-cover shadow-sm"
+                  />
+                ) : (
+                  <div className="w-9 h-9 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center text-on-surface-variant">
+                    <span className="material-symbols-outlined text-xl">account_circle</span>
+                  </div>
+                )}
                 <button 
                   onClick={handleLogout}
                   className="bg-surface-container-highest text-on-surface px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center gap-2"
