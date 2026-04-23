@@ -17,15 +17,31 @@ export default function LandingPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUser(user);
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      setUser(currentUser);
+      if (currentUser) {
         const profileData = await getMyProfile();
         setProfile(profileData);
       }
       setCheckingAuth(false);
     };
     checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (_event, session) => {
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
+        if (currentUser) {
+          const profileData = await getMyProfile();
+          setProfile(profileData);
+        } else {
+          setProfile(null);
+        }
+        setCheckingAuth(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
   }, [supabase]);
 
   if (checkingAuth) {
