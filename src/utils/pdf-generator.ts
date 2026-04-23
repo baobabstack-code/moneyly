@@ -29,6 +29,18 @@ export async function generateLoanPDF(data: any) {
 
   let currentY = 50;
 
+  // Add Selfie if available
+  if (data.basicInfo.photoUrl) {
+    try {
+      // Small thumbnail at the top right
+      doc.addImage(data.basicInfo.photoUrl, 'JPEG', pageWidth - 45, 45, 30, 30);
+      doc.setDrawColor(0, 81, 213);
+      doc.rect(pageWidth - 45, 45, 30, 30);
+    } catch (e) {
+      console.warn("Could not add selfie to PDF", e);
+    }
+  }
+
   // Sections
   const sections = [
     { title: 'Personal Information', rows: [
@@ -46,17 +58,23 @@ export async function generateLoanPDF(data: any) {
       ['Product', data.purchaseDetails.productName],
       ['Retail Price', `$${data.purchaseDetails.retailPrice}`],
       ['Deposit', `$${data.purchaseDetails.depositAmount}`],
+      ['Loan Amount', `$${(parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)).toFixed(2)}`],
       ['Store', data.selectedStoreName]
     ]},
-    { title: 'Employment', rows: [
+    { title: 'Employment Details', rows: [
       ['Employer', data.employmentDetails.employerName],
       ['Status', data.employmentDetails.isCivilServant ? 'Civil Servant' : 'Private Sector'],
+      ...(data.employmentDetails.isCivilServant ? [
+        ['Ministry', data.employmentDetails.ministry],
+        ['EC Number', data.employmentDetails.employerNo]
+      ] : []),
       ['Employer Phone', data.employmentDetails.phoneNumber]
     ]},
     { title: 'Next of Kin', rows: [
       ['Name', data.nextOfKin.fullName],
       ['Relationship', data.nextOfKin.relationship],
-      ['Phone', data.nextOfKin.mobileNumber]
+      ['Phone', data.nextOfKin.mobileNumber],
+      ['Address', data.nextOfKin.address]
     ]}
   ];
 
