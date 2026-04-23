@@ -1,6 +1,35 @@
 import { Resend } from 'resend';
 import { NextResponse } from 'next/server';
 
+/**
+ * @openapi
+ * /api/send-confirmation:
+ *   post:
+ *     summary: Send loan application confirmation email
+ *     description: Sends an email with the generated loan application PDF as an attachment using Resend.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               pdfBase64:
+ *                 type: string
+ *                 description: Base64 encoded PDF data URI
+ *               customerName:
+ *                 type: string
+ *               reference:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Email sent successfully
+ *       500:
+ *         description: Error sending email
+ */
 export async function POST(req: Request) {
   try {
     const { email, pdfBase64, customerName, reference } = await req.json();
