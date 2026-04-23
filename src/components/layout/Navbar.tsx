@@ -1,7 +1,39 @@
+'use client'
+
 import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
+import { createClient } from "@/utils/supabase/client";
+import { useEffect, useState } from "react";
+import { User } from "@supabase/supabase-js";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const [user, setUser] = useState<User | null>(null);
+  const supabase = createClient();
+  const router = useRouter();
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+    };
+
+    getUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.refresh();
+  };
+
   return (
     <>
       <nav className="sticky top-0 w-full border-b bg-surface/80 backdrop-blur-md border-outline-variant z-50 font-manrope">
@@ -10,23 +42,42 @@ export default function Navbar() {
             <Link href="/" className="text-xl font-black tracking-tighter text-primary">
               HTB GLOBAL
             </Link>
-            {/* <div className="hidden md:flex gap-6">
-              <Link className="text-on-surface border-b-2 border-primary pb-1 font-semibold text-sm tracking-tight" href="/">Loans</Link>
-              <Link className="text-on-surface-variant font-medium hover:text-on-surface transition-colors duration-200 text-sm tracking-tight" href="#">Support</Link>
-            </div> */}
           </div>
           <div className="flex items-center gap-2 sm:gap-4">
             <ThemeToggle />
-            <button className="hidden sm:block text-on-surface-variant font-medium hover:text-on-surface transition-all active:opacity-80 text-sm">
-              Login
-            </button>
-            <Link href="/store-selection" className="bg-secondary text-on-secondary px-6 py-2 rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all text-sm">
-              Apply Now
-            </Link>
+            {user ? (
+              <div className="flex items-center gap-4">
+                <div className="hidden sm:flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">Account</span>
+                  <span className="text-xs font-bold text-on-surface max-w-[120px] truncate">{user.email}</span>
+                </div>
+                <button 
+                  onClick={handleLogout}
+                  className="bg-surface-container-highest text-on-surface px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-[18px]">logout</span>
+                  <span className="hidden xs:inline">Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link 
+                  href="/login" 
+                  className="hidden sm:block text-on-surface-variant font-bold hover:text-primary transition-all text-sm px-4"
+                >
+                  Login
+                </Link>
+                <Link 
+                  href="/store-selection" 
+                  className="bg-secondary text-on-secondary px-6 py-2 rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all text-sm"
+                >
+                  Apply Now
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </nav>
-
     </>
   );
 }
