@@ -90,6 +90,16 @@ export interface ApplicationState {
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
 
+  /** 
+   * Section 6: Document Uploads 
+   * Scanned proof of identity and income.
+   */
+  documentUploads: {
+    idCopyUrl: string;
+    payslipUrl: string;
+  };
+  setDocumentUploads: (docs: Partial<ApplicationState["documentUploads"]>) => void;
+
   // Actions
   resetStore: () => void;
 }
@@ -133,6 +143,10 @@ const initialState = {
     retailPrice: "",
     depositAmount: "",
   },
+  documentUploads: {
+    idCopyUrl: "",
+    payslipUrl: "",
+  },
 };
 
 export const useApplicationStore = create<ApplicationState>()(
@@ -165,6 +179,10 @@ export const useApplicationStore = create<ApplicationState>()(
       setPurchaseDetails: (details) =>
         set((state) => ({
           purchaseDetails: { ...state.purchaseDetails, ...details },
+        })),
+      setDocumentUploads: (docs) =>
+        set((state) => ({
+          documentUploads: { ...state.documentUploads, ...docs },
         })),
       resetStore: () => set(initialState),
     }),

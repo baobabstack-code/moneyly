@@ -8,7 +8,7 @@ import { createClient } from "@/utils/supabase/client";
 
 export default function SummaryPage() {
   const router = useRouter();
-  const { basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails, selectedStoreName, selectedStoreId, lookup } = useApplicationStore();
+  const { basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails, selectedStoreName, selectedStoreId, lookup, documentUploads } = useApplicationStore();
   const setLastReference = useApplicationStore((s) => s.setLastReference);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -65,6 +65,9 @@ export default function SummaryPage() {
         kin_relationship: nextOfKin.relationship,
         kin_mobile:      nextOfKin.mobileNumber,
         kin_address:     nextOfKin.address,
+        // NEW: Document Uploads
+        id_copy_url:     documentUploads.idCopyUrl || null,
+        payslip_url:     documentUploads.payslipUrl || null,
       });
 
       if (dbError) {
@@ -76,7 +79,8 @@ export default function SummaryPage() {
       const applicationData = {
         lookup, basicInfo, contactDetails, employmentDetails,
         nextOfKin, purchaseDetails, selectedStoreName,
-        lastReference: reference
+        lastReference: reference,
+        documentUploads, // Pass docs to PDF
       };
       const pdfDataUri = await generateLoanPDF(applicationData);
       const targetEmail = contactDetails.emailAddress || user?.email;
@@ -171,6 +175,13 @@ export default function SummaryPage() {
         { label: "Address", value: nextOfKin.address },
       ],
     },
+    {
+      title: "Documents Provided",
+      data: [
+        { label: "National ID Copy", value: documentUploads.idCopyUrl ? "✅ Uploaded" : "❌ Missing" },
+        { label: "Latest Payslip", value: documentUploads.payslipUrl ? "✅ Uploaded" : "❌ Missing" },
+      ],
+    },
   ];
 
   return (
@@ -180,7 +191,7 @@ export default function SummaryPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-secondary font-bold text-[10px] uppercase tracking-widest block">Step 8 of 8</span>
+              <span className="text-secondary font-bold text-[10px] uppercase tracking-widest block">Step 7 of 7</span>
               <div className="group relative">
                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 cursor-help">help</span>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl text-center font-body-md normal-case tracking-normal">
@@ -205,9 +216,14 @@ export default function SummaryPage() {
             <div className="w-20 h-20 rounded-full overflow-hidden border-2 border-outline-variant">
               <img src={basicInfo.photoUrl} alt="Your profile" className="w-full h-full object-cover" />
             </div>
-            <div>
+            <div className="flex-1">
               <p className="font-bold text-on-surface">Photo Verified</p>
               <p className="text-sm text-on-surface-variant">Selfie captured during application</p>
+            </div>
+            {/* Displaying Document status in a compact way */}
+            <div className="flex gap-2">
+              {documentUploads.idCopyUrl && <span className="material-symbols-outlined text-secondary" title="ID Provided">badge</span>}
+              {documentUploads.payslipUrl && <span className="material-symbols-outlined text-secondary" title="Payslip Provided">payments</span>}
             </div>
           </div>
         )}

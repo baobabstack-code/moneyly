@@ -14,6 +14,8 @@ export default function LandingPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [loadingApps, setLoadingApps] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -22,8 +24,16 @@ export default function LandingPage() {
       if (currentUser) {
         const profileData = await getMyProfile();
         setProfile(profileData);
+        
+        // Fetch real application history
+        const { data: apps } = await supabase
+          .from('applications')
+          .select('*')
+          .order('created_at', { ascending: false });
+        setApplications(apps || []);
       }
       setCheckingAuth(false);
+      setLoadingApps(false);
     };
     checkAuth();
 
@@ -34,10 +44,18 @@ export default function LandingPage() {
         if (currentUser) {
           const profileData = await getMyProfile();
           setProfile(profileData);
+          
+          const { data: apps } = await supabase
+            .from('applications')
+            .select('*')
+            .order('created_at', { ascending: false });
+          setApplications(apps || []);
         } else {
           setProfile(null);
+          setApplications([]);
         }
         setCheckingAuth(false);
+        setLoadingApps(false);
       }
     );
 
@@ -183,6 +201,8 @@ export default function LandingPage() {
     );
   }
 
+  const latestApp = applications[0];
+
   return (
     <main className="font-manrope min-h-screen bg-background">
       {/* Dashboard View for Logged In Users - EXCLUSIVE */}
@@ -217,17 +237,37 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
                 <span className="material-symbols-outlined">pending_actions</span>
               </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">In Progress</span>
+              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
+                {latestApp?.status || "No Activity"}
+              </span>
             </div>
-            <h2 className="text-xl font-bold text-primary mb-2">Your Drafts</h2>
-            <p className="text-on-surface-variant text-sm mb-8">You have a pending draft from your last session.</p>
-            <Link 
-              href="/apply/lookup" 
-              className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
-            >
-              Continue Application
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
+            <h2 className="text-xl font-bold text-primary mb-2">
+              {latestApp ? "Active Application" : "No Applications"}
+            </h2>
+            <p className="text-on-surface-variant text-sm mb-8">
+              {latestApp 
+                ? `Reference ${latestApp.reference} is currently ${latestApp.status}.`
+                : "You haven't started any applications yet."}
+            </p>
+            {latestApp ? (
+               <div className="mt-auto flex items-center justify-between">
+                  <div className="flex flex-col">
+                    <span className="text-[10px] uppercase font-bold text-on-surface-variant/40">Product</span>
+                    <span className="text-xs font-bold text-primary">{latestApp.product_name}</span>
+                  </div>
+                  <span className="px-3 py-1 bg-secondary/10 text-secondary text-[10px] font-bold rounded-full uppercase">
+                    {latestApp.status}
+                  </span>
+               </div>
+            ) : (
+              <Link 
+                href="/store-selection" 
+                className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
+              >
+                Start New Application
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </Link>
+            )}
           </div>
 
           {/* Facility Status Card */}
@@ -255,20 +295,58 @@ export default function LandingPage() {
           </div>
           
           <div className="space-y-6">
-            <div className="flex items-center gap-6 p-4 rounded-2xl hover:bg-surface-container-low transition-colors group">
-              <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+            {loadingApps ? (
+              <div className="animate-pulse flex space-x-4 p-4">
+                <div className="rounded-xl bg-surface-container h-12 w-12"></div>
+                <div className="flex-1 space-y-4 py-1">
+                  <div className="h-4 bg-surface-container rounded w-3/4"></div>
+                  <div className="h-4 bg-surface-container rounded w-1/2"></div>
+                </div>
+              </div>
+            ) : applications.length === 0 ? (
+              <div className="text-center py-12">
+                <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl mb-4">history</span>
+                <p className="text-on-surface-variant font-medium">No recent activity found.</p>
+              </div>
+            ) : (
+              applications.slice(0, 5).map((app) => (
+                <div key={app.id} className="flex items-center gap-6 p-4 rounded-2xl hover:bg-surface-container-low transition-colors group">
+                  <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all">
+                    <span className="material-symbols-outlined">
+                      {app.status === 'submitted' ? 'description' : app.status === 'approved' ? 'task_alt' : 'error'}
+                    </span>
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-primary">
+                      Loan Application - {app.product_name}
+                    </p>
+                    <p className="text-xs text-on-surface-variant">Reference: {app.reference}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-bold text-primary">
+                      {new Date(app.created_at).toLocaleDateString()}
+                    </p>
+                    <p className={`text-[10px] uppercase font-bold tracking-widest ${app.status === 'submitted' ? 'text-secondary' : 'text-emerald-600'}`}>
+                      {app.status}
+                    </p>
+                  </div>
+                </div>
+              ))
+            )}
+            
+            {/* Login Event as fallback/extra row */}
+            <div className="flex items-center gap-6 p-4 rounded-2xl hover:bg-surface-container-low transition-colors group opacity-60">
+              <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant">
                 <span className="material-symbols-outlined">login</span>
               </div>
               <div className="flex-1">
-                <p className="font-bold text-primary">Account Login</p>
-                <p className="text-xs text-on-surface-variant">Logged in from new device</p>
+                <p className="font-bold text-primary text-sm">Security Log: System Access</p>
+                <p className="text-[10px] text-on-surface-variant">Successful authentication</p>
               </div>
               <div className="text-right">
-                <p className="text-sm font-bold text-primary">Just now</p>
-                <p className="text-[10px] text-on-surface-variant/40 uppercase font-bold tracking-widest">Security</p>
+                <p className="text-[10px] font-bold text-primary">Session Active</p>
               </div>
             </div>
-            {/* Empty state or more rows */}
           </div>
         </div>
       </section>

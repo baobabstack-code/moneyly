@@ -51,6 +51,7 @@ export default function ApplicationLayout({
     { name: "Contact", href: "/apply/contact-details", icon: "contact_page" },
     { name: "Employment", href: "/apply/employment-details", icon: "business_center" },
     { name: "Next of Kin", href: "/apply/next-of-kin", icon: "family_restroom" },
+    { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
     { name: "Summary", href: "/apply/summary", icon: "fact_check" },
   ];
 

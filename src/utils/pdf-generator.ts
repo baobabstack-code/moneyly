@@ -75,6 +75,10 @@ export async function generateLoanPDF(data: any) {
       ['Relationship', data.nextOfKin.relationship],
       ['Phone', data.nextOfKin.mobileNumber],
       ['Address', data.nextOfKin.address]
+    ]},
+    { title: 'Documents Provided', rows: [
+      ['National ID Copy', data.documentUploads?.idCopyUrl ? '✅ Uploaded' : '❌ Missing'],
+      ['Latest Payslip', data.documentUploads?.payslipUrl ? '✅ Uploaded' : '❌ Missing']
     ]}
   ];
 
