@@ -3,6 +3,8 @@
 import { useApplicationStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { generateLoanPDF } from "@/utils/pdf-generator";
+import { createClient } from "@/utils/supabase/client";
 
 export default function SummaryPage() {
   const router = useRouter();
@@ -24,23 +26,56 @@ export default function SummaryPage() {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // BACKEND INTEGRATION TODO:
-    // const applicationData = { lookup, basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails };
-    // const response = await fetch('/api/applications', {
-    //   method: 'POST',
-    //   body: JSON.stringify(applicationData)
-    // });
-    
-    // Simulated API submission for now
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    
-    // Add success notification
-    useApplicationStore.getState().addNotification(
-      `Loan application for ${basicInfo.firstName || 'you'} (#LN-${Math.floor(Math.random() * 9000) + 1000}) has been submitted successfully.`,
-      'success'
-    );
+    try {
+      const applicationData = { 
+        lookup, 
+        basicInfo, 
+        contactDetails, 
+        employmentDetails, 
+        nextOfKin, 
+        purchaseDetails,
+        selectedStoreName
+      };
 
-    router.push("/success");
+      // 1. Generate PDF (Client-side for immediate access if needed)
+      const pdfDataUri = await generateLoanPDF(applicationData);
+      const reference = `LN-${Math.floor(Math.random() * 9000) + 1000}`;
+
+      // 2. Send via API (Emails PDF to the user)
+      const { data: { user } } = await createClient().auth.getUser();
+      const targetEmail = contactDetails.emailAddress || user?.email;
+      
+      const response = await fetch('/api/send-confirmation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: targetEmail,
+          pdfBase64: pdfDataUri,
+          customerName: `${basicInfo.firstName} ${basicInfo.lastName}`,
+          reference: reference
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send confirmation email');
+      }
+      
+      // Add success notification
+      useApplicationStore.getState().addNotification(
+        `Loan application for ${basicInfo.firstName || 'you'} (${reference}) has been submitted and a copy sent to your email.`,
+        'success'
+      );
+
+      router.push("/success");
+    } catch (error: any) {
+      console.error('Submission error:', error);
+      useApplicationStore.getState().addNotification(
+        `Error submitting application: ${error.message}. Please try again.`,
+        'error'
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const sections = [

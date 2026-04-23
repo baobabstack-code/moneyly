@@ -12,8 +12,8 @@ import { persist, createJSONStorage } from "zustand/middleware";
  */
 export interface ApplicationState {
   /** System notifications for user feedback (success messages, errors, etc.) */
-  notifications: Array<{ id: string; message: string; type: 'success' | 'info'; timestamp: number }>;
-  addNotification: (message: string, type?: 'success' | 'info') => void;
+  notifications: Array<{ id: string; message: string; type: 'success' | 'info' | 'error'; timestamp: number }>;
+  addNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
   clearNotifications: () => void;
   
   /** 
