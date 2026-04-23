@@ -32,9 +32,9 @@ export default function AutoSaveDraft() {
   if (!lastSaved) return null;
 
   return (
-    <div className="fixed bottom-6 left-6 z-50 flex items-center gap-2 px-3 py-1.5 bg-surface/80 backdrop-blur-md border border-outline-variant rounded-full shadow-lg animate-in fade-in slide-in-from-bottom-4">
-      <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`}></div>
-      <span className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+    <div className="fixed top-20 right-6 z-[100] flex items-center gap-2 px-4 py-2 bg-slate-900/90 backdrop-blur-md border border-white/10 rounded-full shadow-2xl animate-in fade-in slide-in-from-right-4">
+      <div className={`w-2 h-2 rounded-full ${isSaving ? 'bg-amber-400 animate-pulse' : 'bg-emerald-400'}`}></div>
+      <span className="text-[10px] font-bold uppercase tracking-widest text-white">
         {isSaving ? 'Saving Draft...' : 'Draft Saved'}
       </span>
     </div>

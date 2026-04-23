@@ -251,7 +251,12 @@ export default function ApplicationLayout({
             </button>
           </nav>
           <div className="p-8 border-t border-outline-variant/30 bg-surface-container-lowest">
-            <button className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]">
+            <button 
+              onClick={() => {
+                useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
+              }}
+              className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
+            >
               Save Application
             </button>
           </div>
