@@ -164,7 +164,7 @@ export const useApplicationStore = create<ApplicationState>()(
     }),
     {
       name: "htb-application-storage",
-      storage: createJSONStorage(() => sessionStorage),
+      storage: createJSONStorage(() => localStorage),
     }
   )
 );
