@@ -8,7 +8,7 @@ import { createClient } from "@/utils/supabase/client";
 
 export default function SummaryPage() {
   const router = useRouter();
-  const { basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails, selectedStoreName, lookup } = useApplicationStore();
+  const { basicInfo, contactDetails, employmentDetails, nextOfKin, purchaseDetails, selectedStoreName, selectedStoreId, lookup } = useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const retailPrice = parseFloat(purchaseDetails.retailPrice) || 0;
@@ -27,24 +27,58 @@ export default function SummaryPage() {
     setIsSubmitting(true);
     
     try {
-      const applicationData = { 
-        lookup, 
-        basicInfo, 
-        contactDetails, 
-        employmentDetails, 
-        nextOfKin, 
-        purchaseDetails,
-        selectedStoreName
-      };
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
 
-      // 1. Generate PDF (Client-side for immediate access if needed)
-      const pdfDataUri = await generateLoanPDF(applicationData);
+      const retailPrice = parseFloat(purchaseDetails.retailPrice) || 0;
+      const depositAmount = parseFloat(purchaseDetails.depositAmount) || 0;
+      const balance = Math.max(0, retailPrice - depositAmount);
       const reference = `LN-${Math.floor(Math.random() * 9000) + 1000}`;
 
-      // 2. Send via API (Emails PDF to the user)
-      const { data: { user } } = await createClient().auth.getUser();
+      // 1. Save application to Supabase
+      const { error: dbError } = await supabase.from('applications').insert({
+        user_id:         user?.id ?? null,
+        reference,
+        status:          'submitted',
+        store_id:        selectedStoreId,
+        store_name:      selectedStoreName,
+        national_id:     lookup.nationalId,
+        product_name:    purchaseDetails.productName,
+        retail_price:    retailPrice,
+        deposit_amount:  depositAmount,
+        balance_amount:  balance,
+        first_name:      basicInfo.firstName,
+        last_name:       basicInfo.lastName,
+        date_of_birth:   basicInfo.dateOfBirth,
+        gender:          basicInfo.gender,
+        photo_url:       basicInfo.photoUrl || null,
+        physical_address: contactDetails.physicalAddress,
+        mobile_number:   contactDetails.mobileNumber,
+        email_address:   contactDetails.emailAddress || user?.email,
+        employer_name:   employmentDetails.employerName,
+        is_civil_servant: employmentDetails.isCivilServant ?? false,
+        employer_no:     employmentDetails.employerNo || null,
+        ministry:        employmentDetails.ministry || null,
+        employer_phone:  employmentDetails.phoneNumber,
+        kin_full_name:   nextOfKin.fullName,
+        kin_relationship: nextOfKin.relationship,
+        kin_mobile:      nextOfKin.mobileNumber,
+        kin_address:     nextOfKin.address,
+      });
+
+      if (dbError) {
+        console.error('Supabase save error:', dbError);
+        throw new Error(`Failed to save application: ${dbError.message}`);
+      }
+
+      // 2. Generate PDF and email it
+      const applicationData = {
+        lookup, basicInfo, contactDetails, employmentDetails,
+        nextOfKin, purchaseDetails, selectedStoreName
+      };
+      const pdfDataUri = await generateLoanPDF(applicationData);
       const targetEmail = contactDetails.emailAddress || user?.email;
-      
+
       const response = await fetch('/api/send-confirmation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -52,17 +86,17 @@ export default function SummaryPage() {
           email: targetEmail,
           pdfBase64: pdfDataUri,
           customerName: `${basicInfo.firstName} ${basicInfo.lastName}`,
-          reference: reference
+          reference,
         })
       });
 
       if (!response.ok) {
-        throw new Error('Failed to send confirmation email');
+        // Don't block the user — DB save already succeeded
+        console.warn('Email delivery failed, but application was saved.');
       }
-      
-      // Add success notification
+
       useApplicationStore.getState().addNotification(
-        `Loan application for ${basicInfo.firstName || 'you'} (${reference}) has been submitted and a copy sent to your email.`,
+        `Loan application for ${basicInfo.firstName || 'you'} (${reference}) has been submitted successfully.`,
         'success'
       );
 
