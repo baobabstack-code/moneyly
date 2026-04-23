@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { useEffect } from "react";
-import { useApplicationStore } from "@/lib/store";
+import { useApplicationStore, type ApplicationState } from "@/lib/store";
 
 export default function SuccessPage() {
-  const resetStore = useApplicationStore((state) => state.resetStore);
+  const resetStore = useApplicationStore((state: ApplicationState) => state.resetStore);
 
   useEffect(() => {
     resetStore();

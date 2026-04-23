@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import { useApplicationStore } from "@/lib/store";
 
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -12,11 +14,13 @@ export default function ApplicationLayout({
 }) {
   const pathname = usePathname();
   const router = useRouter();
+  const [showNotifications, setShowNotifications] = useState(false);
+  const { notifications, clearNotifications } = useApplicationStore();
 
   const steps = [
     { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
-    { name: "Basic Info", href: "/apply/basic-info", icon: "person" },
-    { name: "Contact Details", href: "/apply/contact-details", icon: "contact_page" },
+    { name: "Personal Info", href: "/apply/basic-info", icon: "person" },
+    { name: "Contact", href: "/apply/contact-details", icon: "contact_page" },
     { name: "Employment", href: "/apply/employment-details", icon: "business_center" },
     { name: "Next of Kin", href: "/apply/next-of-kin", icon: "family_restroom" },
     { name: "Summary", href: "/apply/summary", icon: "fact_check" },
@@ -81,11 +85,63 @@ export default function ApplicationLayout({
               <p className="text-xs font-bold text-secondary">Institutional Draft</p>
             </div>
             <ThemeToggle />
-            <div className="hidden sm:flex items-center gap-3">
-              <button className="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors relative">
+            <div className="hidden sm:flex items-center gap-3 relative">
+              <button 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`p-2 rounded-full transition-all relative ${showNotifications ? 'bg-secondary/10 text-secondary' : 'text-on-surface-variant hover:bg-surface-container'}`}
+              >
                 <span className="material-symbols-outlined">notifications</span>
-                <span className="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full border-2 border-surface"></span>
+                {notifications.length > 0 && (
+                  <span className="absolute top-2 right-2 w-2 h-2 bg-secondary rounded-full border-2 border-surface animate-pulse"></span>
+                )}
               </button>
+
+              {/* Notification Dropdown */}
+              {showNotifications && (
+                <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-outline-variant rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
+                    <h3 className="font-bold text-sm text-primary">Notifications</h3>
+                    {notifications.length > 0 && (
+                      <button 
+                        onClick={clearNotifications}
+                        className="text-[10px] font-bold text-secondary uppercase tracking-widest hover:underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-[320px] overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="p-8 text-center">
+                        <span className="material-symbols-outlined text-on-surface-variant/20 text-4xl mb-2">notifications_off</span>
+                        <p className="text-xs text-on-surface-variant/60 font-medium">No new notifications</p>
+                      </div>
+                    ) : (
+                      <div className="divide-y divide-outline-variant/30">
+                        {notifications.map((notif) => (
+                          <div key={notif.id} className="p-4 hover:bg-surface-container-lowest transition-colors flex gap-3">
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notif.type === 'success' ? 'bg-secondary/10 text-secondary' : 'bg-surface-container-highest text-on-surface-variant'}`}>
+                              <span className="material-symbols-outlined text-[18px]">{notif.type === 'success' ? 'check_circle' : 'info'}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs text-on-surface leading-normal line-clamp-2">{notif.message}</p>
+                              <p className="text-[10px] text-on-surface-variant/40 mt-1 font-medium">
+                                {new Date(notif.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <div className="p-3 bg-surface-container-lowest border-t border-outline-variant/30 text-center">
+                    <button className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest hover:text-primary transition-colors">
+                      View All Activity
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="w-8 h-8 sm:w-9 sm:h-9 bg-surface-container-highest text-on-surface rounded-full flex items-center justify-center font-bold text-xs border border-outline-variant shadow-sm shrink-0">JD</div>
             </div>
           </div>
@@ -106,7 +162,7 @@ export default function ApplicationLayout({
             <div className="flex items-center gap-3 mb-1">
               <div className="w-10 h-10 bg-primary text-on-primary rounded-lg flex items-center justify-center font-black shadow-lg shadow-primary/20">H</div>
               <div>
-                <h2 className="text-base font-bold text-primary leading-none">Loan Pipeline</h2>
+                <h2 className="text-base font-bold text-primary leading-none">Your Application</h2>
                 <p className="text-[10px] text-on-surface-variant/60 uppercase font-bold mt-1 tracking-wider">Ref: #LN-8820</p>
               </div>
             </div>
@@ -147,7 +203,7 @@ export default function ApplicationLayout({
         </aside>
 
         {/* Main Content Area */}
-        <main className="pb-32 lg:pb-12 px-4 sm:px-8 lg:px-16 pt-6 lg:pt-10 transition-all bg-surface/30">
+        <main className="pb-[180px] lg:pb-12 px-4 sm:px-8 lg:px-16 pt-6 lg:pt-10 transition-all bg-surface/30">
           <div className="max-w-5xl mx-auto">
             {children}
           </div>
@@ -171,7 +227,10 @@ export default function ApplicationLayout({
               <span className="material-symbols-outlined">save</span>
             </button>
             <button 
-              onClick={handleNext}
+              onClick={isSummaryPage ? () => { /* Submission is handled in SummaryPage.tsx usually, but we need consistency */ 
+                const submitBtn = document.getElementById('final-submit-button');
+                if (submitBtn) submitBtn.click();
+              } : handleNext}
               className="h-12 px-8 bg-secondary text-on-secondary rounded-xl font-bold text-sm shadow-lg shadow-secondary/20 flex items-center gap-2 active:scale-95 transition-all"
             >
               {isSummaryPage ? "Submit" : "Next"}
@@ -183,20 +242,16 @@ export default function ApplicationLayout({
         {/* Native Tab Bar Simulation */}
         <div className="flex justify-around items-center h-16 px-4 bg-surface-container-low border-t border-outline-variant/30">
           <Link href="/" className="flex flex-col items-center gap-1 text-on-surface-variant/40">
-            <span className="material-symbols-outlined">web</span>
-            <span className="text-[8px] font-bold uppercase tracking-tighter">Site</span>
+            <span className="material-symbols-outlined">home</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
           </Link>
           <div className="flex flex-col items-center gap-1 text-secondary">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>article</span>
-            <span className="text-[8px] font-bold uppercase tracking-tighter">Apply</span>
+            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Apply</span>
           </div>
           <div className="flex flex-col items-center gap-1 text-on-surface-variant/40">
-            <span className="material-symbols-outlined">history</span>
-            <span className="text-[8px] font-bold uppercase tracking-tighter">Status</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 text-on-surface-variant/40">
-            <span className="material-symbols-outlined">person</span>
-            <span className="text-[8px] font-bold uppercase tracking-tighter">Profile</span>
+            <span className="material-symbols-outlined">account_circle</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Account</span>
           </div>
         </div>
       </nav>

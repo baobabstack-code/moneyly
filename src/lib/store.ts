@@ -1,91 +1,118 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
-interface ApplicationState {
+/**
+ * HTB Global - Central Application Store
+ * 
+ * This store is the "Source of Truth" for the entire multi-step loan application.
+ * All user inputs are collected here and persisted in sessionStorage.
+ * 
+ * GOAL: Once the user reaches the 'Summary' step, the data in this store 
+ * is retrieved and passed to the backend API for processing and storage.
+ */
+export interface ApplicationState {
+  notifications: Array<{ id: string; message: string; type: 'success' | 'info'; timestamp: number }>;
+  addNotification: (message: string, type?: 'success' | 'info') => void;
+  clearNotifications: () => void;
   // Store Selection
   selectedStoreId: number | null;
-  setSelectedStoreId: (id: number) => void;
+  selectedStoreName: string;
+  setSelectedStore: (id: number, name: string) => void;
 
-  // Section 1: Basic Info
+  // National ID Lookup
+  lookup: {
+    nationalId: string;
+    customerFound: boolean;
+  };
+  setLookup: (data: Partial<ApplicationState["lookup"]>) => void;
+
+  // Section 1: Personal Info (Basic Info)
   basicInfo: {
     firstName: string;
     lastName: string;
-    idNumber: string;
     dateOfBirth: string;
-    gender: string;
+    gender: string; // "Male" | "Female"
+    photoUrl: string; // selfie data URL
   };
   setBasicInfo: (info: Partial<ApplicationState["basicInfo"]>) => void;
 
   // Section 2: Contact Details
   contactDetails: {
-    email: string;
-    phoneNumber: string;
-    address: string;
-    city: string;
-    postalCode: string;
+    physicalAddress: string;
+    mobileNumber: string;
+    emailAddress: string;
   };
   setContactDetails: (details: Partial<ApplicationState["contactDetails"]>) => void;
 
   // Section 3: Employment Details
   employmentDetails: {
     employerName: string;
-    jobTitle: string;
-    monthlyIncome: string;
-    employmentType: string;
+    isCivilServant: boolean | null; // null = not answered yet
+    employerNo: string;    // conditional: only if isCivilServant = true
+    ministry: string;      // conditional: only if isCivilServant = true
+    phoneNumber: string;
   };
   setEmploymentDetails: (details: Partial<ApplicationState["employmentDetails"]>) => void;
 
   // Section 4: Next of Kin
   nextOfKin: {
     fullName: string;
+    address: string;
+    mobileNumber: string;
     relationship: string;
-    phoneNumber: string;
   };
   setNextOfKin: (details: Partial<ApplicationState["nextOfKin"]>) => void;
 
   // Section 5: Purchase Details
   purchaseDetails: {
-    productType: string;
-    loanAmount: string;
-    repaymentTerm: string;
+    productName: string;
+    retailPrice: string;
+    depositAmount: string;
+    // balanceAmount is computed: retailPrice - depositAmount
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
-  
+
   // Actions
   resetStore: () => void;
 }
 
 const initialState = {
+  notifications: [],
   selectedStoreId: null,
+  selectedStoreName: "",
+  lookup: {
+    nationalId: "",
+    customerFound: false,
+  },
   basicInfo: {
     firstName: "",
     lastName: "",
-    idNumber: "",
     dateOfBirth: "",
     gender: "",
+    photoUrl: "",
   },
   contactDetails: {
-    email: "",
-    phoneNumber: "",
-    address: "",
-    city: "",
-    postalCode: "",
+    physicalAddress: "",
+    mobileNumber: "",
+    emailAddress: "",
   },
   employmentDetails: {
     employerName: "",
-    jobTitle: "",
-    monthlyIncome: "",
-    employmentType: "",
+    isCivilServant: null,
+    employerNo: "",
+    ministry: "",
+    phoneNumber: "",
   },
   nextOfKin: {
     fullName: "",
+    address: "",
+    mobileNumber: "",
     relationship: "",
-    phoneNumber: "",
   },
   purchaseDetails: {
-    productType: "",
-    loanAmount: "",
-    repaymentTerm: "",
+    productName: "",
+    retailPrice: "",
+    depositAmount: "",
   },
 };
 
@@ -93,7 +120,18 @@ export const useApplicationStore = create<ApplicationState>()(
   persist(
     (set) => ({
       ...initialState,
-      setSelectedStoreId: (id) => set({ selectedStoreId: id }),
+      addNotification: (message, type = 'info') =>
+        set((state) => ({
+          notifications: [
+            ...state.notifications,
+            { id: Math.random().toString(36).substring(7), message, type, timestamp: Date.now() }
+          ]
+        })),
+      clearNotifications: () => set({ notifications: [] }),
+      setSelectedStore: (id, name) =>
+        set({ selectedStoreId: id, selectedStoreName: name }),
+      setLookup: (data) =>
+        set((state) => ({ lookup: { ...state.lookup, ...data } })),
       setBasicInfo: (info) =>
         set((state) => ({ basicInfo: { ...state.basicInfo, ...info } })),
       setContactDetails: (details) =>
@@ -112,7 +150,7 @@ export const useApplicationStore = create<ApplicationState>()(
     }),
     {
       name: "htb-application-storage",
-      storage: createJSONStorage(() => sessionStorage), // Using sessionStorage so it clears on tab close
+      storage: createJSONStorage(() => sessionStorage),
     }
   )
 );

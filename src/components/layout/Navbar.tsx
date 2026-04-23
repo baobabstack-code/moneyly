@@ -27,25 +27,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 w-full z-50 lg:hidden flex justify-around items-center h-16 px-4 bg-surface/90 backdrop-blur-xl border-t border-outline-variant shadow-[0_-10px_40px_rgba(0,0,0,0.1)]">
-        <Link href="/" className="flex flex-col items-center gap-1 text-primary">
-          <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
-        </Link>
-        <Link href="/store-selection" className="flex flex-col items-center gap-1 text-on-surface-variant/50">
-          <span className="material-symbols-outlined">add_circle</span>
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Apply</span>
-        </Link>
-        {/* <div className="flex flex-col items-center gap-1 text-on-surface-variant/50">
-          <span className="material-symbols-outlined">help</span>
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Support</span>
-        </div> */}
-        <div className="flex flex-col items-center gap-1 text-on-surface-variant/50">
-          <span className="material-symbols-outlined">account_circle</span>
-          <span className="text-[10px] font-bold uppercase tracking-tighter">Account</span>
-        </div>
-      </nav>
     </>
   );
 }
