@@ -16,7 +16,8 @@
   --color-outline: #94a3b8; /* Slate 400 */
   --color-outline-variant: #e2e8f0; /* Slate 200 */
   
-  --color-primary: #0F172A; /* Slate 900 - Branding Dark */
+  --color-primary: #0F172A; /* Slate 900 - Flipping Color */
+  --color-brand-primary: #0F172A; /* Slate 900 - Fixed Branding */
   --color-on-primary: #ffffff;
   --color-primary-container: #0F172A;
   --color-on-primary-container: #f8fafc;
@@ -151,6 +152,7 @@
   --color-outline-variant: #1e293b;
   
   --color-primary: #f8fafc; /* Headings become light in dark mode */
+  --color-brand-primary: #0F172A; /* Stays dark for contrast sections */
   --color-on-primary: #020617;
   --color-primary-container: #1e293b;
   --color-on-primary-container: #f8fafc;

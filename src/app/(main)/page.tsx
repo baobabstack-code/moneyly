@@ -177,7 +177,7 @@ export default function LandingPage() {
         </div>
       </section>
       {/* Download Section */}
-      <section className="py-24 px-6 md:px-12 bg-primary overflow-hidden relative">
+      <section className="py-24 px-6 md:px-12 bg-brand-primary overflow-hidden relative">
         <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-secondary/10 rounded-full blur-[120px] -mr-64 -mt-64 animate-pulse"></div>
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-secondary/5 rounded-full blur-[80px] -ml-48 -mb-48"></div>
         
