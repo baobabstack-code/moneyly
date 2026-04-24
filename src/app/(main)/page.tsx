@@ -3,14 +3,12 @@
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/pwa-install-button";
 import { createClient } from "@/utils/supabase/client";
-import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { getMyProfile, UserProfile } from "@/lib/profile";
 
 export default function LandingPage() {
   const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -18,74 +16,60 @@ export default function LandingPage() {
   const [loadingApps, setLoadingApps] = useState(true);
 
   useEffect(() => {
-    console.log('[LandingPage] useEffect mounted, starting auth check');
+    let initialCheckDone = false;
+
     const checkAuth = async () => {
       try {
-        console.log('[LandingPage] Calling supabase.auth.getSession()');
-        // Use getSession for immediate client-side check
         const { data: { session } } = await supabase.auth.getSession();
-        console.log('[LandingPage] Session result:', { hasSession: !!session, user: session?.user?.email });
         const currentUser = session?.user ?? null;
-        
-        console.log('[LandingPage] Setting user:', currentUser?.email);
         setUser(currentUser);
         if (currentUser) {
-          console.log('[LandingPage] User found, fetching profile');
           const profileData = await getMyProfile();
-          console.log('[LandingPage] Profile fetched:', profileData?.full_name);
           setProfile(profileData);
-          
-          // Fetch real application history
-          console.log('[LandingPage] Fetching applications');
           const { data: apps } = await supabase
             .from('applications')
             .select('*')
             .order('created_at', { ascending: false });
-          console.log('[LandingPage] Applications fetched:', apps?.length);
           setApplications(apps || []);
         }
       } catch (error) {
         console.error('[LandingPage] Auth check failed:', error);
         setUser(null);
       } finally {
-        console.log('[LandingPage] Auth check complete, setting checkingAuth=false');
+        initialCheckDone = true;
         setCheckingAuth(false);
         setLoadingApps(false);
       }
     };
     checkAuth();
 
-    console.log('[LandingPage] Setting up onAuthStateChange listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log('[LandingPage] Auth state changed:', { event, hasSession: !!session });
+      async (_event, session) => {
         const currentUser = session?.user ?? null;
         setUser(currentUser);
-        
+
         if (currentUser) {
-          console.log('[LandingPage] Auth state update: user logged in');
           const profileData = await getMyProfile();
           setProfile(profileData);
-          
           const { data: apps } = await supabase
             .from('applications')
             .select('*')
             .order('created_at', { ascending: false });
           setApplications(apps || []);
         } else {
-          console.log('[LandingPage] Auth state update: user logged out');
           setProfile(null);
           setApplications([]);
         }
-        setCheckingAuth(false);
-        setLoadingApps(false);
+
+        if (!initialCheckDone) {
+          initialCheckDone = true;
+          setCheckingAuth(false);
+          setLoadingApps(false);
+        }
       }
     );
 
-    return () => {
-      console.log('[LandingPage] Cleaning up auth subscription');
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   console.log('[LandingPage] Rendering:', { checkingAuth, userEmail: user?.email });
