@@ -12,7 +12,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
 import { createClient } from "@/utils/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { useRouter } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
@@ -20,7 +20,7 @@ import { getMyProfile, UserProfile } from "@/lib/profile";
 export default function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
 
   useEffect(() => {
@@ -49,7 +49,7 @@ export default function Navbar() {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase.auth]);
+}, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();

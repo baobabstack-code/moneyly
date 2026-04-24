@@ -4,12 +4,12 @@ import Link from "next/link";
 import { PWAInstallButton } from "@/components/pwa-install-button";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { getMyProfile, UserProfile } from "@/lib/profile";
 
 export default function LandingPage() {
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [user, setUser] = useState<User | null>(null);
@@ -70,7 +70,7 @@ export default function LandingPage() {
     );
 
     return () => subscription.unsubscribe();
-  }, [supabase]);
+  }, []);
 
   if (checkingAuth) {
     return (
