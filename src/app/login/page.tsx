@@ -21,7 +21,7 @@ export default function LoginPage() {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        router.push('/')
+        router.push('/dashboard')
       }
     }
     checkUser()
@@ -34,7 +34,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
       },
     })
     if (error) {
@@ -55,7 +55,7 @@ export default function LoginPage() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
           },
         })
         if (error) throw error
@@ -66,7 +66,7 @@ export default function LoginPage() {
           password,
         })
         if (error) throw error
-        router.push('/')
+        router.push('/dashboard')
         router.refresh()
       }
     } catch (err: any) {
