@@ -1,0 +1,92 @@
+'use client'
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
+import { createClient } from "@/utils/supabase/client";
+
+interface Props {
+  initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
+}
+
+const navItems = [
+  { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
+  { name: "New Application", href: "/store-selection", icon: "add_circle" },
+  { name: "My Applications", href: "/dashboard/applications", icon: "pending_actions" },
+];
+
+export default function DashboardSidebar({ initialUser }: Props) {
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const initials = (initialUser?.displayName || initialUser?.email || "U")
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleSignOut = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push("/login");
+  };
+
+  return (
+    <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0">
+      {/* User info */}
+      <div className="p-6 border-b border-outline-variant/30">
+        <div className="flex items-center gap-3">
+          {initialUser?.avatarUrl ? (
+            <img src={initialUser.avatarUrl} alt="Avatar" className="w-10 h-10 rounded-xl object-cover border border-outline-variant" />
+          ) : (
+            <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-black text-sm shadow-lg shadow-primary/20">
+              {initials}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-primary truncate">
+              {initialUser?.displayName || initialUser?.email}
+            </p>
+            <p className="text-[10px] text-on-surface-variant/60 uppercase font-bold tracking-widest">My Account</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Nav links */}
+      <nav className="flex-1 py-6 px-4 space-y-1">
+        {navItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                isActive
+                  ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                {item.icon}
+              </span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* Sign out */}
+      <div className="p-4 border-t border-outline-variant/30">
+        <button
+          type="button"
+          onClick={handleSignOut}
+          className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-200 group"
+        >
+          <span className="material-symbols-outlined text-[20px] group-hover:rotate-180 transition-transform duration-500">logout</span>
+          <span className="text-sm font-medium">Sign Out</span>
+        </button>
+      </div>
+    </aside>
+  );
+}

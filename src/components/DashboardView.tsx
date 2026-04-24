@@ -36,8 +36,8 @@ export default function DashboardView({ email, displayName }: Props) {
   const latestApp = applications[0];
 
   return (
-    <main className="font-manrope min-h-screen bg-background">
-      <section className="pt-24 pb-32 px-6 md:px-12 max-w-7xl mx-auto">
+    <div className="font-manrope">
+      <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-primary mb-2">
             Welcome back, {firstName}
@@ -109,7 +109,7 @@ export default function DashboardView({ email, displayName }: Props) {
             <h2 className="text-xl font-bold text-primary mb-2">Credit Limit</h2>
             <p className="text-emerald-600 text-3xl font-black mb-1">$0.00</p>
             <p className="text-on-surface-variant text-[10px] uppercase font-bold tracking-widest">Available Balance</p>
-            <button className="mt-8 text-on-surface-variant/40 text-xs font-bold uppercase tracking-widest cursor-not-allowed">
+            <button type="button" className="mt-8 text-on-surface-variant/40 text-xs font-bold uppercase tracking-widest cursor-not-allowed">
               View Statements
             </button>
           </div>
@@ -118,7 +118,7 @@ export default function DashboardView({ email, displayName }: Props) {
         <div className="bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-bold text-primary">Recent Activity</h2>
-            <button className="text-sm font-bold text-secondary hover:underline">View All History</button>
+            <button type="button" className="text-sm font-bold text-secondary hover:underline">View All History</button>
           </div>
 
           <div className="space-y-6">
@@ -174,6 +174,6 @@ export default function DashboardView({ email, displayName }: Props) {
           </div>
         </div>
       </section>
-    </main>
+    </div>
   );
 }
