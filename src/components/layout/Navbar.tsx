@@ -24,35 +24,51 @@ export default function Navbar() {
   const router = useRouter();
 
   useEffect(() => {
+    console.log('[Navbar] useEffect mounted');
     const getUserData = async () => {
+      console.log('[Navbar] Fetching user data');
       const { data: { user } } = await supabase.auth.getUser();
+      console.log('[Navbar] User fetched:', user?.email);
       setUser(user);
       if (user) {
+        console.log('[Navbar] Fetching profile');
         const profileData = await getMyProfile();
+        console.log('[Navbar] Profile fetched:', profileData?.full_name);
         setProfile(profileData);
       }
     };
 
     getUserData();
 
+    console.log('[Navbar] Setting up auth state change listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
+        console.log('[Navbar] Auth state changed:', { event: _event, hasSession: !!session });
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         if (currentUser) {
+          console.log('[Navbar] User logged in, fetching profile');
           const profileData = await getMyProfile();
           setProfile(profileData);
         } else {
+          console.log('[Navbar] User logged out');
           setProfile(null);
         }
       }
     );
 
-    return () => subscription.unsubscribe();
-}, []);
+    return () => {
+      console.log('[Navbar] Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  console.log('[Navbar] Rendering with user:', user?.email);
 
   const handleLogout = async () => {
+    console.log('[Navbar] Logout clicked');
     await supabase.auth.signOut();
+    console.log('[Navbar] Signed out, refreshing');
     router.refresh();
   };
 

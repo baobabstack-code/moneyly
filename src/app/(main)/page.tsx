@@ -18,40 +18,52 @@ export default function LandingPage() {
   const [loadingApps, setLoadingApps] = useState(true);
 
   useEffect(() => {
+    console.log('[LandingPage] useEffect mounted, starting auth check');
     const checkAuth = async () => {
       try {
+        console.log('[LandingPage] Calling supabase.auth.getSession()');
         // Use getSession for immediate client-side check
         const { data: { session } } = await supabase.auth.getSession();
+        console.log('[LandingPage] Session result:', { hasSession: !!session, user: session?.user?.email });
         const currentUser = session?.user ?? null;
         
+        console.log('[LandingPage] Setting user:', currentUser?.email);
         setUser(currentUser);
         if (currentUser) {
+          console.log('[LandingPage] User found, fetching profile');
           const profileData = await getMyProfile();
+          console.log('[LandingPage] Profile fetched:', profileData?.full_name);
           setProfile(profileData);
           
           // Fetch real application history
+          console.log('[LandingPage] Fetching applications');
           const { data: apps } = await supabase
             .from('applications')
             .select('*')
             .order('created_at', { ascending: false });
+          console.log('[LandingPage] Applications fetched:', apps?.length);
           setApplications(apps || []);
         }
       } catch (error) {
-        console.error('LandingPage auth check failed:', error);
+        console.error('[LandingPage] Auth check failed:', error);
         setUser(null);
       } finally {
+        console.log('[LandingPage] Auth check complete, setting checkingAuth=false');
         setCheckingAuth(false);
         setLoadingApps(false);
       }
     };
     checkAuth();
 
+    console.log('[LandingPage] Setting up onAuthStateChange listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('[LandingPage] Auth state changed:', { event, hasSession: !!session });
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         
         if (currentUser) {
+          console.log('[LandingPage] Auth state update: user logged in');
           const profileData = await getMyProfile();
           setProfile(profileData);
           
@@ -61,6 +73,7 @@ export default function LandingPage() {
             .order('created_at', { ascending: false });
           setApplications(apps || []);
         } else {
+          console.log('[LandingPage] Auth state update: user logged out');
           setProfile(null);
           setApplications([]);
         }
@@ -69,8 +82,13 @@ export default function LandingPage() {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      console.log('[LandingPage] Cleaning up auth subscription');
+      subscription.unsubscribe();
+    };
   }, []);
+
+  console.log('[LandingPage] Rendering:', { checkingAuth, userEmail: user?.email });
 
   if (checkingAuth) {
     return (
