@@ -173,7 +173,7 @@ export default function LookupPage() {
               </div>
             ) : (
               /* NOT FOUND STATE */
-              <div className="space-y-4">
+              <div className="space-y-4 bg-amber-50 dark:bg-transparent p-4 rounded-2xl border border-amber-200 dark:border-transparent">
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-900 flex items-center justify-center">
                     <span className="material-symbols-outlined text-amber-700 dark:text-amber-400">person_add</span>
