@@ -19,30 +19,35 @@ export default function LandingPage() {
 
   useEffect(() => {
     const checkAuth = async () => {
-      // Use getSession for immediate client-side check
-      const { data: { session } } = await supabase.auth.getSession();
-      const currentUser = session?.user ?? null;
-      
-      setUser(currentUser);
-      if (currentUser) {
-        const profileData = await getMyProfile();
-        setProfile(profileData);
+      try {
+        // Use getSession for immediate client-side check
+        const { data: { session } } = await supabase.auth.getSession();
+        const currentUser = session?.user ?? null;
         
-        // Fetch real application history
-        const { data: apps } = await supabase
-          .from('applications')
-          .select('*')
-          .order('created_at', { ascending: false });
-        setApplications(apps || []);
+        setUser(currentUser);
+        if (currentUser) {
+          const profileData = await getMyProfile();
+          setProfile(profileData);
+          
+          // Fetch real application history
+          const { data: apps } = await supabase
+            .from('applications')
+            .select('*')
+            .order('created_at', { ascending: false });
+          setApplications(apps || []);
+        }
+      } catch (error) {
+        console.error('LandingPage auth check failed:', error);
+        setUser(null);
+      } finally {
+        setCheckingAuth(false);
+        setLoadingApps(false);
       }
-      setCheckingAuth(false);
-      setLoadingApps(false);
     };
     checkAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth event on LandingPage:", event);
         const currentUser = session?.user ?? null;
         setUser(currentUser);
         
@@ -61,7 +66,6 @@ export default function LandingPage() {
         }
         setCheckingAuth(false);
         setLoadingApps(false);
-        router.refresh();
       }
     );
 

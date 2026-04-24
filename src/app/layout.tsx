@@ -32,7 +32,6 @@ export const metadata: Metadata = {
 
 import { ThemeProvider } from "@/components/theme-provider";
 import { SWRegistration } from "@/components/sw-registration";
-import AutoSaveDraft from "@/components/auto-save-draft";
 
 export default function RootLayout({
   children,
@@ -58,7 +57,6 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <SWRegistration />
-          <AutoSaveDraft />
           {children}
         </ThemeProvider>
       </body>

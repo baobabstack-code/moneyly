@@ -86,6 +86,12 @@ export default function Navbar() {
                     <span className="material-symbols-outlined text-xl">account_circle</span>
                   </div>
                 )}
+                <Link
+                  href="/dashboard"
+                  className="hidden sm:inline-flex bg-secondary text-on-secondary px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-secondary/90 transition-all text-xs"
+                >
+                  Dashboard
+                </Link>
                 <button 
                   onClick={handleLogout}
                   className="bg-surface-container-highest text-on-surface px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center gap-2"
