@@ -61,13 +61,15 @@ export default function LoginPage() {
         if (error) throw error
         setSuccessMessage('Verification email sent! Please check your inbox.')
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         })
         if (error) throw error
-        router.push('/dashboard')
-        router.refresh()
+        if (data.session) {
+          router.push('/dashboard')
+          router.refresh()
+        }
       }
     } catch (err: any) {
       setError(err.message)
