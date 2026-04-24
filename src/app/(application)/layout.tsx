@@ -242,7 +242,7 @@ export default function ApplicationLayout({
               onClick={async () => {
                 const supabase = createClient();
                 await supabase.auth.signOut();
-                router.push("/login");
+                router.push("/");
               }}
               className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-300 group"
             >
@@ -305,14 +305,14 @@ export default function ApplicationLayout({
             <span className="material-symbols-outlined">home</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
           </Link>
-          <div className="flex flex-col items-center gap-1 text-secondary">
+          <Link href="/store-selection" className="flex flex-col items-center gap-1 text-secondary">
             <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Apply</span>
-          </div>
-          <div className="flex flex-col items-center gap-1 text-on-surface-variant/40">
+          </Link>
+          <Link href="/dashboard" className="flex flex-col items-center gap-1 text-on-surface-variant/40">
             <span className="material-symbols-outlined">account_circle</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Account</span>
-          </div>
+          </Link>
         </div>
       </nav>
     </div>
