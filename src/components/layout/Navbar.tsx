@@ -5,7 +5,7 @@ import { ThemeToggle } from "../theme-toggle";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import { User } from "@supabase/supabase-js";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
 
 interface NavbarProps {
@@ -18,6 +18,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
   const [hydrated, setHydrated] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const getUserData = async () => {
@@ -50,8 +51,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/');
-    router.refresh();
+    window.location.href = '/login';
   };
 
   // Before client hydration completes, use server-provided initialUser to avoid flash
@@ -92,12 +92,14 @@ export default function Navbar({ initialUser }: NavbarProps) {
                   <span className="material-symbols-outlined text-xl">account_circle</span>
                 </div>
               )}
-              <Link
-                href="/dashboard"
-                className="hidden sm:inline-flex bg-secondary text-on-secondary px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-secondary/90 transition-all text-xs"
-              >
-                Dashboard
-              </Link>
+              {pathname !== '/dashboard' && (
+                <Link
+                  href="/dashboard"
+                  className="hidden sm:inline-flex bg-secondary text-on-secondary px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-secondary/90 transition-all text-xs"
+                >
+                  Dashboard
+                </Link>
+              )}
               <button
                 type="button"
                 onClick={handleLogout}

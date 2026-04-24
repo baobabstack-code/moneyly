@@ -175,16 +175,16 @@ export default function LookupPage() {
               /* NOT FOUND STATE */
               <div className="space-y-4">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-amber-600 dark:text-amber-400">person_add</span>
+                  <div className="w-10 h-10 rounded-full bg-amber-200 dark:bg-amber-900 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-amber-700 dark:text-amber-400">person_add</span>
                   </div>
                   <div>
-                    <p className="font-bold text-amber-800 dark:text-amber-300">Welcome to HTB</p>
-                    <p className="text-sm text-amber-700 dark:text-amber-400">No record found for ID: <span className="font-mono font-bold">{nationalId}</span></p>
+                    <p className="font-bold text-amber-900 dark:text-amber-300">Welcome to HTB</p>
+                    <p className="text-sm text-amber-800 dark:text-amber-400">No record found for ID: <span className="font-mono font-bold">{nationalId}</span></p>
                   </div>
                 </div>
-                <div className="bg-amber-50/80 dark:bg-amber-900/20 p-5 rounded-2xl border-2 border-amber-200 dark:border-amber-800 shadow-sm">
-                   <p className="text-sm text-amber-950 dark:text-amber-50 leading-relaxed font-bold">
+                <div className="bg-white dark:bg-amber-900/20 p-5 rounded-2xl border-2 border-amber-300 dark:border-amber-800 shadow-sm">
+                  <p className="text-sm text-amber-900 dark:text-amber-50 leading-relaxed font-bold">
                     You&apos;re new to HTB Global. We&apos;ll need to collect some basic details to get your application started.
                   </p>
                 </div>
