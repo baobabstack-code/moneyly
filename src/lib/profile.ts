@@ -43,28 +43,19 @@ export interface UserProfile {
 }
 
 /**
- * Checks if all required profile fields are filled
+ * Checks if profile has minimum required fields completed.
+ * New users will see the profile completion card until they fill in basics.
  */
 export function isProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
-  return !!(
-    profile.first_name &&
-    profile.last_name &&
-    profile.national_id &&
-    profile.date_of_birth &&
-    profile.gender &&
-    profile.photo_url &&
-    profile.physical_address &&
-    profile.mobile_number &&
-    profile.email_address &&
-    profile.nok_full_name &&
-    profile.nok_address &&
-    profile.nok_mobile_number &&
-    profile.nok_relationship &&
-    profile.employer_name &&
-    profile.is_civil_servant !== null &&
-    profile.is_profile_complete
-  );
+  
+  // Must have first name OR full name, and profile_complete flag
+  const hasName = profile.first_name || profile.full_name;
+  const hasBasic = profile.national_id && profile.date_of_birth && profile.gender;
+  const hasContact = profile.physical_address && profile.mobile_number;
+  
+  // Profile is complete if they have name + basic + contact + is_profile_complete flag
+  return !!(hasName && hasBasic && hasContact && profile.is_profile_complete);
 }
 
 /**
