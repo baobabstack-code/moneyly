@@ -1,5 +1,4 @@
 import Navbar from "@/components/layout/Navbar";
-import DashboardSidebar from "@/components/DashboardSidebar";
 import { createClient } from "@/utils/supabase/server";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -15,12 +14,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar initialUser={initialUser} />
-      <div className="flex flex-1">
-        <DashboardSidebar initialUser={initialUser} />
-        <main className="flex-1 min-w-0">
-          {children}
-        </main>
-      </div>
+      <main className="flex-1 min-w-0">
+        {children}
+      </main>
     </div>
   );
 }

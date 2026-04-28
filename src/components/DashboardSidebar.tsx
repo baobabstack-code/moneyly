@@ -11,7 +11,7 @@ interface Props {
 const navItems = [
   { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
   { name: "New Application", href: "/store-selection", icon: "add_circle" },
-  { name: "My Applications", href: "/dashboard/applications", icon: "pending_actions" },
+  { name: "My Applications", href: "/applications", icon: "pending_actions" },
 ];
 
 export default function DashboardSidebar({ initialUser }: Props) {
