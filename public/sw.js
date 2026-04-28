@@ -1,23 +1,13 @@
-const CACHE_NAME = 'htb-global-v1';
-const ASSETS_TO_CACHE = [
-  '/',
-  '/manifest.json',
-  '/icons/icon-192x192.png',
-  '/icons/icon-512x512.png',
-];
+// Basic service worker - disabled for now
+// The app doesn't need offline caching for loan applications
 
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(ASSETS_TO_CACHE);
-    })
-  );
+self.addEventListener('install', () => {
+  self.skipWaiting();
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request).then((response) => {
-      return response || fetch(event.request);
-    })
-  );
+self.addEventListener('activate', () => {
+  self.clients.claim();
 });
+
+// Don't intercept fetches - let app work normally
+self.addEventListener('fetch', () => {});
