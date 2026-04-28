@@ -30,10 +30,16 @@ function validateNationalId(value: string): string | null {
 
 function validateMobile(value: string): string | null {
   if (!value.trim()) return "Mobile number is required";
-  const cleaned = value.replace(/\s/g, "");
-  if (!/^\+?263[789]\d{8}$/.test(cleaned) && !/^0?7[789]\d{8}$/.test(cleaned)) {
-    return "Enter valid Zimbabwe number";
-  }
+  
+  const cleaned = value.replace(/\s/g, "").replace(/-/g, "");
+  
+  const isValid = (
+    /^\+?263[789]\d{8}$/.test(cleaned) ||
+    /^0[789]\d{8}$/.test(cleaned) ||
+    /^[789]\d{8}$/.test(cleaned)
+  );
+  
+  if (!isValid) return "Enter valid Zimbabwe number (e.g., 0779774456 or +263779774456)";
   return null;
 }
 
