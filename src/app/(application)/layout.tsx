@@ -63,18 +63,14 @@ export default function ApplicationLayout({
   const profileComplete = profile ? isProfileComplete(profile) : false;
 
   const profileSections = [
-    { name: "Personal Info", href: "/profile-setup", icon: "person", section: "personal" },
-    { name: "Contact", href: "/profile-setup", icon: "contact_page", section: "contact" },
-    { name: "Employment", href: "/profile-setup", icon: "business_center", section: "employment" },
-    { name: "Next of Kin", href: "/profile-setup", icon: "family_restroom", section: "nok" },
-  ];
-
-  const steps = [
-    { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
     { name: "Personal Info", href: "/profile-setup", icon: "person" },
     { name: "Contact", href: "/profile-setup", icon: "contact_page" },
     { name: "Employment", href: "/profile-setup", icon: "business_center" },
     { name: "Next of Kin", href: "/profile-setup", icon: "family_restroom" },
+  ];
+
+  const steps = [
+    { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
     { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
     { name: "Summary", href: "/apply/summary", icon: "fact_check" },
   ];
