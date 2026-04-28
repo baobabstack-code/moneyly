@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApplicationStore } from "@/lib/store";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
-import { useEffect } from "react";
 import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -18,6 +17,7 @@ export default function ApplicationLayout({
   const pathname = usePathname();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
+  const [editSection, setEditSection] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [checking, setChecking] = useState(true);
@@ -62,12 +62,20 @@ export default function ApplicationLayout({
 
   const profileComplete = profile ? isProfileComplete(profile) : false;
 
+  const sectionTitles: Record<string, {title: string, icon: string}> = {
+    photo: {title: "Profile Photo", icon: "photo_camera"},
+    personal: {title: "Personal Info", icon: "person"},
+    contact: {title: "Contact Details", icon: "contact_page"},
+    nok: {title: "Next of Kin", icon: "family_restroom"},
+    employment: {title: "Employment", icon: "business_center"},
+  };
+
   const profileSections = [
-    { name: "Photo", href: "/profile-setup", icon: "photo_camera" },
-    { name: "Personal Info", href: "/profile-setup", icon: "person" },
-    { name: "Contact", href: "/profile-setup", icon: "contact_page" },
-    { name: "Employment", href: "/profile-setup", icon: "business_center" },
-    { name: "Next of Kin", href: "/profile-setup", icon: "family_restroom" },
+    { name: "Photo", href: "?section=photo", icon: "photo_camera" },
+    { name: "Personal Info", href: "?section=personal", icon: "person" },
+    { name: "Contact", href: "?section=contact", icon: "contact_page" },
+    { name: "Employment", href: "?section=employment", icon: "business_center" },
+    { name: "Next of Kin", href: "?section=nok", icon: "family_restroom" },
   ];
 
   const steps = [
@@ -224,42 +232,7 @@ export default function ApplicationLayout({
             </div>
           </div>
           <nav className="flex-1 py-6 px-4 space-y-2">
-            <Link 
-              href="/" 
-              className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-300 group ${
-                pathname === "/" 
-                  ? "text-secondary bg-secondary/10 font-bold shadow-sm shadow-secondary/5 border border-secondary/20" 
-                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <span className={`material-symbols-outlined transition-transform duration-300 ${pathname === "/" ? 'scale-110' : 'group-hover:scale-110'}`}>dashboard</span>
-              <span className="text-sm tracking-tight">My Dashboard</span>
-            </Link>
-
-            {/* Profile Sections - Editable */}
-            {profileComplete && (
-              <>
-                <div className="pt-4 pb-2 px-5">
-                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Your Profile</p>
-                </div>
-
-                {profileSections.map((section) => (
-                  <Link 
-                    key={section.name}
-                    href={section.href}
-                    className="flex items-center justify-between px-5 py-3.5 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all"
-                  >
-                    <div className="flex items-center gap-3">
-                      <span className="material-symbols-outlined text-[20px]">{section.icon}</span>
-                      <span className="text-sm tracking-tight">{section.name}</span>
-                    </div>
-                    <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
-                  </Link>
-                ))}
-              </>
-            )}
-
-            <div className="pt-4 pb-2 px-5">
+            <div className="pb-2 px-5">
               <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Application Process</p>
             </div>
 
@@ -280,6 +253,32 @@ export default function ApplicationLayout({
                 </Link>
               );
             })}
+
+            {/* Profile Sections - Editable */}
+            {profileComplete && (
+              <>
+                <div className="pt-4 pb-2 px-5">
+                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Your Profile</p>
+                </div>
+
+                {profileSections.map((section) => {
+                  const sectionKey = section.href.split('=')[1] || 'photo';
+                  return (
+                    <button 
+                      key={section.name}
+                      onClick={() => setEditSection(sectionKey)}
+                      className="w-full flex items-center justify-between px-5 py-3.5 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="material-symbols-outlined text-[20px]">{section.icon}</span>
+                        <span className="text-sm tracking-tight">{section.name}</span>
+                      </div>
+                      <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
+                    </button>
+                  );
+                })}
+              </>
+            )}
           </nav>
           <nav className="px-4 py-4 space-y-2 border-t border-outline-variant/30">
             <button 
@@ -359,6 +358,24 @@ export default function ApplicationLayout({
           </Link>
         </div>
       </nav>
+
+      {editSection && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditSection(null)} />
+          <div className="relative w-full max-w-lg max-h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-outline-variant">
+              <h2 className="text-lg font-bold">{sectionTitles[editSection]?.title || 'Edit Profile'}</h2>
+              <button onClick={() => setEditSection(null)} className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center">
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+            <iframe 
+              src={`/profile-setup${profileSections.find(s => s.href.includes(editSection))?.href || ''}`} 
+              className="w-full flex-1 min-h-[400px] border-0"
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
