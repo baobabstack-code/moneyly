@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMyProfile, saveProfile } from "@/lib/profile";
 
@@ -72,7 +72,6 @@ const initialFormData = {
 
 export default function ProfileSetupPage() {
   const router = useRouter();
-  const [isPending, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
