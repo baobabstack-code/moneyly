@@ -70,6 +70,34 @@ const initialFormData = {
   employment_phone: "",
 };
 
+const STORAGE_KEY = 'profile_draft';
+
+function saveToStorage(data: typeof initialFormData) {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+}
+
+function loadFromStorage(): typeof initialFormData | null {
+  if (typeof window !== 'undefined') {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch {
+        return null;
+      }
+    }
+  }
+  return null;
+}
+
+function clearStorage() {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(STORAGE_KEY);
+  }
+}
+
 export default function ProfileSetupPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
@@ -78,34 +106,48 @@ export default function ProfileSetupPage() {
   const [errors, setErrors] = useState<FormErrors>({});
   const [formData, setFormData] = useState(initialFormData);
 
+  // Load saved draft first, then check server
   useEffect(() => {
     setLoading(true);
+    
+    // First try to load from localStorage (instant)
+    const draft = loadFromStorage();
+    if (draft) {
+      setFormData(draft);
+    }
+    
+    // Then load from server (may overwrite draft if server has data)
     getMyProfile().then((p) => {
       if (p) {
         setFormData({
-          first_name: p.first_name || "",
-          last_name: p.last_name || "",
-          national_id: p.national_id || "",
-          date_of_birth: p.date_of_birth || "",
-          gender: p.gender || "",
-          physical_address: p.physical_address || "",
-          mobile_number: p.mobile_number || "",
-          email_address: p.email_address || "",
-          nok_full_name: p.nok_full_name || "",
-          nok_address: p.nok_address || "",
-          nok_mobile_number: p.nok_mobile_number || "",
-          nok_relationship: p.nok_relationship || "",
-          employer_name: p.employer_name || "",
-          employer_no: p.employer_no || "",
-          ministry: p.ministry || "",
-          is_civil_servant: p.is_civil_servant || false,
-          monthly_income: p.monthly_income || "",
-          employment_phone: p.employment_phone || "",
+          first_name: p.first_name || draft?.first_name || "",
+          last_name: p.last_name || draft?.last_name || "",
+          national_id: p.national_id || draft?.national_id || "",
+          date_of_birth: p.date_of_birth || draft?.date_of_birth || "",
+          gender: p.gender || draft?.gender || "",
+          physical_address: p.physical_address || draft?.physical_address || "",
+          mobile_number: p.mobile_number || draft?.mobile_number || "",
+          email_address: p.email_address || draft?.email_address || "",
+          nok_full_name: p.nok_full_name || draft?.nok_full_name || "",
+          nok_address: p.nok_address || draft?.nok_address || "",
+          nok_mobile_number: p.nok_mobile_number || draft?.nok_mobile_number || "",
+          nok_relationship: p.nok_relationship || draft?.nok_relationship || "",
+          employer_name: p.employer_name || draft?.employer_name || "",
+          employer_no: p.employer_no || draft?.employer_no || "",
+          ministry: p.ministry || draft?.ministry || "",
+          is_civil_servant: p.is_civil_servant ?? draft?.is_civil_servant ?? false,
+          monthly_income: p.monthly_income || draft?.monthly_income || "",
+          employment_phone: p.employment_phone || draft?.employment_phone || "",
         });
       }
       setLoading(false);
     });
   }, []);
+
+  // Auto-save to localStorage on change
+  useEffect(() => {
+    saveToStorage(formData);
+  }, [formData]);
 
   const validateField = (field: keyof FormErrors, value: any): string | null => {
     switch (field) {
@@ -190,6 +232,7 @@ export default function ProfileSetupPage() {
     setSaving(false);
 
     if (saved) {
+      clearStorage();
       router.push("/dashboard");
     } else {
       alert("Failed to save. Please try again.");
