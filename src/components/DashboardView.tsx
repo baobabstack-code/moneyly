@@ -47,16 +47,16 @@ export default function DashboardView({ email, displayName }: Props) {
             <p className="text-on-surface-variant">Complete your profile to continue.</p>
           </div>
 
-          <div className="bg-amber-500 text-white p-8 rounded-[32px] shadow-2xl shadow-amber-500/20 flex flex-col justify-between group overflow-hidden relative">
+          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
             <div className="relative z-10">
               <span className="material-symbols-outlined text-4xl mb-4">person_add</span>
               <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
-              <p className="text-white/80 text-sm mb-8 leading-relaxed">Add your National ID and details to start applying.</p>
+              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Add your National ID and details to start applying.</p>
             </div>
             <Link
               href="/profile-setup"
-              className="bg-white text-amber-500 px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 inline-flex items-center justify-center"
+              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 inline-flex items-center justify-center"
             >
               Set Up Profile
             </Link>
