@@ -63,6 +63,7 @@ export default function ApplicationLayout({
   const profileComplete = profile ? isProfileComplete(profile) : false;
 
   const profileSections = [
+    { name: "Photo", href: "/profile-setup", icon: "photo_camera" },
     { name: "Personal Info", href: "/profile-setup", icon: "person" },
     { name: "Contact", href: "/profile-setup", icon: "contact_page" },
     { name: "Employment", href: "/profile-setup", icon: "business_center" },
