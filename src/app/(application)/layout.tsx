@@ -60,6 +60,15 @@ export default function ApplicationLayout({
     .slice(0, 2);
   const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
+  const profileComplete = profile ? isProfileComplete(profile) : false;
+
+  const profileSections = [
+    { name: "Personal Info", href: "/profile-setup", icon: "person", section: "personal" },
+    { name: "Contact", href: "/profile-setup", icon: "contact_page", section: "contact" },
+    { name: "Employment", href: "/profile-setup", icon: "business_center", section: "employment" },
+    { name: "Next of Kin", href: "/profile-setup", icon: "family_restroom", section: "nok" },
+  ];
+
   const steps = [
     { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
     { name: "Personal Info", href: "/apply/basic-info", icon: "person" },
@@ -229,6 +238,29 @@ export default function ApplicationLayout({
               <span className={`material-symbols-outlined transition-transform duration-300 ${pathname === "/" ? 'scale-110' : 'group-hover:scale-110'}`}>dashboard</span>
               <span className="text-sm tracking-tight">My Dashboard</span>
             </Link>
+
+            {/* Profile Sections - Editable */}
+            {profileComplete && (
+              <>
+                <div className="pt-4 pb-2 px-5">
+                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Your Profile</p>
+                </div>
+
+                {profileSections.map((section) => (
+                  <Link 
+                    key={section.name}
+                    href={section.href}
+                    className="flex items-center justify-between px-5 py-3.5 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="material-symbols-outlined text-[20px]">{section.icon}</span>
+                      <span className="text-sm tracking-tight">{section.name}</span>
+                    </div>
+                    <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
+                  </Link>
+                ))}
+              </>
+            )}
 
             <div className="pt-4 pb-2 px-5">
               <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Application Process</p>
