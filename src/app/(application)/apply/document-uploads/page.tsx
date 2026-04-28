@@ -34,15 +34,18 @@ export default function DocumentUploadsPage() {
 
       if (uploadError) throw uploadError;
 
-      const { data: { publicUrl } } = supabase.storage
-        .from('applications')
-        .getPublicUrl(filePath);
+       const { data: { publicUrl } } = supabase.storage
+         .from('applications')
+         .getPublicUrl(filePath);
 
-      if (type === 'id') {
-        setDocumentUploads({ idCopyUrl: publicUrl });
-      } else {
-        setDocumentUploads({ payslipUrl: publicUrl });
-      }
+       // Fix: Use direct public URL format for Supabase storage
+       const fixedPublicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/applications/${filePath}`;
+
+       if (type === 'id') {
+         setDocumentUploads({ idCopyUrl: fixedPublicUrl });
+       } else {
+         setDocumentUploads({ payslipUrl: fixedPublicUrl });
+       }
     } catch (err: any) {
       console.error("Upload error:", err);
       setError(err.message || "Failed to upload file.");

@@ -104,7 +104,7 @@ function ProfileSetupContent() {
     const ext = f.name.split('.').pop();
     const path = `${user.id}/photo.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, f, { upsert: true });
-    if (!error) { const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path); setPhoto(publicUrl); }
+    if (!error) { const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${path}`; setPhoto(publicUrl); }
     setUploading(false);
   };
 
