@@ -7,8 +7,7 @@ import { useApplicationStore } from "@/lib/store";
 import { createClient } from "@/utils/supabase/client";
 import { User } from "@supabase/supabase-js";
 import { useEffect } from "react";
-import { getMyProfile, UserProfile } from "@/lib/profile";
-
+import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
 import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function ApplicationLayout({
@@ -21,6 +20,7 @@ export default function ApplicationLayout({
   const [showNotifications, setShowNotifications] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [checking, setChecking] = useState(true);
   const { notifications, clearNotifications } = useApplicationStore();
 
   useEffect(() => {
@@ -31,10 +31,25 @@ export default function ApplicationLayout({
         setUser(user);
         const profileData = await getMyProfile();
         setProfile(profileData);
+        
+        // Block application if profile not complete
+        if (profileData && !isProfileComplete(profileData)) {
+          router.push("/profile-setup");
+        }
       }
+      setChecking(false);
     };
     fetchUser();
   }, []);
+
+  // Show loading while checking
+  if (checking) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const userInitial = profile?.full_name?.[0] || user?.user_metadata?.full_name?.[0] || user?.email?.[0] || "U";
   const userInitials = (profile?.full_name || user?.user_metadata?.full_name || user?.email || "User")
