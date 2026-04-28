@@ -71,12 +71,10 @@ export default function ApplicationLayout({
 
   const steps = [
     { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
-    ...(profileComplete ? [] : [
-      { name: "Personal Info", href: "/apply/basic-info", icon: "person" },
-      { name: "Contact", href: "/apply/contact-details", icon: "contact_page" },
-      { name: "Employment", href: "/apply/employment-details", icon: "business_center" },
-      { name: "Next of Kin", href: "/apply/next-of-kin", icon: "family_restroom" },
-    ]),
+    { name: "Personal Info", href: "/profile-setup", icon: "person" },
+    { name: "Contact", href: "/profile-setup", icon: "contact_page" },
+    { name: "Employment", href: "/profile-setup", icon: "business_center" },
+    { name: "Next of Kin", href: "/profile-setup", icon: "family_restroom" },
     { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
     { name: "Summary", href: "/apply/summary", icon: "fact_check" },
   ];
