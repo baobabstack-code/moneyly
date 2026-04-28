@@ -92,6 +92,7 @@ export async function getMyProfile(): Promise<UserProfile | null> {
 
 /**
  * Saves or updates the current user's profile.
+ * Also updates auth.users metadata with name.
  */
 export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfile | null> {
   const supabase = createClient();
@@ -99,11 +100,24 @@ export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfi
 
   if (!user) return null;
 
+  // Build full name from first + last
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
+
+  // First update auth.users metadata
+  await supabase.auth.updateUser({
+    data: {
+      full_name: fullName,
+      first_name: data.first_name,
+      last_name: data.last_name,
+    }
+  });
+
+  // Then save to profiles table
   const { data: updated, error } = await supabase
     .from('profiles')
     .upsert({ 
       id: user.id, 
-      full_name: [data.first_name, data.last_name].filter(Boolean).join(' ') || null,
+      full_name: fullName,
       ...data,
       updated_at: new Date().toISOString()
     })
