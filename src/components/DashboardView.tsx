@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { getMyProfile, UserProfile } from "@/lib/profile";
+import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
 
 interface Props {
   email: string;
@@ -32,6 +32,8 @@ export default function DashboardView({ email, displayName }: Props) {
     load();
   }, []);
 
+  const profileComplete = profile ? isProfileComplete(profile) : false;
+
   const firstName = profile?.full_name?.split(' ')[0] || displayName;
   const latestApp = applications[0];
 
@@ -44,6 +46,27 @@ export default function DashboardView({ email, displayName }: Props) {
           </h1>
           <p className="text-on-surface-variant">Manage your institutional loan applications and facility details.</p>
         </div>
+
+        {!loadingApps && !profileComplete && (
+          <div className="mb-10 bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/30 rounded-2xl p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-amber-500/20 text-amber-600 rounded-xl flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl">person_add</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-amber-900 dark:text-amber-100">Complete Your Profile</h3>
+                <p className="text-sm text-amber-700/70 dark:text-amber-200/70">Add your National ID and other details to start applying.</p>
+              </div>
+            </div>
+            <Link
+              href="/profile-setup"
+              className="shrink-0 px-6 py-3 bg-amber-500 text-white font-bold rounded-xl hover:bg-amber-600 active:scale-95 transition-all flex items-center gap-2"
+            >
+              Click Here
+              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+            </Link>
+          </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
           <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
