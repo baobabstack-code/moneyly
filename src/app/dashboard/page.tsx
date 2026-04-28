@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
+import { isProfileComplete } from '@/lib/profile'
 import DashboardView from '@/components/DashboardView'
 
 export const dynamic = 'force-dynamic'
@@ -10,6 +11,18 @@ export default async function DashboardPage() {
 
   if (!session?.user) {
     redirect('/login')
+  }
+
+  // Check if profile is complete
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .single()
+
+  // Redirect to profile-setup if not complete
+  if (!isProfileComplete(profile)) {
+    redirect('/profile-setup')
   }
 
   const displayName =
