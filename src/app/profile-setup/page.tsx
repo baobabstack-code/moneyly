@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { getMyProfile, saveProfile, UserProfile } from "@/lib/profile";
+import { getMyProfile, saveProfile } from "@/lib/profile";
 
 interface FormErrors {
   first_name?: string;
@@ -49,34 +49,38 @@ function validateDob(value: string): string | null {
   return null;
 }
 
+const initialFormData = {
+  first_name: "",
+  last_name: "",
+  national_id: "",
+  date_of_birth: "",
+  gender: "",
+  physical_address: "",
+  mobile_number: "",
+  email_address: "",
+  nok_full_name: "",
+  nok_address: "",
+  nok_mobile_number: "",
+  nok_relationship: "",
+  employer_name: "",
+  employer_no: "",
+  ministry: "",
+  is_civil_servant: false,
+  monthly_income: "",
+  employment_phone: "",
+};
+
 export default function ProfileSetupPage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [isPending, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FormErrors>({});
-  const [formData, setFormData] = useState({
-    first_name: "",
-    last_name: "",
-    national_id: "",
-    date_of_birth: "",
-    gender: "",
-    physical_address: "",
-    mobile_number: "",
-    email_address: "",
-    nok_full_name: "",
-    nok_address: "",
-    nok_mobile_number: "",
-    nok_relationship: "",
-    employer_name: "",
-    employer_no: "",
-    ministry: "",
-    is_civil_servant: false,
-    monthly_income: "",
-    employment_phone: "",
-  });
+  const [formData, setFormData] = useState(initialFormData);
 
   useEffect(() => {
+    setLoading(true);
     getMyProfile().then((p) => {
       if (p) {
         setFormData({
@@ -226,7 +230,6 @@ export default function ProfileSetupPage() {
         <p className="text-on-surface-variant text-sm sm:text-base">All fields are required.</p>
       </div>
 
-      {/* BASIC INFO */}
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 mb-4 sm:mb-6">
         <h2 className="font-bold text-base sm:text-lg text-primary border-b border-outline-variant/30 pb-2">Basic Information</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
@@ -265,7 +268,6 @@ export default function ProfileSetupPage() {
         </div>
       </div>
 
-      {/* CONTACT */}
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 mb-4 sm:mb-6">
         <h2 className="font-bold text-base sm:text-lg text-primary border-b border-outline-variant/30 pb-2">Contact Details</h2>
         <div>
@@ -285,7 +287,6 @@ export default function ProfileSetupPage() {
         </div>
       </div>
 
-      {/* NEXT OF KIN */}
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 mb-4 sm:mb-6">
         <h2 className="font-bold text-base sm:text-lg text-primary border-b border-outline-variant/30 pb-2">Next of Kin</h2>
         <div>
@@ -319,7 +320,6 @@ export default function ProfileSetupPage() {
         </div>
       </div>
 
-      {/* EMPLOYMENT */}
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-4 sm:p-6 md:p-8 space-y-4 sm:space-y-6 mb-4 sm:mb-6">
         <h2 className="font-bold text-base sm:text-lg text-primary border-b border-outline-variant/30 pb-2">Employment</h2>
         <div>
