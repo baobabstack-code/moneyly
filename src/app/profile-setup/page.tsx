@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMyProfile, saveProfile } from "@/lib/profile";
+import { createClient } from "@/utils/supabase/client";
 
 interface FormErrors {
   first_name?: string;
@@ -48,41 +49,25 @@ function validateDob(value: string): string | null {
   return null;
 }
 
-const initialFormData = {
-  first_name: "",
-  last_name: "",
-  national_id: "",
-  date_of_birth: "",
-  gender: "",
-  physical_address: "",
-  mobile_number: "",
-  email_address: "",
-  nok_full_name: "",
-  nok_address: "",
-  nok_mobile_number: "",
-  nok_relationship: "",
-  employer_name: "",
-  employer_no: "",
-  ministry: "",
-  is_civil_servant: false,
-  monthly_income: "",
-  employment_phone: "",
+const emptyForm = {
+  first_name: "", last_name: "", national_id: "", date_of_birth: "", gender: "",
+  physical_address: "", mobile_number: "", email_address: "",
+  nok_full_name: "", nok_address: "", nok_mobile_number: "", nok_relationship: "",
+  employer_name: "", employer_no: "", ministry: "", is_civil_servant: false, monthly_income: "", employment_phone: "",
 };
 
 const STORAGE_KEY = 'profile_draft';
 
-function saveToStorage(data: typeof initialFormData) {
+function saveToStorage(data: typeof emptyForm) {
   if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 }
 
-function loadFromStorage(): typeof initialFormData | null {
+function loadFromStorage(): typeof emptyForm {
   if (typeof window !== 'undefined') {
     const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); } catch { return null; }
-    }
+    if (saved) try { return { ...emptyForm, ...JSON.parse(saved) }; } catch { return emptyForm; }
   }
-  return null;
+  return emptyForm;
 }
 
 function clearStorage() {
@@ -91,38 +76,42 @@ function clearStorage() {
 
 export default function ProfileSetupPage() {
   const router = useRouter();
+  const supabase = createClient();
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [photo, setPhoto] = useState<string>("");
+  const [photoUploading, setPhotoUploading] = useState(false);
   const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [errors, setErrors] = useState<FormErrors>({});
-  const [formData, setFormData] = useState(initialFormData);
+  const [formData, setFormData] = useState(emptyForm);
 
   useEffect(() => {
     setLoading(true);
     const draft = loadFromStorage();
-    if (draft) setFormData(draft);
+    setFormData(draft);
     getMyProfile().then((p) => {
       if (p) {
         setFormData({
-          first_name: p.first_name || draft?.first_name || "",
-          last_name: p.last_name || draft?.last_name || "",
-          national_id: p.national_id || draft?.national_id || "",
-          date_of_birth: p.date_of_birth || draft?.date_of_birth || "",
-          gender: p.gender || draft?.gender || "",
-          physical_address: p.physical_address || draft?.physical_address || "",
-          mobile_number: p.mobile_number || draft?.mobile_number || "",
-          email_address: p.email_address || draft?.email_address || "",
-          nok_full_name: p.nok_full_name || draft?.nok_full_name || "",
-          nok_address: p.nok_address || draft?.nok_address || "",
-          nok_mobile_number: p.nok_mobile_number || draft?.nok_mobile_number || "",
-          nok_relationship: p.nok_relationship || draft?.nok_relationship || "",
-          employer_name: p.employer_name || draft?.employer_name || "",
-          employer_no: p.employer_no || draft?.employer_no || "",
-          ministry: p.ministry || draft?.ministry || "",
-          is_civil_servant: p.is_civil_servant ?? draft?.is_civil_servant ?? false,
-          monthly_income: p.monthly_income || draft?.monthly_income || "",
-          employment_phone: p.employment_phone || draft?.employment_phone || "",
+          first_name: p.first_name || draft.first_name || "",
+          last_name: p.last_name || draft.last_name || "",
+          national_id: p.national_id || draft.national_id || "",
+          date_of_birth: p.date_of_birth || draft.date_of_birth || "",
+          gender: p.gender || draft.gender || "",
+          physical_address: p.physical_address || draft.physical_address || "",
+          mobile_number: p.mobile_number || draft.mobile_number || "",
+          email_address: p.email_address || draft.email_address || "",
+          nok_full_name: p.nok_full_name || draft.nok_full_name || "",
+          nok_address: p.nok_address || draft.nok_address || "",
+          nok_mobile_number: p.nok_mobile_number || draft.nok_mobile_number || "",
+          nok_relationship: p.nok_relationship || draft.nok_relationship || "",
+          employer_name: p.employer_name || draft.employer_name || "",
+          employer_no: p.employer_no || draft.employer_no || "",
+          ministry: p.ministry || draft.ministry || "",
+          is_civil_servant: p.is_civil_servant ?? draft.is_civil_servant ?? false,
+          monthly_income: p.monthly_income || draft.monthly_income || "",
+          employment_phone: p.employment_phone || draft.employment_phone || "",
         });
+        setPhoto(p.photo_url || "");
       }
       setLoading(false);
     });
@@ -132,28 +121,27 @@ export default function ProfileSetupPage() {
 
   const validateField = (field: keyof FormErrors, value: any): string | null => {
     switch (field) {
-      case "first_name": return !value.trim() ? "First name is required" : value.length < 2 ? "Too short" : null;
-      case "last_name": return !value.trim() ? "Last name is required" : value.length < 2 ? "Too short" : null;
+      case "first_name": return !value.trim() ? "Required" : value.length < 2 ? "Too short" : null;
+      case "last_name": return !value.trim() ? "Required" : value.length < 2 ? "Too short" : null;
       case "national_id": return validateNationalId(value);
       case "date_of_birth": return validateDob(value);
-      case "gender": return !value ? "Gender is required" : null;
-      case "physical_address": return !value.trim() ? "Address is required" : value.length < 10 ? "Enter full address" : null;
+      case "gender": return !value ? "Required" : null;
+      case "physical_address": return !value.trim() ? "Required" : value.length < 10 ? "Enter full address" : null;
       case "mobile_number": return validateMobile(value);
-      case "email_address": return !value.trim() ? "Email is required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "Invalid email" : null;
-      case "nok_full_name": return !value.trim() ? "Next of kin name is required" : null;
-      case "nok_address": return !value.trim() ? "NOK address is required" : null;
+      case "email_address": return !value.trim() ? "Required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value) ? "Invalid email" : null;
+      case "nok_full_name": return !value.trim() ? "Required" : null;
+      case "nok_address": return !value.trim() ? "Required" : null;
       case "nok_mobile_number": return validateMobile(value);
-      case "nok_relationship": return !value ? "Relationship is required" : null;
-      case "employer_name": return !value.trim() && !formData.is_civil_servant ? "Employer is required" : null;
-      case "is_civil_servant": return !value && value !== false ? "Required" : null;
+      case "nok_relationship": return !value ? "Required" : null;
+      case "employer_name": return !value.trim() && !formData.is_civil_servant ? "Required" : null;
+      case "is_civil_servant": return value === "" ? "Required" : null;
       default: return null;
     }
   };
 
   const handleBlur = (field: keyof FormErrors) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
-    const error = validateField(field, formData[field as keyof FormErrors]);
-    setErrors((prev) => ({ ...prev, [field]: error || undefined }));
+    setErrors((prev) => ({ ...prev, [field]: validateField(field, formData[field as keyof FormErrors]) || undefined }));
   };
 
   const validateAll = (): boolean => {
@@ -165,10 +153,26 @@ export default function ProfileSetupPage() {
     return Object.keys(newErrors).length === 0;
   };
 
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setPhotoUploading(true);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) { setPhotoUploading(false); return; }
+    const fileExt = file.name.split('.').pop();
+    const filePath = `${user.id}/photo.${fileExt}`;
+    const { error: uploadError } = await supabase.storage.from('avatars').upload(filePath, file, { upsert: true });
+    if (!uploadError) {
+      const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(filePath);
+      setPhoto(publicUrl);
+    }
+    setPhotoUploading(false);
+  };
+
   const handleSave = async () => {
     if (!validateAll()) return;
     setSaving(true);
-    const saved = await saveProfile({ ...formData, is_profile_complete: true });
+    const saved = await saveProfile({ ...formData, photo_url: photo || undefined, is_profile_complete: true });
     setSaving(false);
     if (saved) { clearStorage(); router.push("/dashboard"); }
     else { alert("Failed to save. Please try again."); }
@@ -176,10 +180,7 @@ export default function ProfileSetupPage() {
 
   const updateField = (field: string, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    if (touched[field as keyof FormErrors]) {
-      const error = validateField(field as keyof FormErrors, value);
-      setErrors((prev) => ({ ...prev, [field]: error || undefined }));
-    }
+    if (touched[field as keyof FormErrors]) setErrors((prev) => ({ ...prev, [field]: validateField(field as keyof FormErrors, value) || undefined }));
   };
 
   const getFieldClass = (field: keyof FormErrors) => `w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none ${errors[field] && touched[field] ? "border-red-500" : "border-outline-variant"}`;
@@ -192,22 +193,32 @@ export default function ProfileSetupPage() {
       <div className="w-full max-w-3xl bg-surface rounded-[32px] border border-outline-variant shadow-2xl overflow-hidden">
         <div className="bg-secondary text-on-secondary p-8">
           <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center"><span className="material-symbols-outlined text-2xl">person_add</span></div>
-            <div>
-              <h1 className="text-2xl font-bold">Complete Your Profile</h1>
-              <p className="text-on-secondary/80 text-sm">Complete all fields below to continue.</p>
+            <div className="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center overflow-hidden">
+              {photo ? <img src={photo} alt="Profile" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-2xl">person_add</span>}
             </div>
+            <div className="flex-1">
+              <h1 className="text-2xl font-bold">Complete Your Profile</h1>
+              <p className="text-on-secondary/80 text-sm">Add your photo and details to continue.</p>
+            </div>
+            <label className="cursor-pointer px-4 py-2 bg-white/20 rounded-xl hover:bg-white/30 transition-all text-sm font-medium">
+              {photoUploading ? "Uploading..." : photo ? "Change" : "Upload Photo"}
+              <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={photoUploading} />
+            </label>
           </div>
         </div>
         <div className="p-6 sm:p-8 space-y-6 max-h-[70vh] overflow-y-auto">
-          <div><label className="block font-label-md mb-2">First Name <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("first_name")} value={formData.first_name} onChange={(e) => updateField("first_name", e.target.value)} onBlur={() => handleBlur("first_name")} />{errors.first_name && touched.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}</div>
-          <div><label className="block font-label-md mb-2">Last Name <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("last_name")} value={formData.last_name} onChange={(e) => updateField("last_name", e.target.value)} onBlur={() => handleBlur("last_name")} />{errors.last_name && touched.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}</div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className="block font-label-md mb-2">First Name <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("first_name")} value={formData.first_name} onChange={(e) => updateField("first_name", e.target.value)} onBlur={() => handleBlur("first_name")} />{errors.first_name && touched.first_name && <p className="text-red-500 text-sm mt-1">{errors.first_name}</p>}</div>
+            <div><label className="block font-label-md mb-2">Last Name <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("last_name")} value={formData.last_name} onChange={(e) => updateField("last_name", e.target.value)} onBlur={() => handleBlur("last_name")} />{errors.last_name && touched.last_name && <p className="text-red-500 text-sm mt-1">{errors.last_name}</p>}</div>
+          </div>
           <div><label className="block font-label-md mb-2">National ID <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("national_id")} value={formData.national_id} onChange={(e) => updateField("national_id", e.target.value.toUpperCase())} onBlur={() => handleBlur("national_id")} />{errors.national_id && touched.national_id && <p className="text-red-500 text-sm mt-1">{errors.national_id}</p>}</div>
           <div><label className="block font-label-md mb-2">Date of Birth <span className="text-red-500">*</span></label><input type="date" className={getFieldClass("date_of_birth")} value={formData.date_of_birth} onChange={(e) => updateField("date_of_birth", e.target.value)} onBlur={() => handleBlur("date_of_birth")} max={new Date().toISOString().split("T")[0]} />{errors.date_of_birth && touched.date_of_birth && <p className="text-red-500 text-sm mt-1">{errors.date_of_birth}</p>}</div>
           <div><label className="block font-label-md mb-2">Gender <span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-4">{["Male", "Female"].map((g) => <button key={g} type="button" onClick={() => { updateField("gender", g); setTouched((prev) => ({ ...prev, gender: true })); setErrors((prev) => ({ ...prev, gender: undefined })); }} className={`py-4 rounded-xl border-2 font-bold transition-all flex items-center justify-center gap-2 ${formData.gender === g ? "bg-white text-secondary border-white" : "border-outline-variant hover:border-secondary/50"}`}><span className="material-symbols-outlined">{g === "Male" ? "male" : "female"}</span>{g}</button>)}</div>{errors.gender && touched.gender && <p className="text-red-500 text-sm mt-1">{errors.gender}</p>}</div>
           <div><label className="block font-label-md mb-2">Physical Address <span className="text-red-500">*</span></label><textarea className={getFieldClass("physical_address")} value={formData.physical_address} onChange={(e) => updateField("physical_address", e.target.value)} onBlur={() => handleBlur("physical_address")} rows={2} />{errors.physical_address && touched.physical_address && <p className="text-red-500 text-sm mt-1">{errors.physical_address}</p>}</div>
-          <div><label className="block font-label-md mb-2">Mobile Number <span className="text-red-500">*</span></label><input type="tel" className={getFieldClass("mobile_number")} value={formData.mobile_number} onChange={(e) => updateField("mobile_number", e.target.value)} onBlur={() => handleBlur("mobile_number")} placeholder="0771234567" />{errors.mobile_number && touched.mobile_number && <p className="text-red-500 text-sm mt-1">{errors.mobile_number}</p>}</div>
-          <div><label className="block font-label-md mb-2">Email Address <span className="text-red-500">*</span></label><input type="email" className={getFieldClass("email_address")} value={formData.email_address} onChange={(e) => updateField("email_address", e.target.value)} onBlur={() => handleBlur("email_address")} placeholder="you@email.com" />{errors.email_address && touched.email_address && <p className="text-red-500 text-sm mt-1">{errors.email_address}</p>}</div>
+          <div className="grid grid-cols-2 gap-4">
+            <div><label className="block font-label-md mb-2">Mobile Number <span className="text-red-500">*</span></label><input type="tel" className={getFieldClass("mobile_number")} value={formData.mobile_number} onChange={(e) => updateField("mobile_number", e.target.value)} onBlur={() => handleBlur("mobile_number")} placeholder="0771234567" />{errors.mobile_number && touched.mobile_number && <p className="text-red-500 text-sm mt-1">{errors.mobile_number}</p>}</div>
+            <div><label className="block font-label-md mb-2">Email <span className="text-red-500">*</span></label><input type="email" className={getFieldClass("email_address")} value={formData.email_address} onChange={(e) => updateField("email_address", e.target.value)} onBlur={() => handleBlur("email_address")} placeholder="you@email.com" />{errors.email_address && touched.email_address && <p className="text-red-500 text-sm mt-1">{errors.email_address}</p>}</div>
+          </div>
           <div><label className="block font-label-md mb-2">Next of Kin Name <span className="text-red-500">*</span></label><input type="text" className={getFieldClass("nok_full_name")} value={formData.nok_full_name} onChange={(e) => updateField("nok_full_name", e.target.value)} onBlur={() => handleBlur("nok_full_name")} />{errors.nok_full_name && touched.nok_full_name && <p className="text-red-500 text-sm mt-1">{errors.nok_full_name}</p>}</div>
           <div><label className="block font-label-md mb-2">Next of Kin Address <span className="text-red-500">*</span></label><textarea className={getFieldClass("nok_address")} value={formData.nok_address} onChange={(e) => updateField("nok_address", e.target.value)} onBlur={() => handleBlur("nok_address")} rows={2} />{errors.nok_address && touched.nok_address && <p className="text-red-500 text-sm mt-1">{errors.nok_address}</p>}</div>
           <div className="grid grid-cols-2 gap-4">
