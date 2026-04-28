@@ -70,12 +70,24 @@ function ProfileSetupContent() {
   const validate = (f: string): string | null => {
     const v = form[f as keyof typeof form];
     const s = typeof v === 'string' ? v : '';
+    const fullName = `${form.first_name} ${form.last_name}`.toLowerCase().trim();
+    const nokName = form.nok_full_name.toLowerCase().trim();
     switch(f) {
       case "first_name": case "last_name": return !s.trim() ? "Required" : s.length < 2 ? "Too short" : null;
       case "national_id": return validateNationalId(s); case "date_of_birth": return validateDob(s);
       case "gender": return !form.gender ? "Required" : null; case "physical_address": return !s.trim() ? "Required" : s.length < 10 ? "Too short" : null;
       case "mobile_number": case "nok_mobile_number": return validateMobile(s); case "email_address": return !s.trim() ? "Required" : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) ? "Invalid" : null;
-      case "nok_full_name": return !s.trim() ? "Required" : null; case "nok_address": return !s.trim() ? "Required" : null;
+      case "nok_full_name": 
+        if (!s.trim()) return "Required";
+        if (nokName === fullName) return "Cannot be yourself";
+        if (nokName === form.first_name.toLowerCase().trim() || nokName === form.last_name.toLowerCase().trim()) return "Cannot be yourself";
+        return null;
+      case "nok_mobile_number":
+        const err = validateMobile(s);
+        if (err) return err;
+        if (s === form.mobile_number) return "Cannot be your own number";
+        return null;
+      case "nok_address": return !s.trim() ? "Required" : null;
       case "nok_relationship": return !form.nok_relationship ? "Required" : null; case "employer_name": return !form.is_civil_servant && !s.trim() ? "Required" : null; case "is_civil_servant": return null;
       default: return null;
     }
@@ -110,22 +122,44 @@ function ProfileSetupContent() {
     if (s) { clearStorage(); router.push('/dashboard'); } else alert('Failed to save');
   };
 
+  const fieldTooltips: Record<string, {icon: string, title: string, tips: string[]}> = {
+    first_name: { icon: "person", title: "First Name", tips: ["Your legal first name", "Example: John", "Must match your ID document"] },
+    last_name: { icon: "person", title: "Last Name", tips: ["Your legal surname", "Example: Moyo", "Must match your ID document"] },
+    national_id: { icon: "badge", title: "National ID", tips: ["Examples:", "63-1234567K00 (Harare)", "08-800950Z08 (Bulawayo)", "08-2047823Q29 (Digital)"] },
+    date_of_birth: { icon: "cake", title: "Date of Birth", tips: ["Must be 18+ years old", "Example: 2000-05-15"] },
+    gender: { icon: "wc", title: "Gender", tips: ["Select Male or Female", "Required for eligibility"] },
+    physical_address: { icon: "home", title: "Physical Address", tips: ["Full residential address", "Example: 123 Main St, Harare", "Used for verification"] },
+    mobile_number: { icon: "phone_android", title: "Mobile Number", tips: ["Examples:", "+263771234567", "0771234567", "771234567"] },
+    email_address: { icon: "email", title: "Email Address", tips: ["Your email address", "Example: john@gmail.com"] },
+    nok_full_name: { icon: "person", title: "Full Name", tips: ["Your next of kin's name", "Cannot be yourself", "Must be 18+ years"] },
+    nok_address: { icon: "home", title: "Address", tips: ["Kin's residential address"] },
+    nok_mobile_number: { icon: "phone_android", title: "Mobile Number", tips: ["Examples:", "+263771234567", "0771234567", "Cannot be your number"] },
+    nok_relationship: { icon: "family_restroom", title: "Relationship", tips: ["Spouse, Parent, Sibling", "Child, or Other"] },
+    is_civil_servant: { icon: "work", title: "Civil Servant", tips: ["Government employee?", "Select Yes or No"] },
+    employer_no: { icon: "badge", title: "EC Number", tips: ["Employee Code number", "Example: EC123456"] },
+    ministry: { icon: "domain", title: "Ministry", tips: ["Your government ministry", "Example: Finance"] },
+    employer_name: { icon: "business", title: "Employer", tips: ["Company name", "Registered company name"] },
+  };
+
+  const Tooltip = ({ field }: { field: string }) => {
+    const t = fieldTooltips[field];
+    if (!t) return null;
+    return (
+      <div className="relative group">
+        <span className="material-symbols-outlined text-on-surface-variant/60 cursor-help text-sm">info</span>
+        <div className="absolute right-0 bottom-full mb-2 w-56 p-3 bg-surface-container-high text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+          <p className="font-bold mb-1 flex items-center gap-1"><span className="material-symbols-outlined text-sm">{t.icon}</span> {t.title}</p>
+          {t.tips.map((tip, i) => <p key={i} className="text-on-surface-variant/80">{tip}</p>)}
+        </div>
+      </div>
+    );
+  };
+
   const fld = (n: string, label: string, extra?: string) => (
     <div key={n}>
       <div className="flex items-center justify-between mb-2">
         <label className="font-label-md">{label} {extra || ''}<span className="text-red-500">*</span></label>
-        {n === 'national_id' && (
-          <div className="relative group">
-            <span className="material-symbols-outlined text-on-surface-variant/60 cursor-help text-sm">info</span>
-            <div className="absolute right-0 bottom-full mb-2 w-64 p-3 bg-surface-container-high text-xs rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
-              <p className="font-bold mb-1">Valid formats:</p>
-              <p>63-1234567K00 (Harare)</p>
-              <p>08-800950Z08 (Bulawayo)</p>
-              <p>08-2047823Q29 (Digital)</p>
-              <p className="mt-1 text-on-surface-variant/60">[District]-[Serial] [Check] [Citizenship]</p>
-            </div>
-          </div>
-        )}
+        <Tooltip field={n} />
       </div>
       <input type={n.includes('date')?'date':n.includes('email')?'email':n.includes('mobile')||n.includes('phone')?'tel':n==='national_id'?'text':'text'} className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none ${errors[n]&&touched[n]?'border-red-500':'border-outline-variant'}`} value={String(form[n as keyof typeof form] || '')} onChange={e => upd(n, n==='national_id'?e.target.value.toUpperCase():e.target.value)} onBlur={() => handleBlur(n)} />
       {errors[n]&&touched[n] && <p className="text-red-500 text-sm mt-1">{errors[n]}</p>}

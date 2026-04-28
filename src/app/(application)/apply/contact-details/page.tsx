@@ -1,14 +1,42 @@
 "use client";
 
+import { useState } from "react";
 import { useApplicationStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { FieldTooltip, validateMobile, validateEmail } from "@/components/FieldTooltip";
 
 export default function ContactDetailsPage() {
   const router = useRouter();
   const { contactDetails, setContactDetails } = useApplicationStore();
+  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const validate = (field: string, value: string) => {
+    let error = "";
+    switch (field) {
+      case "physicalAddress":
+        if (!value.trim()) error = "Required";
+        else if (value.length < 10) error = "Too short";
+        break;
+      case "mobileNumber":
+        error = validateMobile(value) || "";
+        break;
+      case "emailAddress":
+        error = validateEmail(value) || "";
+        break;
+    }
+    setErrors(prev => ({ ...prev, [field]: error }));
+    setTouched(prev => ({ ...prev, [field]: true }));
+  };
 
   const handleNext = () => {
-    router.push("/apply/employment-details");
+    validate("physicalAddress", contactDetails.physicalAddress);
+    validate("mobileNumber", contactDetails.mobileNumber);
+    validate("emailAddress", contactDetails.emailAddress);
+    
+    if (!errors.physicalAddress && !errors.mobileNumber && !errors.emailAddress) {
+      router.push("/apply/employment-details");
+    }
   };
 
   return (
@@ -41,41 +69,56 @@ export default function ContactDetailsPage() {
         <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Contact Information</h2>
 
         <div>
-          <label className="block font-label-md text-label-md mb-2 text-on-surface">
-            Physical Address <span className="text-red-500">*</span>
-          </label>
+          <div className="flex items-center justify-between mb-2">
+            <label className="font-label-md text-label-md text-on-surface">
+              Physical Address <span className="text-red-500">*</span>
+            </label>
+            <FieldTooltip field="physicalAddress" />
+          </div>
           <textarea
-            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30 min-h-[100px]"
+            className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 transition-all outline-none min-h-[100px] ${errors.physicalAddress && touched.physicalAddress ? 'border-red-500' : 'border-outline-variant'}`}
             placeholder="Full physical address"
             value={contactDetails.physicalAddress}
-            onChange={(e) => setContactDetails({ physicalAddress: e.target.value })}
+            onChange={(e) => { setContactDetails({ physicalAddress: e.target.value }); if (touched.physicalAddress) validate("physicalAddress", e.target.value); }}
+            onBlur={() => validate("physicalAddress", contactDetails.physicalAddress)}
           />
+          {errors.physicalAddress && touched.physicalAddress && <p className="text-red-500 text-sm mt-1">{errors.physicalAddress}</p>}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Mobile Number <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-label-md text-label-md text-on-surface">
+                Mobile Number <span className="text-red-500">*</span>
+              </label>
+              <FieldTooltip field="mobileNumber" />
+            </div>
             <input
               type="tel"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 transition-all outline-none ${errors.mobileNumber && touched.mobileNumber ? 'border-red-500' : 'border-outline-variant'}`}
               placeholder="+263 7X XXX XXXX"
               value={contactDetails.mobileNumber}
-              onChange={(e) => setContactDetails({ mobileNumber: e.target.value })}
+              onChange={(e) => { setContactDetails({ mobileNumber: e.target.value }); if (touched.mobileNumber) validate("mobileNumber", e.target.value); }}
+              onBlur={() => validate("mobileNumber", contactDetails.mobileNumber)}
             />
+            {errors.mobileNumber && touched.mobileNumber && <p className="text-red-500 text-sm mt-1">{errors.mobileNumber}</p>}
           </div>
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Email Address <span className="text-red-500">*</span>
-            </label>
+            <div className="flex items-center justify-between mb-2">
+              <label className="font-label-md text-label-md text-on-surface">
+                Email Address <span className="text-red-500">*</span>
+              </label>
+              <FieldTooltip field="emailAddress" />
+            </div>
             <input
               type="email"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 transition-all outline-none ${errors.emailAddress && touched.emailAddress ? 'border-red-500' : 'border-outline-variant'}`}
               placeholder="your@email.com"
               value={contactDetails.emailAddress}
-              onChange={(e) => setContactDetails({ emailAddress: e.target.value })}
+              onChange={(e) => { setContactDetails({ emailAddress: e.target.value }); if (touched.emailAddress) validate("emailAddress", e.target.value); }}
+              onBlur={() => validate("emailAddress", contactDetails.emailAddress)}
             />
+            {errors.emailAddress && touched.emailAddress && <p className="text-red-500 text-sm mt-1">{errors.emailAddress}</p>}
           </div>
         </div>
       </div>
