@@ -54,8 +54,9 @@ export function isProfileComplete(profile: UserProfile | null): boolean {
   const hasBasic = profile.national_id && profile.date_of_birth && profile.gender;
   const hasContact = profile.physical_address && profile.mobile_number;
   
-  // Profile is complete if they have name + basic + contact + is_profile_complete flag
-  return !!(hasName && hasBasic && hasContact && profile.is_profile_complete);
+  // Profile is complete if they have name + basic + contact + photo + is_profile_complete flag
+  const hasPhoto = !!(profile.photo_url || profile.avatar_url);
+  return !!(hasName && hasBasic && hasContact && hasPhoto && profile.is_profile_complete);
 }
 
 /**

@@ -108,13 +108,21 @@ function ProfileSetupContent() {
     setUploading(false);
   };
 
+  const isProfileFormComplete = () => {
+    const hasName = form.first_name.trim().length > 0 && form.last_name.trim().length > 0;
+    const hasBasic = form.national_id.trim().length > 0 && form.date_of_birth.trim().length > 0 && !!form.gender;
+    const hasContact = form.physical_address.trim().length > 0 && form.mobile_number.trim().length > 0 && form.email_address.trim().length > 0;
+    const hasPhoto = !!photo;
+    return hasName && hasBasic && hasContact && hasPhoto;
+  };
+
   const saveSection = async () => {
     const fields = section === 'photo' ? [] : sectionFields[section] || [];
     const errs: FormErrors = {};
     fields.forEach(f => { const e = validate(f); if (e) errs[f] = e; });
     if (Object.keys(errs).length > 0) { setErrors(errs); setTouched(Object.fromEntries(fields.map(f => [f, true]))); return; }
     setSaving(true);
-    const data: any = { is_profile_complete: true };
+    const data: any = { is_profile_complete: isProfileFormComplete() };
     if (section === 'photo') data.photo_url = photo || undefined;
     else fields.forEach(f => data[f] = form[f as keyof typeof form]);
     const s = await saveProfile(data);
@@ -183,7 +191,10 @@ function ProfileSetupContent() {
               {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-3xl">person</span>}
             </div>
             <div className="flex-1"><h1 className="text-xl font-bold">{sectionTitles[section]?.title}</h1><p className="text-on-secondary/80 text-sm">Update and save</p></div>
-            {section === 'photo' && <label className="px-4 py-2 bg-white/20 rounded-xl cursor-pointer hover:bg-white/30 text-sm font-medium">{uploading?'Uploading...':photo?'Change':'Upload'}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} /></label>}
+            <div className="flex items-center gap-3">
+              {section === 'photo' && <label className="px-4 py-2 bg-white/20 rounded-xl cursor-pointer hover:bg-white/30 text-sm font-medium">{uploading?'Uploading...':photo?'Change':'Upload'}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} /></label>}
+              <button type="button" onClick={() => router.push('/dashboard')} className="px-4 py-2 border border-white/20 rounded-xl text-sm text-on-secondary/80 hover:bg-white/10">Close</button>
+            </div>
           </div>
         </div>
         <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
