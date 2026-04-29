@@ -31,7 +31,6 @@ export const metadata: Metadata = {
 };
 
 import { ThemeProvider } from "@/components/theme-provider";
-import { SWRegistration } from "@/components/sw-registration";
 
 export default function RootLayout({
   children,
@@ -56,7 +55,6 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <SWRegistration />
           {children}
         </ThemeProvider>
       </body>
