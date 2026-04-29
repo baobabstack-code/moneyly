@@ -42,11 +42,18 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const { pathname } = request.nextUrl
+  const isPublicAsset =
+    pathname === '/manifest.json' ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/_next/')
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
+    !isPublicAsset &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth') &&
+    pathname !== '/'
   ) {
     // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
