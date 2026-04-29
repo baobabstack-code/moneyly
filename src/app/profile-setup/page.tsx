@@ -122,12 +122,20 @@ function ProfileSetupContent() {
     fields.forEach(f => { const e = validate(f); if (e) errs[f] = e; });
     if (Object.keys(errs).length > 0) { setErrors(errs); setTouched(Object.fromEntries(fields.map(f => [f, true]))); return; }
     setSaving(true);
-    const data: any = { is_profile_complete: isProfileFormComplete() };
+    const profileComplete = isProfileFormComplete();
+    const data: any = { is_profile_complete: profileComplete };
     if (section === 'photo') data.photo_url = photo || undefined;
     else fields.forEach(f => data[f] = form[f as keyof typeof form]);
     const s = await saveProfile(data);
     setSaving(false);
-    if (s) { clearStorage(); router.push('/dashboard'); } else alert('Failed to save');
+    if (s) {
+      clearStorage();
+      if (profileComplete) {
+        router.push('/dashboard');
+      } else {
+        alert('Saved. Your profile is not complete yet — please finish the remaining sections to unlock dashboard features.');
+      }
+    } else alert('Failed to save');
   };
 
   const fieldTooltips: Record<string, {icon: string, title: string, tips: string[]}> = {
