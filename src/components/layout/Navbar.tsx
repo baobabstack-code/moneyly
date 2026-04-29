@@ -60,7 +60,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
     ? (profile?.full_name || user?.email || '')
     : (initialUser?.displayName || initialUser?.email || '');
   const avatarUrl = hydrated
-    ? (profile?.avatar_url || null)
+    ? (profile?.avatar_url || profile?.photo_url || null)
     : (initialUser?.avatarUrl || null);
 
   return (

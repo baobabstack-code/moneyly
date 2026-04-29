@@ -58,7 +58,7 @@ export default function ApplicationLayout({
     .join('')
     .toUpperCase()
     .slice(0, 2);
-  const avatarUrl = profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
+  const avatarUrl = profile?.avatar_url || profile?.photo_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture;
 
   const profileComplete = profile ? isProfileComplete(profile) : false;
 
