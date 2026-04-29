@@ -1,42 +1,18 @@
-'use client'
-
 import Link from "next/link";
-import { createClient } from "@/utils/supabase/client";
-import { useEffect, useMemo, useState } from "react";
-import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
+import { UserProfile } from "@/lib/profile";
 
 interface Props {
   email: string;
   displayName: string;
+  profile: UserProfile | null;
+  applications: any[];
+  profileComplete: boolean;
 }
 
-export default function DashboardView({ email, displayName }: Props) {
-  const supabase = useMemo(() => createClient(), []);
-  const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [applications, setApplications] = useState<any[]>([]);
-  const [loadingApps, setLoadingApps] = useState(true);
+export default function DashboardView({ email, displayName, profile, applications, profileComplete }: Props) {
+  const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [profileData, { data: apps }] = await Promise.all([
-          getMyProfile(),
-          supabase.from('applications').select('*').order('created_at', { ascending: false }),
-        ]);
-        setProfile(profileData);
-        setApplications(apps || []);
-      } finally {
-        setLoadingApps(false);
-      }
-    };
-    load();
-  }, []);
-
-  const profileComplete = profile ? isProfileComplete(profile) : false;
-
-  const firstName = profile?.full_name?.split(' ')[0] || displayName;
-
-  if (!loadingApps && !profileComplete) {
+  if (!profileComplete) {
     return (
       <div className="font-manrope">
         <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
@@ -71,31 +47,12 @@ export default function DashboardView({ email, displayName }: Props) {
       <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-primary mb-2">
-            Welcome{profileComplete ? ' back' : ''}, {firstName}
+            Welcome back, {firstName}
           </h1>
-          <p className="text-on-surface-variant">
-            {profileComplete ? 'Manage your loan applications.' : 'Complete your profile to continue.'}
-          </p>
+          <p className="text-on-surface-variant">Manage your loan applications.</p>
         </div>
 
-        {!profileComplete && (
-          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative mb-8">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="relative z-10">
-              <span className="material-symbols-outlined text-4xl mb-4">person_add</span>
-              <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
-              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Add your National ID and details to start applying.</p>
-            </div>
-            <Link
-              href="/profile-setup"
-              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 inline-flex items-center justify-center"
-            >
-              Set Up Profile
-            </Link>
-          </div>
-        )}
-
-        <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 ${!profileComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
           {/* New Application Card */}
           <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
@@ -106,8 +63,7 @@ export default function DashboardView({ email, displayName }: Props) {
             </div>
             <Link
               href="/store-selection"
-              className={`bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 ${!profileComplete ? 'cursor-not-allowed opacity-50' : ''}`}
-              onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
+              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95"
             >
               Start Now
             </Link>
@@ -131,8 +87,7 @@ export default function DashboardView({ email, displayName }: Props) {
             </p>
             <Link
               href="/applications"
-              className={`mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all ${!profileComplete ? 'pointer-events-none opacity-50' : ''}`}
-              onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
+              className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
             >
               View All
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -141,28 +96,19 @@ export default function DashboardView({ email, displayName }: Props) {
         </div>
 
         {/* Application History */}
-        <div className={`bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12 ${!profileComplete ? 'opacity-50 pointer-events-none' : ''}`}>
+        <div className="bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12">
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-bold text-primary">Loan Applications</h2>
           </div>
 
           <div className="space-y-6">
-            {loadingApps ? (
-              <div className="animate-pulse flex space-x-4 p-4">
-                <div className="rounded-xl bg-surface-container h-12 w-12"></div>
-                <div className="flex-1 space-y-4 py-1">
-                  <div className="h-4 bg-surface-container rounded w-3/4"></div>
-                  <div className="h-4 bg-surface-container rounded w-1/2"></div>
-                </div>
-              </div>
-            ) : applications.length === 0 ? (
+            {applications.length === 0 ? (
               <div className="text-center py-12">
                 <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl mb-4">description</span>
                 <p className="text-on-surface-variant font-medium mb-4">No applications yet.</p>
                 <Link
                   href="/store-selection"
-                  className={`inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm ${!profileComplete ? 'cursor-not-allowed opacity-50' : ''}`}
-                  onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
                 >
                   Apply Now
                 </Link>
