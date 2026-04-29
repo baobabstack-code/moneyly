@@ -20,11 +20,6 @@ export default async function DashboardPage() {
     .eq('id', session.user.id)
     .single()
 
-  // Redirect to profile-setup if not complete
-  if (!isProfileComplete(profile)) {
-    redirect('/profile-setup')
-  }
-
   const displayName =
     session.user.user_metadata?.full_name?.split(' ')[0] ||
     session.user.email?.split('@')[0] ||

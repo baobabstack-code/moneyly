@@ -4,8 +4,8 @@ import { createClient } from '@/utils/supabase/server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  // Direct to profile-setup first to complete profile
-  const next = searchParams.get('next') ?? '/profile-setup'
+  // Redirect to dashboard - profile completion will be handled there
+  const next = searchParams.get('next') ?? '/dashboard'
 
   if (code) {
     const supabase = await createClient()

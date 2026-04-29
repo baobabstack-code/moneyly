@@ -71,12 +71,31 @@ export default function DashboardView({ email, displayName }: Props) {
       <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-primary mb-2">
-            Welcome back, {firstName}
+            Welcome{profileComplete ? ' back' : ''}, {firstName}
           </h1>
-          <p className="text-on-surface-variant">Manage your loan applications.</p>
+          <p className="text-on-surface-variant">
+            {profileComplete ? 'Manage your loan applications.' : 'Complete your profile to continue.'}
+          </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        {!profileComplete && (
+          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative mb-8">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+            <div className="relative z-10">
+              <span className="material-symbols-outlined text-4xl mb-4">person_add</span>
+              <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
+              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Add your National ID and details to start applying.</p>
+            </div>
+            <Link
+              href="/profile-setup"
+              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 inline-flex items-center justify-center"
+            >
+              Set Up Profile
+            </Link>
+          </div>
+        )}
+
+        <div className={`grid grid-cols-1 md:grid-cols-2 gap-8 mb-16 ${!profileComplete ? 'opacity-50 pointer-events-none' : ''}`}>
           {/* New Application Card */}
           <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
             <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
@@ -87,7 +106,8 @@ export default function DashboardView({ email, displayName }: Props) {
             </div>
             <Link
               href="/store-selection"
-              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95"
+              className={`bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 ${!profileComplete ? 'cursor-not-allowed opacity-50' : ''}`}
+              onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
             >
               Start Now
             </Link>
@@ -111,7 +131,8 @@ export default function DashboardView({ email, displayName }: Props) {
             </p>
             <Link
               href="/applications"
-              className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
+              className={`mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all ${!profileComplete ? 'pointer-events-none opacity-50' : ''}`}
+              onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
             >
               View All
               <span className="material-symbols-outlined text-sm">arrow_forward</span>
@@ -120,7 +141,7 @@ export default function DashboardView({ email, displayName }: Props) {
         </div>
 
         {/* Application History */}
-        <div className="bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12">
+        <div className={`bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12 ${!profileComplete ? 'opacity-50 pointer-events-none' : ''}`}>
           <div className="flex items-center justify-between mb-10">
             <h2 className="text-2xl font-bold text-primary">Loan Applications</h2>
           </div>
@@ -140,7 +161,8 @@ export default function DashboardView({ email, displayName }: Props) {
                 <p className="text-on-surface-variant font-medium mb-4">No applications yet.</p>
                 <Link
                   href="/store-selection"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
+                  className={`inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm ${!profileComplete ? 'cursor-not-allowed opacity-50' : ''}`}
+                  onClick={!profileComplete ? (e) => e.preventDefault() : undefined}
                 >
                   Apply Now
                 </Link>
