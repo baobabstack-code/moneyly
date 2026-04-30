@@ -76,18 +76,21 @@ export default function DashboardView({ displayName, profile, applications, prof
   const [expanded, setExpanded] = useState<string | null>(null);
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
-  if (!profileComplete) {
-    return (
-      <div className="font-manrope">
-        <section className="w-full py-10 px-6 md:px-10 xl:px-12">
-          <div className="mb-8">
-            <h1 className="text-4xl font-bold text-primary mb-2">
-              Welcome, {firstName}
-            </h1>
-            <p className="text-on-surface-variant">Complete your profile to continue.</p>
-          </div>
+  return (
+    <div className="font-manrope">
+      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-primary mb-2">
+            {profileComplete ? `Welcome back, ${firstName}` : `Welcome, ${firstName}`}
+          </h1>
+          <p className="text-on-surface-variant">
+            {profileComplete ? "Manage your loan applications." : "Complete your profile to start applying."}
+          </p>
+        </div>
 
-          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative">
+        {/* Profile completion prompt — shown inline when profile is incomplete */}
+        {!profileComplete && (
+          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative mb-8">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
             <div className="relative z-10 flex items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -105,20 +108,7 @@ export default function DashboardView({ displayName, profile, applications, prof
               </div>
             </div>
           </div>
-        </section>
-      </div>
-    );
-  }
-
-  return (
-    <div className="font-manrope">
-      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-primary mb-2">
-            Welcome back, {firstName}
-          </h1>
-          <p className="text-on-surface-variant">Manage your loan applications.</p>
-        </div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,420px)_minmax(0,420px)] gap-5 mb-8">
           {/* New Application Card */}
