@@ -80,26 +80,30 @@ export default function DashboardView({ displayName, profile, applications, prof
     return (
       <div className="font-manrope">
         <section className="w-full py-10 px-6 md:px-10 xl:px-12">
-          <div className="mb-12">
+          <div className="mb-8">
             <h1 className="text-4xl font-bold text-primary mb-2">
               Welcome, {firstName}
             </h1>
             <p className="text-on-surface-variant">Complete your profile to continue.</p>
           </div>
 
-          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
-            <div className="relative z-10">
-              <span className="material-symbols-outlined text-4xl mb-4">person_add</span>
-              <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
-              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Add your National ID and details to start applying.</p>
+          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+            <div className="relative z-10 flex items-start gap-4">
+              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
+                <span className="material-symbols-outlined text-2xl">person_add</span>
+              </div>
+              <div className="min-w-0">
+                <h2 className="text-xl font-bold mb-1">Complete Your Profile</h2>
+                <p className="text-on-secondary/80 text-sm mb-5 leading-relaxed">Add your details to start applying.</p>
+                <Link
+                  href="/profile-setup"
+                  className="inline-flex items-center justify-center bg-white text-secondary px-5 py-2.5 rounded-xl font-bold text-sm transition-all hover:opacity-90 active:scale-95"
+                >
+                  Set Up Profile
+                </Link>
+              </div>
             </div>
-            <Link
-              href="/profile-setup"
-              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95 inline-flex items-center justify-center"
-            >
-              Set Up Profile
-            </Link>
           </div>
         </section>
       </div>
@@ -109,42 +113,42 @@ export default function DashboardView({ displayName, profile, applications, prof
   return (
     <div className="font-manrope">
       <section className="w-full py-10 px-6 md:px-10 xl:px-12">
-        <div className="mb-12">
+        <div className="mb-8">
           <h1 className="text-4xl font-bold text-primary mb-2">
             Welcome back, {firstName}
           </h1>
           <p className="text-on-surface-variant">Manage your loan applications.</p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,420px)_minmax(0,420px)] gap-5 mb-8">
           {/* New Application Card */}
-          <div className="bg-secondary text-on-secondary p-8 rounded-[32px] shadow-2xl shadow-secondary/20 flex flex-col justify-between group overflow-hidden relative">
-            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+          <div className="bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 flex flex-col justify-between group overflow-hidden relative min-h-52">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
             <div className="relative z-10">
-              <span className="material-symbols-outlined text-4xl mb-4">add_circle</span>
-              <h2 className="text-2xl font-bold mb-2">New Application</h2>
-              <p className="text-on-secondary/80 text-sm mb-8 leading-relaxed">Apply for a new loan facility.</p>
+              <span className="material-symbols-outlined text-3xl mb-4">add_circle</span>
+              <h2 className="text-xl font-bold mb-2">New Application</h2>
+              <p className="text-on-secondary/80 text-sm mb-6 leading-relaxed">Apply for a new loan facility.</p>
             </div>
             <Link
               href="/store-selection"
-              className="bg-white text-secondary px-6 py-3 rounded-xl font-bold text-sm text-center transition-all hover:scale-105 active:scale-95"
+              className="bg-white text-secondary px-5 py-2.5 rounded-xl font-bold text-sm text-center transition-all hover:opacity-90 active:scale-95"
             >
               Start Now
             </Link>
           </div>
 
           {/* My Applications Card */}
-          <div className="bg-surface p-8 rounded-[32px] border border-outline-variant shadow-sm flex flex-col group">
-            <div className="flex items-center justify-between mb-8">
-              <div className="w-12 h-12 bg-primary/10 text-primary rounded-2xl flex items-center justify-center">
+          <div className="bg-surface p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col group min-h-52">
+            <div className="flex items-center justify-between mb-6">
+              <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
                 <span className="material-symbols-outlined">folder_open</span>
               </div>
               <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
                 {applications.length} Total
               </span>
             </div>
-            <h2 className="text-xl font-bold text-primary mb-2">My Applications</h2>
-            <p className="text-on-surface-variant text-sm mb-8">
+            <h2 className="text-lg font-bold text-primary mb-2">My Applications</h2>
+            <p className="text-on-surface-variant text-sm mb-6">
               {applications.length > 0
                 ? `${applications.length} application(s) on record`
                 : "No applications yet."}
@@ -160,12 +164,12 @@ export default function DashboardView({ displayName, profile, applications, prof
         </div>
 
         {/* Application History */}
-        <div className="bg-surface rounded-[40px] border border-outline-variant p-8 md:p-12">
-          <div className="flex items-center justify-between mb-10">
-            <h2 className="text-2xl font-bold text-primary">Loan Applications</h2>
+        <div className="bg-surface rounded-2xl border border-outline-variant p-5 md:p-6">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-bold text-primary">Loan Applications</h2>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-4">
             {applications.length === 0 ? (
               <div className="text-center py-12">
                 <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl mb-4">description</span>

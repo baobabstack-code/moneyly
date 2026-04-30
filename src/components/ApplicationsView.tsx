@@ -67,15 +67,17 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
     return (
       <div className="font-manrope pb-20 lg:pb-0">
         <div className="w-full py-10 px-6 md:px-10 xl:px-12">
-          <div className="bg-amber-500 text-white p-8 rounded-[32px] shadow-2xl shadow-amber-500/20">
-            <div className="flex items-center gap-4 mb-4">
-              <span className="material-symbols-outlined text-4xl">person_add</span>
-              <h2 className="text-2xl font-bold">Complete Your Profile</h2>
+          <div className="max-w-md bg-amber-500 text-white p-6 rounded-2xl shadow-xl shadow-amber-500/15">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center">
+                <span className="material-symbols-outlined text-2xl">person_add</span>
+              </div>
+              <h2 className="text-xl font-bold">Complete Your Profile</h2>
             </div>
-            <p className="text-white/80 mb-6">Set up your profile to view applications.</p>
+            <p className="text-white/80 mb-5 text-sm">Set up your profile to view applications.</p>
             <Link
               href="/profile-setup"
-              className="inline-block bg-white text-amber-500 px-6 py-3 rounded-xl font-bold"
+              className="inline-flex bg-white text-amber-500 px-5 py-2.5 rounded-xl font-bold text-sm"
             >
               Set Up Profile
             </Link>
@@ -104,13 +106,13 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
 
         <div className="space-y-4">
           {applications.length === 0 ? (
-            <div className="text-center py-16 bg-surface rounded-[32px] border border-outline-variant">
-              <span className="material-symbols-outlined text-6xl text-on-surface-variant/20 mb-4">description</span>
-              <p className="text-on-surface-variant font-medium text-lg mb-2">No applications yet.</p>
-              <p className="text-on-surface-variant/60 mb-8">Start your first loan application today.</p>
+            <div className="max-w-md text-center py-10 px-6 bg-surface rounded-2xl border border-outline-variant">
+              <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3">description</span>
+              <p className="text-on-surface-variant font-medium text-base mb-2">No applications yet.</p>
+              <p className="text-on-surface-variant/60 text-sm mb-6">Start your first loan application today.</p>
               <Link
                 href="/store-selection"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
               >
                 Apply Now
               </Link>
