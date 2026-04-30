@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useApplicationStore } from "@/lib/store";
 import { createClient } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function DocumentUploadsPage() {
+  const router = useRouter();
   const { documentUploads, setDocumentUploads } = useApplicationStore();
   const [uploading, setUploading] = useState<{ id: boolean; payslip: boolean }>({ id: false, payslip: false });
   const [error, setError] = useState<string | null>(null);
@@ -158,15 +160,34 @@ export default function DocumentUploadsPage() {
         </div>
       </div>
 
-      <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/30 flex gap-4 items-start">
+      <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/30 flex gap-4 items-start mb-8">
         <span className="material-symbols-outlined text-secondary">info</span>
         <div>
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">Upload Requirements</p>
           <p className="text-[11px] text-on-surface-variant leading-relaxed">
-            Supported formats: JPG, PNG, PDF. Maximum file size: 5MB per document. 
+            Supported formats: JPG, PNG, PDF. Maximum file size: 5MB per document.
             Ensure all details are legible and the document is not cropped.
           </p>
         </div>
+      </div>
+
+      <div className="hidden lg:flex justify-between items-center">
+        <button
+          type="button"
+          onClick={() => router.push("/apply/purchase-details")}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-medium text-sm"
+        >
+          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          Back
+        </button>
+        <button
+          type="button"
+          onClick={() => router.push("/apply/summary")}
+          className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all"
+        >
+          Continue to Summary
+          <span className="material-symbols-outlined text-sm">arrow_forward</span>
+        </button>
       </div>
     </div>
   );
