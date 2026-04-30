@@ -306,10 +306,11 @@ function ProfileSetupContent({
   const fld = (n: string, label: string) => (
     <div key={n}>
       <div className="flex items-center justify-between mb-2">
-        <label className="font-label-md">{label}<span className="text-red-500">*</span></label>
+        <label htmlFor={n} className="font-label-md">{label}<span className="text-red-500">*</span></label>
         <Tooltip field={n} />
       </div>
       <input
+        id={n}
         type={n.includes('date') ? 'date' : n.includes('email') ? 'email' : n.includes('mobile') || n.includes('phone') ? 'tel' : 'text'}
         className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none ${errors[n] && touched[n] ? 'border-red-500' : 'border-outline-variant'}`}
         value={String(form[n as keyof typeof form] || '')}
@@ -539,6 +540,7 @@ function ProfileSetupContent({
                   <div className="grid grid-cols-2 gap-3">
                     {[{ label: 'Yes', icon: 'work', val: true }, { label: 'No', icon: 'business', val: false }].map(opt => (
                       <button key={opt.label} type="button"
+                        aria-label={opt.label}
                         onClick={() => { upd('is_civil_servant', opt.val); setTouched(t => ({ ...t, is_civil_servant: true })); }}
                         className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant === opt.val ? 'bg-secondary text-on-secondary border-secondary' : 'border-outline-variant text-on-surface hover:bg-surface-container'}`}>
                         <span className="material-symbols-outlined">{opt.icon}</span>{opt.label}

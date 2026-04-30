@@ -6,7 +6,7 @@ import { NextResponse } from 'next/server';
  * /api/send-confirmation:
  *   post:
  *     summary: Send loan application confirmation email
- *     description: Sends an email with the generated loan application PDF as an attachment using Resend.
+ *     description: Sends an email with the generated loan application PDF as an attachment using Resend. The application data captured before this step is also structured for future MSD backend submission.
  *     requestBody:
  *       required: true
  *       content:
@@ -72,8 +72,9 @@ export async function POST(req: Request) {
     }
 
   return NextResponse.json({ success: true, data });
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : 'Unknown API error';
     console.error('API Error:', error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

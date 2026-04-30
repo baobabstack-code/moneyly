@@ -57,6 +57,46 @@ describe('useApplicationStore', () => {
     expect(state.contactDetails.emailAddress).toBe('john@example.com');
   });
 
+  it('setEmploymentDetails updates richer employer details', () => {
+    const { setEmploymentDetails } = useApplicationStore.getState();
+
+    setEmploymentDetails({
+      employerName: 'Employer Inc',
+      isCivilServant: false,
+      phoneNumber: '+263242123456',
+      contactPerson: 'Mary Manager',
+      emailAddress: 'hr@employer.test',
+      physicalAddress: '789 Work Avenue, Harare',
+    });
+
+    const state = useApplicationStore.getState();
+    expect(state.employmentDetails.employerName).toBe('Employer Inc');
+    expect(state.employmentDetails.isCivilServant).toBe(false);
+    expect(state.employmentDetails.phoneNumber).toBe('+263242123456');
+    expect(state.employmentDetails.contactPerson).toBe('Mary Manager');
+    expect(state.employmentDetails.emailAddress).toBe('hr@employer.test');
+    expect(state.employmentDetails.physicalAddress).toBe('789 Work Avenue, Harare');
+  });
+
+  it('resetStore clears richer employer details', () => {
+    const { setEmploymentDetails, resetStore } = useApplicationStore.getState();
+
+    setEmploymentDetails({
+      phoneNumber: '+263242123456',
+      contactPerson: 'Mary Manager',
+      emailAddress: 'hr@employer.test',
+      physicalAddress: '789 Work Avenue, Harare',
+    });
+
+    resetStore();
+
+    const state = useApplicationStore.getState();
+    expect(state.employmentDetails.phoneNumber).toBe('');
+    expect(state.employmentDetails.contactPerson).toBe('');
+    expect(state.employmentDetails.emailAddress).toBe('');
+    expect(state.employmentDetails.physicalAddress).toBe('');
+  });
+
   it('resetStore resets all state', () => {
     const { setSelectedStore, setLookup, setBasicInfo, setContactDetails, resetStore } = useApplicationStore.getState();
     
