@@ -171,11 +171,12 @@ export default function ApplicationsPage() {
                         {isOpen ? 'Hide' : 'View'}
                         <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
                       </button>
-                      {app.status === 'submitted' && (
+                      {/* Cancel button disabled/hidden as per requirements */}
+                      {/* {app.status === 'submitted' && (
                         <button type="button" className="text-xs font-bold text-error hover:underline">
                           Cancel
                         </button>
-                      )}
+                      )} */}
                     </div>
                   </div>
 
