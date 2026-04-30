@@ -13,9 +13,8 @@ export default function PurchaseDetailsPage() {
   const tenure = parseInt(purchaseDetails.tenureMonths) || 0;
   const installmentAmount = tenure > 0 ? balanceAmount / tenure : 0;
 
-  const handleNext = () => {
-    router.push("/apply/basic-info");
-  };
+  // Profile is always complete by this point (enforced by layout)
+  const handleNext = () => router.push("/apply/document-uploads");
 
   return (
     <div className="w-full">
