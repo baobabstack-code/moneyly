@@ -169,7 +169,8 @@ function ProfileSetupContent() {
     fields.forEach(f => { const e = validate(f); if (e) errs[f] = e; });
     if (Object.keys(errs).length > 0) { setErrors(errs); setTouched(Object.fromEntries(fields.map(f => [f, true]))); return; }
     setSaving(true);
-    const profileComplete = isProfileFormComplete();
+    const isLastSection = !getNextSection(section);
+    const profileComplete = isLastSection && isProfileFormComplete();
     const data: any = { is_profile_complete: profileComplete };
     if (section === 'photo') data.photo_url = photo || undefined;
     else fields.forEach(f => data[f] = form[f as keyof typeof form]);
@@ -177,7 +178,7 @@ function ProfileSetupContent() {
     setSaving(false);
     if (s) {
       clearStorage();
-      if (profileComplete) {
+      if (isLastSection) {
         router.push('/dashboard');
       } else {
         const nextSection = getNextSection(section);
