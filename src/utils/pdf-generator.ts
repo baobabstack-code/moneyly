@@ -65,6 +65,10 @@ export async function generateLoanPDF(data: any) {
       ['Retail Price', `$${data.purchaseDetails.retailPrice}`],
       ['Deposit', `$${data.purchaseDetails.depositAmount}`],
       ['Loan Amount', `$${(parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)).toFixed(2)}`],
+      ['Tenure (months)', data.purchaseDetails.tenureMonths || 'N/A'],
+      ...(data.purchaseDetails.tenureMonths && parseFloat(data.purchaseDetails.retailPrice) > parseFloat(data.purchaseDetails.depositAmount) ? [
+        ['Monthly Installment', `$${((parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)) / parseFloat(data.purchaseDetails.tenureMonths)).toFixed(2)}`]
+      ] : []),
       ['Store', data.selectedStoreName]
     ]},
     { title: 'Employment Details', rows: [
