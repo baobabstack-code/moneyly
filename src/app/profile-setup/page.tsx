@@ -246,35 +246,111 @@ function ProfileSetupContent() {
     employment: {title: "Employment", icon: "business_center"},
   };
 
+  const steps = [
+    { key: 'photo', label: 'Photo', icon: 'photo_camera' },
+    { key: 'personal', label: 'Personal Info', icon: 'person' },
+    { key: 'contact', label: 'Contact', icon: 'contact_page' },
+    { key: 'nok', label: 'Next of Kin', icon: 'family_restroom' },
+    { key: 'employment', label: 'Employment', icon: 'business_center' },
+  ];
+  const currentStepIndex = steps.findIndex(s => s.key === section);
+
   if (load) return <div className="min-h-screen bg-background flex items-center justify-center"><div className="w-8 h-8 border-4 border-secondary border-t-transparent rounded-full animate-spin"></div></div>;
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
-      <div className="w-full max-w-2xl bg-surface rounded-[32px] border border-outline-variant shadow-2xl">
-        <div className="bg-secondary text-on-secondary p-6">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center overflow-hidden">
-              {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-3xl">person</span>}
-            </div>
-            <div className="flex-1"><h1 className="text-xl font-bold">{sectionTitles[section]?.title}</h1><p className="text-on-secondary/80 text-sm">Update and save</p></div>
-            <div className="flex items-center gap-3">
-              {section === 'photo' && <label className="px-4 py-2 bg-white/20 rounded-xl cursor-pointer hover:bg-white/30 text-sm font-medium">{uploading?'Uploading...':photo?'Change':'Upload'}<input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} /></label>}
-              <button type="button" onClick={() => router.push('/dashboard')} className="px-4 py-2 border border-white/20 rounded-xl text-sm text-on-secondary/80 hover:bg-white/10">Close</button>
-            </div>
+    <div className="min-h-screen bg-background flex">
+      {/* Sidebar */}
+      <aside className="hidden md:flex flex-col w-72 bg-surface border-r border-outline-variant p-8 sticky top-0 h-screen">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-secondary flex items-center justify-center bg-surface-container">
+            {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-on-surface-variant">person</span>}
+          </div>
+          <div>
+            <p className="font-bold text-on-surface text-sm leading-none">Profile Setup</p>
+            <p className="text-xs text-on-surface-variant mt-0.5">Complete all sections</p>
           </div>
         </div>
-        <div className="p-6 space-y-4 max-h-[60vh] overflow-y-auto">
-          {section === 'photo' && <div className="text-center py-8"><div className="w-32 h-32 mx-auto rounded-full bg-surface-container flex items-center justify-center overflow-hidden mb-4">{photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-5xl text-on-surface-variant/30">person</span>}</div><p className="text-on-surface-variant">Your profile photo</p></div>}
-          {section === 'personal' && <>{fld('first_name','First Name')}{fld('last_name','Last Name')}{fld('national_id','National ID')}{fld('date_of_birth','Date of Birth')}<div><label className="block font-label-md mb-2">Gender<span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-3">{['Male','Female'].map(g => <button key={g} type="button" onClick={() => {upd('gender',g); setTouched(t => ({...t,gender:true})); setErrors(e => ({...e,gender:undefined}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.gender===g?'bg-white text-secondary border-white':'border-outline-variant'}`}><span className="material-symbols-outlined">{g==='Male'?'male':'female'}</span>{g}</button>)}</div>{errors.gender&&touched.gender&&<p className="text-red-500 text-sm mt-1">{errors.gender}</p>}</div></>}
-          {section === 'contact' && <>{fld('physical_address','Physical Address')} {fld('mobile_number','Mobile Number')} {fld('email_address','Email Address')}</>}
-          {section === 'nok' && <>{fld('nok_full_name','Full Name')}{fld('nok_address','Address')}{fld('nok_mobile_number','Mobile Number')}<div><label className="block font-label-md mb-2">Relationship<span className="text-red-500">*</span></label><select title="Relationship" className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface" value={form.nok_relationship} onChange={e => upd('nok_relationship',e.target.value)}><option value="">Select</option>{['Spouse','Parent','Sibling','Child','Other'].map(r => <option key={r} value={r}>{r}</option>)}</select></div></>}
-          {section === 'employment' && <><div><label className="block font-label-md mb-2">Civil Servant?<span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => {upd('is_civil_servant',true); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant?'bg-white text-secondary border-white':'border-outline-variant'}`}><span className="material-symbols-outlined">work</span>Yes</button><button type="button" onClick={() => {upd('is_civil_servant',false); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant===false?'bg-white text-secondary border-white':'border-outline-variant'}`}><span className="material-symbols-outlined">business</span>No</button></div></div>{form.is_civil_servant && <>{fld('employer_no','EC Number')} <div><div className="flex items-center justify-between mb-2"><label className="font-label-md">Ministry<span className="text-red-500">*</span></label><Tooltip field="ministry" /></div><select title="Ministry" className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none ${errors.ministry&&touched.ministry?'border-red-500':'border-outline-variant'}`} value={form.ministry} onChange={e => upd('ministry',e.target.value)} onBlur={() => handleBlur('ministry')}><option value="">Select Ministry</option>{['Finance & Economic Development','Health & Child Care','Education, Sport, Arts & Culture','Agriculture, Fisheries, Water & Rural Development','Home Affairs & Cultural Heritage','Justice, Legal & Parliamentary Affairs','Foreign Affairs & International Trade','Defence','Lands, Agriculture, Fisheries, Water & Rural Resettlement','Public Service, Labour & Social Welfare','Transport & Infrastructural Development','Energy & Power Development','Mines & Mining Development','Environment, Climate, Tourism & Hospitality Industry','Information, Publicity & Broadcasting Services','Primary & Secondary Education','Higher & Tertiary Education, Innovation, Science & Technology Development','Local Government & Public Works','Women Affairs, Community, Small & Medium Enterprises Development','Youth, Sport, Arts & Recreation','ICT, Postal & Courier Services','National Housing & Social Amenities'].map(m => <option key={m} value={m}>{m}</option>)}</select>{errors.ministry&&touched.ministry&&<p className="text-red-500 text-sm mt-1">{errors.ministry}</p>}</div></>}{form.is_civil_servant === false && fld('employer_name','Employer Name')}</>}
+
+        <nav className="flex-1 space-y-1">
+          {steps.map((s, i) => {
+            const isActive = s.key === section;
+            const isDone = i < currentStepIndex;
+            return (
+              <div key={s.key} className="flex items-center gap-3 px-4 py-3 rounded-xl transition-all"
+                style={{ background: isActive ? 'rgb(var(--color-secondary) / 0.1)' : 'transparent' }}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 text-sm font-bold border-2 transition-all ${isActive ? 'bg-secondary text-on-secondary border-secondary' : isDone ? 'bg-green-500 text-white border-green-500' : 'border-outline-variant text-on-surface-variant'}`}>
+                  {isDone ? <span className="material-symbols-outlined text-sm">check</span> : <span className="material-symbols-outlined text-sm">{s.icon}</span>}
+                </div>
+                <span className={`text-sm font-medium ${isActive ? 'text-secondary font-bold' : isDone ? 'text-on-surface' : 'text-on-surface-variant'}`}>{s.label}</span>
+              </div>
+            );
+          })}
+        </nav>
+
+        <button type="button" onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors mt-6">
+          <span className="material-symbols-outlined text-sm">close</span>
+          Close & go to Dashboard
+        </button>
+      </aside>
+
+      {/* Main content */}
+      <main className="flex-1 flex flex-col min-h-screen">
+        {/* Top bar - mobile only */}
+        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-outline-variant bg-surface">
+          <p className="font-bold text-sm">{sectionTitles[section]?.title}</p>
+          <button type="button" onClick={() => router.push('/dashboard')} className="text-on-surface-variant">
+            <span className="material-symbols-outlined">close</span>
+          </button>
         </div>
-        <div className="p-6 border-t flex gap-3">
-          {getPreviousSection(section) && <button type="button" onClick={() => router.push(`/profile-setup?section=${getPreviousSection(section)}`)} className="px-6 py-4 border border-outline-variant text-on-surface rounded-xl font-bold text-lg hover:bg-surface-container flex items-center gap-2"><span className="material-symbols-outlined">arrow_back</span>Back</button>}
-          <button onClick={saveSection} disabled={saving} className={`flex-1 py-4 bg-secondary text-on-secondary rounded-xl font-bold text-lg shadow-lg hover:opacity-90 flex items-center justify-center gap-2`}><span className="material-symbols-outlined">{saving ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>{saving ? 'Saving...' : getNextSection(section) ? 'Save & Next' : 'Complete Profile'}</button>
+
+        {/* Progress bar */}
+        <div className="h-1 bg-outline-variant w-full">
+          <div className="h-full bg-secondary transition-all duration-500" style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }} />
         </div>
-      </div>
+
+        <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-6 py-10">
+          {/* Section heading */}
+          <div className="mb-8">
+            <div className="flex items-center gap-3 mb-1">
+              <span className="material-symbols-outlined text-secondary text-2xl">{sectionTitles[section]?.icon}</span>
+              <h1 className="text-2xl font-bold text-on-surface">{sectionTitles[section]?.title}</h1>
+            </div>
+            <p className="text-sm text-on-surface-variant ml-9">Step {currentStepIndex + 1} of {steps.length}</p>
+          </div>
+
+          {/* Form fields */}
+          <div className="space-y-5 flex-1">
+            {section === 'photo' && (
+              <div className="flex flex-col items-center py-8 gap-6">
+                <div className="w-36 h-36 rounded-full bg-surface-container border-4 border-outline-variant flex items-center justify-center overflow-hidden shadow-lg">
+                  {photo ? <img src={photo} alt="" className="w-full h-full object-cover" /> : <span className="material-symbols-outlined text-6xl text-on-surface-variant/30">person</span>}
+                </div>
+                <label className={`px-6 py-3 rounded-xl font-bold text-sm cursor-pointer transition-all ${uploading ? 'bg-surface-container text-on-surface-variant' : 'bg-secondary text-on-secondary hover:opacity-90'}`}>
+                  {uploading ? 'Uploading...' : photo ? 'Change Photo' : 'Upload Photo'}
+                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                </label>
+                {photo && <p className="text-xs text-green-600 flex items-center gap-1"><span className="material-symbols-outlined text-sm">check_circle</span>Photo ready</p>}
+              </div>
+            )}
+            {section === 'personal' && <>{fld('first_name','First Name')}{fld('last_name','Last Name')}{fld('national_id','National ID')}{fld('date_of_birth','Date of Birth')}<div><label className="block font-label-md mb-2">Gender<span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-3">{['Male','Female'].map(g => <button key={g} type="button" onClick={() => {upd('gender',g); setTouched(t => ({...t,gender:true})); setErrors(e => ({...e,gender:undefined}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.gender===g?'bg-secondary text-on-secondary border-secondary':'border-outline-variant text-on-surface hover:bg-surface-container'}`}><span className="material-symbols-outlined">{g==='Male'?'male':'female'}</span>{g}</button>)}</div>{errors.gender&&touched.gender&&<p className="text-red-500 text-sm mt-1">{errors.gender}</p>}</div></>}
+            {section === 'contact' && <>{fld('physical_address','Physical Address')}{fld('mobile_number','Mobile Number')}{fld('email_address','Email Address')}</>}
+            {section === 'nok' && <>{fld('nok_full_name','Full Name')}{fld('nok_address','Address')}{fld('nok_mobile_number','Mobile Number')}<div><label className="block font-label-md mb-2">Relationship<span className="text-red-500">*</span></label><select title="Relationship" className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none" value={form.nok_relationship} onChange={e => upd('nok_relationship',e.target.value)}><option value="">Select relationship</option>{['Spouse','Parent','Sibling','Child','Other'].map(r => <option key={r} value={r}>{r}</option>)}</select></div></>}
+            {section === 'employment' && <><div><label className="block font-label-md mb-2">Civil Servant?<span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => {upd('is_civil_servant',true); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant?'bg-secondary text-on-secondary border-secondary':'border-outline-variant text-on-surface hover:bg-surface-container'}`}><span className="material-symbols-outlined">work</span>Yes</button><button type="button" onClick={() => {upd('is_civil_servant',false); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant===false?'bg-secondary text-on-secondary border-secondary':'border-outline-variant text-on-surface hover:bg-surface-container'}`}><span className="material-symbols-outlined">business</span>No</button></div></div>{form.is_civil_servant && <>{fld('employer_no','EC Number')}<div><div className="flex items-center justify-between mb-2"><label className="font-label-md">Ministry<span className="text-red-500">*</span></label><Tooltip field="ministry" /></div><select title="Ministry" className={`w-full px-4 py-3 rounded-xl border bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none ${errors.ministry&&touched.ministry?'border-red-500':'border-outline-variant'}`} value={form.ministry} onChange={e => upd('ministry',e.target.value)} onBlur={() => handleBlur('ministry')}><option value="">Select Ministry</option>{['Finance & Economic Development','Health & Child Care','Education, Sport, Arts & Culture','Agriculture, Fisheries, Water & Rural Development','Home Affairs & Cultural Heritage','Justice, Legal & Parliamentary Affairs','Foreign Affairs & International Trade','Defence','Lands, Agriculture, Fisheries, Water & Rural Resettlement','Public Service, Labour & Social Welfare','Transport & Infrastructural Development','Energy & Power Development','Mines & Mining Development','Environment, Climate, Tourism & Hospitality Industry','Information, Publicity & Broadcasting Services','Primary & Secondary Education','Higher & Tertiary Education, Innovation, Science & Technology Development','Local Government & Public Works','Women Affairs, Community, Small & Medium Enterprises Development','Youth, Sport, Arts & Recreation','ICT, Postal & Courier Services','National Housing & Social Amenities'].map(m => <option key={m} value={m}>{m}</option>)}</select>{errors.ministry&&touched.ministry&&<p className="text-red-500 text-sm mt-1">{errors.ministry}</p>}</div></>}{form.is_civil_servant===false && fld('employer_name','Employer Name')}</>}
+          </div>
+
+          {/* Navigation */}
+          <div className="flex gap-3 pt-8 mt-8 border-t border-outline-variant">
+            {getPreviousSection(section)
+              ? <button type="button" onClick={() => router.push(`/profile-setup?section=${getPreviousSection(section)}`)} className="px-6 py-3.5 border border-outline-variant text-on-surface rounded-xl font-bold hover:bg-surface-container flex items-center gap-2 transition-all"><span className="material-symbols-outlined text-sm">arrow_back</span>Back</button>
+              : <button type="button" onClick={() => router.push('/dashboard')} className="px-6 py-3.5 border border-outline-variant text-on-surface-variant rounded-xl font-bold hover:bg-surface-container flex items-center gap-2 transition-all"><span className="material-symbols-outlined text-sm">close</span>Cancel</button>
+            }
+            <button type="button" onClick={saveSection} disabled={saving} className="flex-1 py-3.5 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg hover:opacity-90 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
+              <span className="material-symbols-outlined text-sm">{saving ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>
+              {saving ? 'Saving...' : getNextSection(section) ? 'Save & Continue' : 'Complete Profile'}
+            </button>
+          </div>
+        </div>
+      </main>
     </div>
   );
 }
