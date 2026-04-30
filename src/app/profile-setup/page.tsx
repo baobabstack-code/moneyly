@@ -128,6 +128,7 @@ function ProfileSetupContent() {
   const [form, setForm] = useState<typeof emptyForm>(() => loadFromStorage());
   const [showSummary, setShowSummary] = useState(false);
   const initialized = useRef(false);
+  const userIdRef = useRef<string | null>(null);
 
   // Sync photo from form on first load
   useEffect(() => {
@@ -135,6 +136,13 @@ function ProfileSetupContent() {
       initialized.current = true;
       if (form.photo_url) setPhoto(form.photo_url);
     }
+  }, []);
+
+  // Cache user ID on mount so uploads don't need a network call
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) userIdRef.current = session.user.id;
+    });
   }, []);
 
   // Fetch profile in background and merge
@@ -219,10 +227,16 @@ function ProfileSetupContent() {
     const localUrl = URL.createObjectURL(f);
     setPhoto(localUrl);
     setUploading(true);
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.user) { setUploading(false); return; }
+    // Use cached userId — no network round-trip needed
+    let userId = userIdRef.current;
+    if (!userId) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) { setUploading(false); return; }
+      userId = session.user.id;
+      userIdRef.current = userId;
+    }
     const ext = f.name.split('.').pop();
-    const path = `${session.user.id}/photo.${ext}`;
+    const path = `${userId}/photo.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, f, { upsert: true });
     if (!error) {
       const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${path}`;
@@ -512,10 +526,10 @@ function ProfileSetupContent() {
                   <span className="material-symbols-outlined text-sm">close</span>Cancel
                 </button>
             }
-            <button type="button" onClick={saveSection} disabled={saving}
+            <button type="button" onClick={saveSection} disabled={saving || uploading}
               className="flex-1 py-3.5 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg hover:opacity-90 flex items-center justify-center gap-2 transition-all disabled:opacity-50">
-              <span className="material-symbols-outlined text-sm">{saving ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>
-              {saving ? 'Saving...' : getNextSection(section) ? 'Save & Continue' : 'Complete Profile'}
+              <span className="material-symbols-outlined text-sm">{(saving || uploading) ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>
+              {uploading ? 'Uploading photo...' : saving ? 'Saving...' : getNextSection(section) ? 'Save & Continue' : 'Complete Profile'}
             </button>
           </div>
         </div>
