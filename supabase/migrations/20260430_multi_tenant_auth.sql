@@ -199,3 +199,18 @@ on conflict (id) do update set
   location = excluded.location,
   hours    = excluded.hours,
   logo_url = excluded.logo_url;
+
+-- ────────────────────────────────────────────────────────────
+-- Dev seeds — uncomment and run as needed in SQL editor
+-- ────────────────────────────────────────────────────────────
+
+-- Promote a user to super_admin:
+-- update public.profiles set role = 'super_admin'
+-- where id = (select id from auth.users where email = 'nyasha@kiin.global');
+
+-- Promote a user to admin and assign them to a store:
+-- update public.profiles set role = 'admin'
+-- where id = (select id from auth.users where email = 'admin@example.com');
+--
+-- update public.stores set admin_id = (select id from auth.users where email = 'admin@example.com')
+-- where id = 1; -- replace 1 with the target store id
