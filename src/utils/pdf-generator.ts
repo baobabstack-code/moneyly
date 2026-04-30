@@ -24,17 +24,12 @@ export async function generateLoanPDF(data: any) {
   doc.setFont('helvetica', 'normal');
   doc.text('Institutional Lending Platform - Application Summary', 15, 30);
   
-  doc.setFontSize(12);
-  doc.text(`Reference: ${data.lastReference || 'LN-' + (Math.floor(Math.random() * 900000) + 100000)}`, pageWidth - 70, 25);
-
-  let currentY = 50;
-
-  // Add photo thumbnail — contained within the header band
+  // Photo thumbnail — right side of header, fully within the 40px band
   if (data.basicInfo.photoUrl) {
     try {
-      const imgSize = 28;
-      const imgX = pageWidth - imgSize - 10;
-      const imgY = 8;
+      const imgSize = 30;
+      const imgX = pageWidth - imgSize - 8;
+      const imgY = 5;
       doc.addImage(data.basicInfo.photoUrl, 'JPEG', imgX, imgY, imgSize, imgSize);
       doc.setDrawColor(255, 255, 255);
       doc.setLineWidth(0.5);
@@ -43,6 +38,14 @@ export async function generateLoanPDF(data: any) {
       console.warn("Could not add photo to PDF", e);
     }
   }
+
+  // Reference number — left of the photo
+  const imgReserve = 48; // space reserved for photo
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Ref: ${data.lastReference || 'LN-' + (Math.floor(Math.random() * 900000) + 100000)}`, pageWidth - imgReserve - 50, 25, { align: 'right' });
+
+  let currentY = 50;
 
   // Sections
   const sections = [
