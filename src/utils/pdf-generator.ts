@@ -8,6 +8,13 @@ import autoTable from 'jspdf-autotable';
  */
 
 export async function generateLoanPDF(data: any) {
+  // Validate input data
+  if (!data) {
+    throw new Error('No data provided to PDF generator');
+  }
+
+  console.log('PDF Generation - Input data:', data);
+
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.getWidth();
 
@@ -50,41 +57,41 @@ export async function generateLoanPDF(data: any) {
   // Sections
   const sections = [
     { title: 'Personal Information', rows: [
-      ['Full Name', `${data.basicInfo.firstName} ${data.basicInfo.lastName}`],
-      ['Date of Birth', data.basicInfo.dateOfBirth],
-      ['Gender', data.basicInfo.gender],
-      ['National ID', data.lookup.nationalId]
+      ['Full Name', `${data.basicInfo?.firstName || 'N/A'} ${data.basicInfo?.lastName || 'N/A'}`.trim() || 'N/A'],
+      ['Date of Birth', data.basicInfo?.dateOfBirth || 'N/A'],
+      ['Gender', data.basicInfo?.gender || 'N/A'],
+      ['National ID', data.lookup?.nationalId || 'N/A']
     ]},
     { title: 'Contact Details', rows: [
-      ['Mobile Number', data.contactDetails.mobileNumber],
-      ['Email Address', data.contactDetails.emailAddress],
-      ['Physical Address', data.contactDetails.physicalAddress]
+      ['Mobile Number', data.contactDetails?.mobileNumber || 'N/A'],
+      ['Email Address', data.contactDetails?.emailAddress || 'N/A'],
+      ['Physical Address', data.contactDetails?.physicalAddress || 'N/A']
     ]},
     { title: 'Purchase Details', rows: [
-      ['Product', data.purchaseDetails.productName],
-      ['Retail Price', `$${data.purchaseDetails.retailPrice}`],
-      ['Deposit', `$${data.purchaseDetails.depositAmount}`],
-      ['Loan Amount', `$${(parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)).toFixed(2)}`],
-      ['Tenure (months)', data.purchaseDetails.tenureMonths || 'N/A'],
-      ...(data.purchaseDetails.tenureMonths && parseFloat(data.purchaseDetails.retailPrice) > parseFloat(data.purchaseDetails.depositAmount) ? [
+      ['Product', data.purchaseDetails?.productName || 'N/A'],
+      ['Retail Price', data.purchaseDetails?.retailPrice ? `$${data.purchaseDetails.retailPrice}` : 'N/A'],
+      ['Deposit', data.purchaseDetails?.depositAmount ? `$${data.purchaseDetails.depositAmount}` : 'N/A'],
+      ['Loan Amount', (data.purchaseDetails?.retailPrice && data.purchaseDetails?.depositAmount) ? `$${(parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)).toFixed(2)}` : 'N/A'],
+      ['Tenure (months)', data.purchaseDetails?.tenureMonths || 'N/A'],
+      ...(data.purchaseDetails?.tenureMonths && data.purchaseDetails?.retailPrice && data.purchaseDetails?.depositAmount && parseFloat(data.purchaseDetails.retailPrice) > parseFloat(data.purchaseDetails.depositAmount) ? [
         ['Monthly Installment', `$${((parseFloat(data.purchaseDetails.retailPrice) - parseFloat(data.purchaseDetails.depositAmount)) / parseFloat(data.purchaseDetails.tenureMonths)).toFixed(2)}`]
       ] : []),
-      ['Store', data.selectedStoreName]
+      ['Store', data.selectedStoreName || 'N/A']
     ]},
     { title: 'Employment Details', rows: [
-      ['Employer', data.employmentDetails.employerName],
-      ['Status', data.employmentDetails.isCivilServant ? 'Civil Servant' : 'Private Sector'],
-      ...(data.employmentDetails.isCivilServant ? [
-        ['Ministry', data.employmentDetails.ministry],
-        ['EC Number', data.employmentDetails.employerNo]
+      ['Employer', data.employmentDetails?.employerName || 'N/A'],
+      ['Status', data.employmentDetails?.isCivilServant === true ? 'Civil Servant' : data.employmentDetails?.isCivilServant === false ? 'Private Sector' : 'N/A'],
+      ...(data.employmentDetails?.isCivilServant === true ? [
+        ['Ministry', data.employmentDetails?.ministry || 'N/A'],
+        ['EC Number', data.employmentDetails?.employerNo || 'N/A']
       ] : []),
-      ['Employer Phone', data.employmentDetails.phoneNumber]
+      ['Employer Phone', data.employmentDetails?.phoneNumber || 'N/A']
     ]},
     { title: 'Next of Kin', rows: [
-      ['Name', data.nextOfKin.fullName],
-      ['Relationship', data.nextOfKin.relationship],
-      ['Phone', data.nextOfKin.mobileNumber],
-      ['Address', data.nextOfKin.address]
+      ['Name', data.nextOfKin?.fullName || 'N/A'],
+      ['Relationship', data.nextOfKin?.relationship || 'N/A'],
+      ['Phone', data.nextOfKin?.mobileNumber || 'N/A'],
+      ['Address', data.nextOfKin?.address || 'N/A']
     ]},
     { title: 'Documents Provided', rows: [
       ['National ID Copy', data.documentUploads?.idCopyUrl ? '✅ Uploaded' : '❌ Missing'],
@@ -115,5 +122,15 @@ export async function generateLoanPDF(data: any) {
   doc.setTextColor(150);
   doc.text('This is an automatically generated document. HTB Global (c) 2026.', 15, doc.internal.pageSize.getHeight() - 10);
 
-  return doc.output('datauristring');
+  const pdfDataUri = doc.output('datauristring');
+
+  // Validate PDF has content
+  if (!pdfDataUri || pdfDataUri.length < 1000) {
+    console.error('PDF generation failed - PDF is too small or empty');
+    throw new Error('Generated PDF appears to be empty or corrupted');
+  }
+
+  console.log('PDF generated successfully, size:', pdfDataUri.length);
+
+  return pdfDataUri;
 }
