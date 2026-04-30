@@ -90,7 +90,8 @@ export default function DashboardView({ displayName, profile, applications, prof
 
         {/* Profile completion prompt — shown when profile is incomplete, hides rest of dashboard */}
         {!profileComplete && (
-          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative">
+          <div className="flex justify-center items-center min-h-[40vh]">
+          <div className="max-w-md w-full bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
             <div className="relative z-10 flex items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -107,6 +108,7 @@ export default function DashboardView({ displayName, profile, applications, prof
                 </Link>
               </div>
             </div>
+          </div>
           </div>
         )}
 
