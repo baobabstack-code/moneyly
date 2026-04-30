@@ -133,13 +133,20 @@ function ProfileSetupContent() {
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
+    // Show preview instantly from local blob — no waiting for upload
+    const localUrl = URL.createObjectURL(f);
+    setPhoto(localUrl);
     setUploading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setUploading(false); return; }
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) { setUploading(false); return; }
     const ext = f.name.split('.').pop();
-    const path = `${user.id}/photo.${ext}`;
+    const path = `${session.user.id}/photo.${ext}`;
     const { error } = await supabase.storage.from('avatars').upload(path, f, { upsert: true });
-    if (!error) { const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${path}`; setPhoto(publicUrl); }
+    if (!error) {
+      const publicUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/avatars/${path}`;
+      setPhoto(publicUrl);
+      URL.revokeObjectURL(localUrl);
+    }
     setUploading(false);
   };
 
