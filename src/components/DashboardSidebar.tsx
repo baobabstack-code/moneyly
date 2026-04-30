@@ -96,7 +96,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true }
                   : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
               }`}
             >
-              <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+              <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "icon-filled" : "group-hover:scale-110"}`}
                 style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
                 {item.icon}
               </span>
@@ -137,8 +137,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true }
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
-                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "icon-filled" : "group-hover:scale-110"}`}
               >
                 {item.icon}
               </span>
@@ -169,8 +168,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true }
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive && profileComplete ? "" : "group-hover:scale-110"}`}
-                style={isActive && profileComplete ? { fontVariationSettings: "'FILL' 1" } : {}}
+                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive && profileComplete ? "icon-filled" : "group-hover:scale-110"}`}
               >
                 {item.icon}
               </span>

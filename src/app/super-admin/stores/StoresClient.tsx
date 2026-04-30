@@ -130,7 +130,7 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
               </div>
 
               {createError && (
-                <p className="text-sm text-red-600 font-medium">{createError}</p>
+                <p className="text-sm text-status-danger font-medium">{createError}</p>
               )}
 
               <button
@@ -174,7 +174,7 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
                     <div className="flex flex-wrap items-center gap-2 mb-0.5">
                       <h3 className="font-bold text-lg text-primary leading-tight truncate">{s.name}</h3>
                       {/* Admin-assigned badge */}
-                      <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${s.admin_id ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                      <span className={`inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase ${s.admin_id ? 'bg-status-success-bg text-status-success' : 'bg-status-warning-bg text-status-warning'}`}>
                         {s.admin_id ? 'Admin assigned' : 'No admin'}
                       </span>
                     </div>
@@ -259,8 +259,8 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
             </div>
           </div>
 
-          {inviteError && <p className="text-sm text-red-600 font-medium">{inviteError}</p>}
-          {inviteSuccess && <p className="text-sm text-green-600 font-medium">{inviteSuccess}</p>}
+          {inviteError && <p className="text-sm text-status-danger font-medium">{inviteError}</p>}
+          {inviteSuccess && <p className="text-sm text-status-success font-medium">{inviteSuccess}</p>}
 
           <button
             type="submit"

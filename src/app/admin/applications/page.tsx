@@ -36,7 +36,7 @@ export default async function AdminApplicationsPage({
       .single()
 
     if (!store) {
-      return <p className="text-muted-foreground">No store assigned.</p>
+      return <p className="text-on-surface-variant">No store assigned.</p>
     }
     query = query.eq('store_id', store.id)
   }

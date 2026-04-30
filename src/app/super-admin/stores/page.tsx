@@ -18,8 +18,8 @@ export default async function StoresPage() {
   return (
     <div className="max-w-4xl space-y-8">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Stores</h1>
-        <Link href="/super-admin" className="text-sm text-muted-foreground hover:underline">
+        <h1 className="text-3xl sm:text-4xl font-bold text-secondary">Stores</h1>
+        <Link href="/super-admin" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
           ← Overview
         </Link>
       </div>

@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
-import Link from 'next/link'
-import SignOutButton from '@/components/SignOutButton'
+import SuperAdminSidebar from '@/components/SuperAdminSidebar'
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -18,26 +17,26 @@ export default async function SuperAdminLayout({ children }: { children: React.R
     redirect('/dashboard')
   }
 
-  const displayName = profile.first_name || profile.full_name?.split(' ')[0] || user.email
+  const displayName = profile.first_name || profile.full_name?.split(' ')[0] || user.email || ''
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      <header className="border-b bg-card px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-lg">HTB</span>
-          <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-full font-medium">
-            Super Admin
-          </span>
-        </div>
-        <div className="flex items-center gap-6 text-sm">
-          <Link href="/super-admin" className="hover:underline">Overview</Link>
-          <Link href="/super-admin/stores" className="hover:underline">Stores</Link>
-          <Link href="/super-admin/applications" className="hover:underline">All Applications</Link>
-          <span className="text-muted-foreground">{displayName}</span>
-          <SignOutButton />
-        </div>
+    <div className="min-h-screen bg-background font-manrope flex flex-col">
+
+      {/* ── Sticky top bar ── */}
+      <header className="sticky top-0 z-40 h-16 border-b border-outline-variant bg-surface/80 backdrop-blur-md px-6 flex items-center gap-3">
+        <span className="font-black text-lg text-secondary tracking-tight">HTB</span>
+        <span className="text-[10px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
+          Super Admin
+        </span>
       </header>
-      <main className="flex-1 p-6">{children}</main>
+
+      {/* ── Body: sidebar + page content ── */}
+      <div className="flex flex-1">
+        <SuperAdminSidebar
+          user={{ email: user.email ?? '', displayName }}
+        />
+        <main className="flex-1 min-w-0 p-6 md:p-10">{children}</main>
+      </div>
     </div>
   )
 }

@@ -39,24 +39,24 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
 
   return (
     <div className="max-w-5xl space-y-6">
-      <div className="flex items-center gap-3">
-        <Link href="/super-admin/stores" className="text-sm text-muted-foreground hover:underline">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Link href="/super-admin/stores" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
           ← Stores
         </Link>
-        <span className="text-muted-foreground">/</span>
-        <h1 className="text-2xl font-bold">{store.name}</h1>
+        <span className="text-on-surface-variant/40">/</span>
+        <h1 className="text-3xl font-bold text-secondary">{store.name}</h1>
       </div>
 
-      <div className="rounded-xl border bg-card p-4 text-sm space-y-1">
-        <p>
-          <span className="text-muted-foreground">Store Admin: </span>
+      <div className="bg-surface border border-outline-variant rounded-2xl p-5 text-sm space-y-2">
+        <p className="flex gap-2">
+          <span className="text-on-surface-variant/60 font-bold uppercase text-[10px] tracking-widest self-center">Store Admin</span>
           {adminProfile
-            ? `${adminProfile.first_name ?? ''} ${adminProfile.last_name ?? ''} (${adminProfile.email_address ?? '—'})`
-            : <span className="text-yellow-600">No admin assigned</span>}
+            ? <span className="font-medium text-on-surface">{adminProfile.first_name ?? ''} {adminProfile.last_name ?? ''} ({adminProfile.email_address ?? '—'})</span>
+            : <span className="text-status-warning font-medium">No admin assigned</span>}
         </p>
-        <p>
-          <span className="text-muted-foreground">Applications: </span>
-          {applications?.length ?? 0}
+        <p className="flex gap-2">
+          <span className="text-on-surface-variant/60 font-bold uppercase text-[10px] tracking-widest self-center">Applications</span>
+          <span className="font-bold text-primary text-base">{applications?.length ?? 0}</span>
         </p>
       </div>
 

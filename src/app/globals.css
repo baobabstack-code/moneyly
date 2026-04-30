@@ -29,6 +29,18 @@
   
   --color-error: #ba1a1a;
   --color-on-error: #ffffff;
+  --color-error-container: #ffdad6;
+  --color-on-error-container: #410002;
+
+  /* Semantic status tokens */
+  --color-status-success: #166534;        /* green-800 */
+  --color-status-success-bg: #dcfce7;     /* green-100 */
+  --color-status-warning: #854d0e;        /* yellow-800 */
+  --color-status-warning-bg: #fef9c3;     /* yellow-100 */
+  --color-status-info: #1e40af;           /* blue-800 */
+  --color-status-info-bg: #dbeafe;        /* blue-100 */
+  --color-status-danger: #991b1b;         /* red-800 */
+  --color-status-danger-bg: #fee2e2;      /* red-100 */
 
   --radius: 0.25rem;
   --radius-lg: 0.5rem;
@@ -136,6 +148,10 @@
   vertical-align: middle;
 }
 
+.icon-filled {
+  font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+}
+
 .dark {
   --color-background: #020617; /* Slate 950 */
   --color-on-background: #f8fafc; /* Slate 50 */
@@ -161,6 +177,21 @@
   --color-on-secondary: #ffffff;
   --color-secondary-container: #2563eb;
   --color-on-secondary-container: #ffffff;
+
+  --color-error: #ff8787;
+  --color-on-error: #690005;
+  --color-error-container: #93000a;
+  --color-on-error-container: #ffdad6;
+
+  /* Semantic status tokens — dark mode */
+  --color-status-success: #86efac;        /* green-300 */
+  --color-status-success-bg: #14532d;     /* green-900 */
+  --color-status-warning: #fde047;        /* yellow-300 */
+  --color-status-warning-bg: #713f12;     /* yellow-900 */
+  --color-status-info: #93c5fd;           /* blue-300 */
+  --color-status-info-bg: #1e3a8a;        /* blue-900 */
+  --color-status-danger: #fca5a5;         /* red-300 */
+  --color-status-danger-bg: #7f1d1d;      /* red-900 */
 }
 
 @layer utilities {

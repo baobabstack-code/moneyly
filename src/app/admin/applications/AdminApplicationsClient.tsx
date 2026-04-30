@@ -45,12 +45,12 @@ const STATUS_OPTIONS = ['submitted', 'approved', 'rejected', 'draft'] as const
 // Maps application status to the same colour tokens used in the customer views
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    submitted: 'bg-blue-100 text-blue-700',
-    approved:  'bg-green-100 text-green-700',
-    rejected:  'bg-red-100 text-red-700',
-    draft:     'bg-yellow-100 text-yellow-700',
+    submitted: 'bg-status-info-bg text-status-info',
+    approved:  'bg-status-success-bg text-status-success',
+    rejected:  'bg-status-danger-bg text-status-danger',
+    draft:     'bg-status-warning-bg text-status-warning',
   }
-  return map[status] ?? 'bg-yellow-100 text-yellow-700'
+  return map[status] ?? 'bg-status-warning-bg text-status-warning'
 }
 
 // Status icon mirrors the customer ApplicationsView icon logic
@@ -108,17 +108,14 @@ export default function AdminApplicationsClient({
   }
 
   return (
-    <div className="font-manrope pb-20 lg:pb-0">
-      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
+    <div className="max-w-4xl space-y-8">
 
         {/* Page header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2">Applications</h1>
-            <p className="text-on-surface-variant">
-              {applications.length} {statusFilter ? `${statusFilter} ` : ''}application{applications.length !== 1 ? 's' : ''}
-            </p>
-          </div>
+        <div>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Applications</h1>
+          <p className="text-on-surface-variant text-sm">
+            {applications.length} {statusFilter ? `${statusFilter} ` : ''}application{applications.length !== 1 ? 's' : ''}
+          </p>
         </div>
 
         {/* Status filter pills — mirrors the expandable-card approach from ApplicationsView */}
@@ -202,8 +199,8 @@ export default function AdminApplicationsClient({
                     {/* Status icon */}
                     <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
                       <span className={`material-symbols-outlined text-xl ${
-                        app.status === 'approved' ? 'text-green-600' :
-                        app.status === 'rejected' ? 'text-red-500' :
+                        app.status === 'approved' ? 'text-status-success' :
+                        app.status === 'rejected' ? 'text-status-danger' :
                         'text-on-surface-variant'
                       }`}>
                         {statusIcon(app.status)}
@@ -249,7 +246,7 @@ export default function AdminApplicationsClient({
                         type="button"
                         onClick={() => setExpanded(isOpen ? null : app.id)}
                         className="flex items-center gap-1 px-4 py-2 rounded-xl border border-outline-variant text-sm font-bold text-on-surface hover:bg-surface-container transition-all"
-                        aria-expanded={isOpen ? 'true' : 'false'}
+                        aria-expanded={isOpen}
                       >
                         {isOpen ? 'Hide' : 'View'}
                         <span className="material-symbols-outlined text-sm">
@@ -280,7 +277,6 @@ export default function AdminApplicationsClient({
             })}
           </div>
         )}
-      </section>
     </div>
   )
 }
