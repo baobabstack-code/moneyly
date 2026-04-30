@@ -88,9 +88,9 @@ export default function DashboardView({ displayName, profile, applications, prof
           </p>
         </div>
 
-        {/* Profile completion prompt — shown inline when profile is incomplete */}
+        {/* Profile completion prompt — shown when profile is incomplete, hides rest of dashboard */}
         {!profileComplete && (
-          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative mb-8">
+          <div className="max-w-md bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 overflow-hidden relative">
             <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
             <div className="relative z-10 flex items-start gap-4">
               <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center shrink-0">
@@ -110,146 +110,150 @@ export default function DashboardView({ displayName, profile, applications, prof
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,420px)_minmax(0,420px)] gap-5 mb-8">
-          {/* New Application Card */}
-          <div className="bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 flex flex-col justify-between group overflow-hidden relative min-h-52">
-            <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
-            <div className="relative z-10">
-              <span className="material-symbols-outlined text-3xl mb-4">add_circle</span>
-              <h2 className="text-xl font-bold mb-2">New Application</h2>
-              <p className="text-on-secondary/80 text-sm mb-6 leading-relaxed">Apply for a new loan facility.</p>
-            </div>
-            <Link
-              href="/store-selection"
-              className="bg-white text-secondary px-5 py-2.5 rounded-xl font-bold text-sm text-center transition-all hover:opacity-90 active:scale-95"
-            >
-              Start Now
-            </Link>
-          </div>
-
-          {/* My Applications Card */}
-          <div className="bg-surface p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col group min-h-52">
-            <div className="flex items-center justify-between mb-6">
-              <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
-                <span className="material-symbols-outlined">folder_open</span>
-              </div>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
-                {applications.length} Total
-              </span>
-            </div>
-            <h2 className="text-lg font-bold text-primary mb-2">My Applications</h2>
-            <p className="text-on-surface-variant text-sm mb-6">
-              {applications.length > 0
-                ? `${applications.length} application(s) on record`
-                : "No applications yet."}
-            </p>
-            <Link
-              href="/applications"
-              className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
-            >
-              View All
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
-            </Link>
-          </div>
-        </div>
-
-        {/* Application History */}
-        <div className="bg-surface rounded-2xl border border-outline-variant p-5 md:p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-primary">Loan Applications</h2>
-          </div>
-
-          <div className="space-y-4">
-            {applications.length === 0 ? (
-              <div className="text-center py-12">
-                <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl mb-4">description</span>
-                <p className="text-on-surface-variant font-medium mb-4">No applications yet.</p>
+        {profileComplete && (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-[minmax(0,420px)_minmax(0,420px)] gap-5 mb-8">
+              {/* New Application Card */}
+              <div className="bg-secondary text-on-secondary p-6 rounded-2xl shadow-xl shadow-secondary/15 flex flex-col justify-between group overflow-hidden relative min-h-52">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -mr-12 -mt-12"></div>
+                <div className="relative z-10">
+                  <span className="material-symbols-outlined text-3xl mb-4">add_circle</span>
+                  <h2 className="text-xl font-bold mb-2">New Application</h2>
+                  <p className="text-on-secondary/80 text-sm mb-6 leading-relaxed">Apply for a new loan facility.</p>
+                </div>
                 <Link
                   href="/store-selection"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
+                  className="bg-white text-secondary px-5 py-2.5 rounded-xl font-bold text-sm text-center transition-all hover:opacity-90 active:scale-95"
                 >
-                  Apply Now
+                  Start Now
                 </Link>
               </div>
-            ) : (
-              applications.map((app) => {
-                const isOpen = expanded === app.id;
-                const loanAmount = (parseAmount(app.retail_price) || 0) - (parseAmount(app.deposit_amount) || 0);
-                const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
-                return (
-                  <div key={app.id} className="rounded-2xl border border-outline-variant overflow-hidden bg-surface">
-                    {/* Summary row */}
-                    <div className="flex items-center gap-4 p-4">
-                      <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant shrink-0">
-                        <span className="material-symbols-outlined text-xl">
-                          {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
-                        </span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
-                          <p className="font-bold text-primary truncate">{app.product_name}</p>
-                          <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${statusBadge(app.status)}`}>{app.status}</span>
-                        </div>
-                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant">
-                          <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
-                          {app.store_name && <span>{app.store_name}</span>}
-                          {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
-                          <span>{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setExpanded(isOpen ? null : app.id)}
-                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all shrink-0"
-                      >
-                        <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
-                      </button>
-                    </div>
 
-                    {/* Expanded detail panel */}
-                    {isOpen && (
-                      <div className="border-t border-outline-variant/50 bg-surface-container-low px-4 py-4">
-                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                          {[
-                            { label: 'Store', value: app.store_name },
-                            { label: 'Product', value: app.product_name },
-                            { label: 'Retail Price', value: fmt(app.retail_price) },
-                            { label: 'Deposit', value: fmt(app.deposit_amount) },
-                            { label: 'Loan Amount', value: fmt(loanAmount) },
-                            { label: 'Tenure', value: app.tenure_months ? `${app.tenure_months} months` : null },
-                            { label: 'Monthly Instalment', value: monthlyInstallment ? fmt(monthlyInstallment) : null },
-                            { label: 'National ID', value: app.national_id },
-                            { label: 'Mobile', value: app.mobile_number },
-                            { label: 'Email', value: app.email_address },
-                            { label: 'Address', value: app.physical_address },
-                            { label: 'Civil Servant', value: app.is_civil_servant ? 'Yes' : 'No' },
-                            { label: 'Employer', value: app.is_civil_servant ? (app.ministry || '') : app.employer_name },
-                            ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
-                            { label: 'Next of Kin', value: app.kin_full_name },
-                            { label: 'Relationship', value: app.kin_relationship },
-                            { label: 'NOK Mobile', value: app.kin_mobile },
-                            { label: 'NOK Address', value: app.kin_address },
-                            { label: 'Employer Phone', value: app.employer_phone },
-                            { label: 'Employer Contact', value: app.employer_contact_person },
-                            { label: 'Employer Email', value: app.employer_email },
-                            { label: 'Employer Address', value: app.employer_address },
-                            { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
-                            { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
-                        ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
-                            <div key={r.label}>
-                              <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
-                              <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
+              {/* My Applications Card */}
+              <div className="bg-surface p-6 rounded-2xl border border-outline-variant shadow-sm flex flex-col group min-h-52">
+                <div className="flex items-center justify-between mb-6">
+                  <div className="w-11 h-11 bg-primary/10 text-primary rounded-xl flex items-center justify-center">
+                    <span className="material-symbols-outlined">folder_open</span>
                   </div>
-                );
-              })
-            )}
-          </div>
-        </div>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/40">
+                    {applications.length} Total
+                  </span>
+                </div>
+                <h2 className="text-lg font-bold text-primary mb-2">My Applications</h2>
+                <p className="text-on-surface-variant text-sm mb-6">
+                  {applications.length > 0
+                    ? `${applications.length} application(s) on record`
+                    : "No applications yet."}
+                </p>
+                <Link
+                  href="/applications"
+                  className="mt-auto flex items-center gap-2 text-secondary font-bold text-sm group-hover:gap-3 transition-all"
+                >
+                  View All
+                  <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                </Link>
+              </div>
+            </div>
+
+            {/* Application History */}
+            <div className="bg-surface rounded-2xl border border-outline-variant p-5 md:p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-primary">Loan Applications</h2>
+              </div>
+
+              <div className="space-y-4">
+                {applications.length === 0 ? (
+                  <div className="text-center py-12">
+                    <span className="material-symbols-outlined text-on-surface-variant/20 text-6xl mb-4">description</span>
+                    <p className="text-on-surface-variant font-medium mb-4">No applications yet.</p>
+                    <Link
+                      href="/store-selection"
+                      className="inline-flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
+                    >
+                      Apply Now
+                    </Link>
+                  </div>
+                ) : (
+                  applications.map((app) => {
+                    const isOpen = expanded === app.id;
+                    const loanAmount = (parseAmount(app.retail_price) || 0) - (parseAmount(app.deposit_amount) || 0);
+                    const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
+                    return (
+                      <div key={app.id} className="rounded-2xl border border-outline-variant overflow-hidden bg-surface">
+                        {/* Summary row */}
+                        <div className="flex items-center gap-4 p-4">
+                          <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant shrink-0">
+                            <span className="material-symbols-outlined text-xl">
+                              {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
+                            </span>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                              <p className="font-bold text-primary truncate">{app.product_name}</p>
+                              <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${statusBadge(app.status)}`}>{app.status}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant">
+                              <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
+                              {app.store_name && <span>{app.store_name}</span>}
+                              {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
+                              <span>{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setExpanded(isOpen ? null : app.id)}
+                            className="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all shrink-0"
+                          >
+                            <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
+                          </button>
+                        </div>
+
+                        {/* Expanded detail panel */}
+                        {isOpen && (
+                          <div className="border-t border-outline-variant/50 bg-surface-container-low px-4 py-4">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                              {[
+                                { label: 'Store', value: app.store_name },
+                                { label: 'Product', value: app.product_name },
+                                { label: 'Retail Price', value: fmt(app.retail_price) },
+                                { label: 'Deposit', value: fmt(app.deposit_amount) },
+                                { label: 'Loan Amount', value: fmt(loanAmount) },
+                                { label: 'Tenure', value: app.tenure_months ? `${app.tenure_months} months` : null },
+                                { label: 'Monthly Instalment', value: monthlyInstallment ? fmt(monthlyInstallment) : null },
+                                { label: 'National ID', value: app.national_id },
+                                { label: 'Mobile', value: app.mobile_number },
+                                { label: 'Email', value: app.email_address },
+                                { label: 'Address', value: app.physical_address },
+                                { label: 'Civil Servant', value: app.is_civil_servant ? 'Yes' : 'No' },
+                                { label: 'Employer', value: app.is_civil_servant ? (app.ministry || '') : app.employer_name },
+                                ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
+                                { label: 'Next of Kin', value: app.kin_full_name },
+                                { label: 'Relationship', value: app.kin_relationship },
+                                { label: 'NOK Mobile', value: app.kin_mobile },
+                                { label: 'NOK Address', value: app.kin_address },
+                                { label: 'Employer Phone', value: app.employer_phone },
+                                { label: 'Employer Contact', value: app.employer_contact_person },
+                                { label: 'Employer Email', value: app.employer_email },
+                                { label: 'Employer Address', value: app.employer_address },
+                                { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                                { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                              ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
+                                <div key={r.label}>
+                                  <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
+                                  <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </>
+        )}
       </section>
     </div>
   );

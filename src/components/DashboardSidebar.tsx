@@ -147,8 +147,8 @@ export default function DashboardSidebar({ initialUser, profileComplete = true }
           );
         })}
 
-        {/* Your Profile section — always shown, always clickable */}
-        <div className="pt-5 pb-2 px-4">
+        {/* Your Profile section — grayed out when incomplete, but still clickable */}
+        <div className={`pt-5 pb-2 px-4 ${!profileComplete ? "opacity-35" : ""}`}>
           <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
         </div>
 
@@ -158,17 +158,19 @@ export default function DashboardSidebar({ initialUser, profileComplete = true }
             <Link
               key={item.name}
               href={item.href}
-              title={item.tooltip}
+              title={!profileComplete ? "Complete your profile" : item.tooltip}
               aria-label={item.tooltip}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive
+                !profileComplete
+                  ? "opacity-35 hover:opacity-60"
+                  : isActive
                   ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
                   : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
               }`}
             >
               <span
-                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
-                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive && profileComplete ? "" : "group-hover:scale-110"}`}
+                style={isActive && profileComplete ? { fontVariationSettings: "'FILL' 1" } : {}}
               >
                 {item.icon}
               </span>
