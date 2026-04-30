@@ -86,6 +86,7 @@ export interface ApplicationState {
     productName: string;
     retailPrice: string;
     depositAmount: string;
+    tenureMonths: string;
     // balanceAmount is computed: retailPrice - depositAmount
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
@@ -142,6 +143,7 @@ const initialState = {
     productName: "",
     retailPrice: "",
     depositAmount: "",
+    tenureMonths: "",
   },
   documentUploads: {
     idCopyUrl: "",

@@ -10,6 +10,8 @@ export default function PurchaseDetailsPage() {
   const retailPrice = parseFloat(purchaseDetails.retailPrice) || 0;
   const depositAmount = parseFloat(purchaseDetails.depositAmount) || 0;
   const balanceAmount = Math.max(0, retailPrice - depositAmount);
+  const tenure = parseInt(purchaseDetails.tenureMonths) || 0;
+  const installmentAmount = tenure > 0 ? balanceAmount / tenure : 0;
 
   const handleNext = () => {
     router.push("/apply/basic-info");
@@ -101,30 +103,70 @@ export default function PurchaseDetailsPage() {
           </div>
         </div>
 
-        {/* Auto-calculated Balance */}
-        <div className="md:col-span-2 pt-4">
-          <div className="bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20 p-6 flex flex-col items-center justify-center text-center group relative">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Balance Amount</span>
-              <span className="material-symbols-outlined text-[16px] text-secondary/40 cursor-help">help</span>
-              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl">
-                Remaining amount to be financed (Retail Price minus Deposit).
-              </div>
+        {/* Tenure + Balance row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          {/* Tenure dropdown */}
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Tenure <span className="text-red-500">*</span>
+            </label>
+            <select
+              title="Tenure in months"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
+              value={purchaseDetails.tenureMonths}
+              onChange={(e) => setPurchaseDetails({ tenureMonths: e.target.value })}
+            >
+              <option value="">Select months</option>
+              {[3, 6, 9, 12].map((m) => (
+                <option key={m} value={m}>{m} months</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Balance — read only */}
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">Balance Amount</label>
+            <div className="relative">
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+              <input
+                type="text"
+                readOnly
+                title="Balance Amount"
+                placeholder="0.00"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-surface outline-none cursor-default select-none"
+                value={balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              />
             </div>
-            <p className="font-h1 text-secondary text-3xl">
-              ${balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </p>
-            <p className="text-[10px] text-on-surface-variant/60 mt-1">Automatically calculated</p>
             {retailPrice > 0 && depositAmount > retailPrice && (
               <p className="text-red-500 text-xs mt-1">Deposit exceeds retail price</p>
             )}
           </div>
+        </div>
+
+        {/* Monthly Installment — big hero display */}
+        <div className="bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20 p-6 flex flex-col items-center justify-center text-center group relative">
+          <div className="flex items-center gap-2 mb-1">
+            <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Monthly Installment</span>
+            <span className="material-symbols-outlined text-[16px] text-secondary/40 cursor-help">help</span>
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl">
+              Balance divided by tenure months. This is your estimated monthly repayment.
+            </div>
+          </div>
+          <p className="font-h1 text-secondary text-3xl">
+            {installmentAmount > 0
+              ? `$${installmentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : "—"}
+          </p>
+          <p className="text-[10px] text-on-surface-variant/60 mt-1">
+            {tenure > 0 ? `over ${tenure} months` : "Select tenure to calculate"}
+          </p>
         </div>
       </div>
 
       {/* Navigation - Hidden on mobile, handled by layout */}
       <div className="mt-8 hidden lg:flex justify-between items-center">
         <button
+          type="button"
           onClick={() => router.push("/apply/lookup")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-medium text-sm"
         >
@@ -132,8 +174,9 @@ export default function PurchaseDetailsPage() {
           Back
         </button>
         <button
+          type="button"
           onClick={handleNext}
-          disabled={!purchaseDetails.productName || !purchaseDetails.retailPrice}
+          disabled={!purchaseDetails.productName || !purchaseDetails.retailPrice || !purchaseDetails.tenureMonths}
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Continue
