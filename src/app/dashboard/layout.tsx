@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
@@ -21,6 +22,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
         .single()
     : null;
   const profile = (profileResult?.data as UserProfile | null) || null;
+
+  // Admins and super_admins don't use the customer dashboard
+  const role = (profile as any)?.role ?? 'customer'
+  if (role === 'admin') redirect('/admin')
+  if (role === 'super_admin') redirect('/super-admin')
+
   const profileComplete = profile ? isProfileComplete(profile) : false;
 
   return (

@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import SignOutButton from '@/components/SignOutButton'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -62,6 +63,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
             </Link>
           )}
           <span className="text-on-surface-variant/60 hidden md:block">{displayName}</span>
+          <SignOutButton />
         </nav>
       </header>
 

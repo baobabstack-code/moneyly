@@ -1,6 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import StoreSelectionClient from '../app/(application)/store-selection/StoreSelectionClient'
 
+type Store = { id: number; name: string; code: string | null; location: string | null; hours: string | null; logo_url: string | null }
+
 // ── mock next/navigation ───────────────────────────────────────────────────
 
 const mockPush = jest.fn()
@@ -48,7 +50,7 @@ const stores = [
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
-function setup(storeList = stores) {
+function setup(storeList: Store[] = stores) {
   return render(<StoreSelectionClient stores={storeList} />)
 }
 
@@ -171,20 +173,20 @@ describe('StoreSelectionClient — partial store data', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('renders a store with no logo_url without crashing', () => {
-    setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null }])
+    setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null } as Store])
     expect(screen.getByText('New Branch')).toBeInTheDocument()
     // No img rendered
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
   it('renders a store with no hours without the schedule row', () => {
-    setup([{ id: 4, name: 'New Branch', code: 'NB-004', location: null, hours: null, logo_url: null }])
+    setup([{ id: 4, name: 'New Branch', code: 'NB-004', location: null, hours: null, logo_url: null } as Store])
     // hours element absent — material icon 'schedule' not rendered inline
     expect(screen.queryByText(/AM - /)).not.toBeInTheDocument()
   })
 
   it('still allows selecting a store with partial data', () => {
-    setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null }])
+    setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null } as Store])
     fireEvent.click(screen.getByText('New Branch'))
     expect(mockSetSelectedStore).toHaveBeenCalledWith(4, 'New Branch')
     expect(mockPush).toHaveBeenCalledWith('/apply/lookup')

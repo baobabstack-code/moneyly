@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import Link from 'next/link'
+import SignOutButton from '@/components/SignOutButton'
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -33,6 +34,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
           <Link href="/super-admin/stores" className="hover:underline">Stores</Link>
           <Link href="/super-admin/applications" className="hover:underline">All Applications</Link>
           <span className="text-muted-foreground">{displayName}</span>
+          <SignOutButton />
         </div>
       </header>
       <main className="flex-1 p-6">{children}</main>
