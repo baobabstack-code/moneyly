@@ -26,6 +26,9 @@ type Application = {
   kin_mobile: string | null;
   kin_address: string | null;
   employer_phone: string | null;
+  employer_contact_person: string | null;
+  employer_email: string | null;
+  employer_address: string | null;
   id_copy_url: string | null;
   payslip_url: string | null;
 };
@@ -182,6 +185,9 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
                           { label: 'NOK Mobile', value: app.kin_mobile },
                           { label: 'NOK Address', value: app.kin_address },
                           { label: 'Employer Phone', value: app.employer_phone },
+                          { label: 'Employer Contact', value: app.employer_contact_person },
+                          { label: 'Employer Email', value: app.employer_email },
+                          { label: 'Employer Address', value: app.employer_address },
                           { label: 'ID Copy', value: app.id_copy_url ? 'Uploaded' : 'Not uploaded' },
                           { label: 'Payslip', value: app.payslip_url ? 'Uploaded' : 'Not uploaded' },
                         ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (

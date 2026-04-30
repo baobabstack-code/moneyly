@@ -35,6 +35,12 @@ function validateMobile(v: string) {
   if (!(/^\+?263[789]\d{8}$/.test(c) || /^0[789]\d{8}$/.test(c) || /^[789]\d{8}$/.test(c))) return "Invalid Zimbabwe number";
   return null;
 }
+function validateZimbabwePhone(v: string) {
+  if (!v.trim()) return "Required";
+  const c = v.replace(/[\s-]/g, "");
+  if (!(/^\+?263\d{8,10}$/.test(c) || /^0\d{8,10}$/.test(c))) return "Invalid Zimbabwe phone number";
+  return null;
+}
 function validateDob(v: string) {
   if (!v) return "Required";
   const d = new Date(v), t = new Date(), a = t.getFullYear() - d.getFullYear();
@@ -48,6 +54,7 @@ const emptyForm = {
   physical_address: "", mobile_number: "", email_address: "",
   nok_full_name: "", nok_address: "", nok_mobile_number: "", nok_relationship: "",
   employer_name: "", employer_no: "", ministry: "", is_civil_servant: false, monthly_income: "", employment_phone: "",
+  employer_contact_person: "", employer_email: "", employer_address: "",
   photo_url: "",
 };
 
@@ -85,6 +92,9 @@ function mergeProfileIntoDraft(profile: UserProfile | null, draft: typeof emptyF
     is_civil_servant: profile.is_civil_servant ?? draft.is_civil_servant ?? false,
     monthly_income: profile.monthly_income || draft.monthly_income || "",
     employment_phone: profile.employment_phone || draft.employment_phone || "",
+    employer_contact_person: profile.employer_contact_person || draft.employer_contact_person || "",
+    employer_email: profile.employer_email || draft.employer_email || "",
+    employer_address: profile.employer_address || draft.employer_address || "",
     photo_url: profile.photo_url || draft.photo_url || "",
   };
 }
@@ -93,7 +103,7 @@ const sectionFields: Record<string, string[]> = {
   personal: ["first_name", "last_name", "national_id", "date_of_birth", "gender"],
   contact: ["physical_address", "mobile_number", "email_address"],
   nok: ["nok_full_name", "nok_address", "nok_mobile_number", "nok_relationship"],
-  employment: ["is_civil_servant", "employer_name", "employer_no", "ministry", "employment_phone", "monthly_income"],
+  employment: ["is_civil_servant", "employer_name", "employer_no", "ministry", "employment_phone", "employer_contact_person", "employer_email", "employer_address", "monthly_income"],
 };
 
 const MINISTRIES = [
@@ -125,6 +135,10 @@ const tooltipData: Record<string, { icon: string; title: string; tips: string[] 
   employer_no: { icon: "badge", title: "EC Number", tips: ["Employee Code number", "Example: EC123456"] },
   ministry: { icon: "domain", title: "Ministry", tips: ["Your government ministry"] },
   employer_name: { icon: "business", title: "Employer", tips: ["Company name"] },
+  employment_phone: { icon: "phone", title: "Employer Phone", tips: ["Main workplace or HR phone", "Example: +263242123456"] },
+  employer_contact_person: { icon: "contact_phone", title: "Contact Person", tips: ["HR manager or supervisor", "Someone who can confirm employment"] },
+  employer_email: { icon: "alternate_email", title: "Employer Email", tips: ["Company or HR email address"] },
+  employer_address: { icon: "location_on", title: "Employer Address", tips: ["Workplace physical address"] },
 };
 
 function Tooltip({ field }: { field: string }) {
@@ -205,6 +219,10 @@ function ProfileSetupContent({
       case "nok_address": return !s.trim() ? "Required" : null;
       case "nok_relationship": return !form.nok_relationship ? "Required" : null;
       case "employer_name": return !form.is_civil_servant && !s.trim() ? "Required" : null;
+      case "employment_phone": return validateZimbabwePhone(s);
+      case "employer_contact_person": return !s.trim() ? "Required" : null;
+      case "employer_email": return s.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) ? "Invalid" : null;
+      case "employer_address": return !s.trim() ? "Required" : null;
       case "is_civil_servant": return null;
       default: return null;
     }
@@ -323,6 +341,9 @@ function ProfileSetupContent({
         ? [{ label: "EC Number", value: form.employer_no }, { label: "Ministry", value: form.ministry }]
         : [{ label: "Employer", value: form.employer_name }]),
       { label: "Employer Phone", value: form.employment_phone },
+      { label: "Employer Contact", value: form.employer_contact_person },
+      { label: "Employer Email", value: form.employer_email },
+      { label: "Employer Address", value: form.employer_address },
        { label: "Monthly Income", value: form.monthly_income ? `$${form.monthly_income}` : "" },
     ];
     return (
@@ -544,6 +565,9 @@ function ProfileSetupContent({
                 )}
                 {form.is_civil_servant === false && fld('employer_name', 'Employer Name')}
                  {fld('employment_phone', 'Employer Phone')}
+                 {fld('employer_contact_person', 'Employer Contact Person')}
+                 {fld('employer_email', 'Employer Email')}
+                 {fld('employer_address', 'Employer Address')}
                  <div>
                    <label className="block font-label-md mb-2">Monthly Income <span className="text-on-surface-variant/50 font-normal text-xs">(optional)</span></label>
                    <div className="relative">

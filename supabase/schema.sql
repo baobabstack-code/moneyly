@@ -40,6 +40,9 @@ create table if not exists public.profiles (
   is_civil_servant    boolean default false,
   monthly_income      text,
   employment_phone    text,
+  employer_contact_person text,
+  employer_email      text,
+  employer_address    text,
 
   -- Status
   is_profile_complete boolean default false
@@ -129,6 +132,9 @@ create table if not exists public.applications (
   employer_no       text,
   ministry          text,
   employer_phone    text,
+  employer_contact_person text,
+  employer_email    text,
+  employer_address  text,
 
   -- Next of Kin
   kin_full_name     text,

@@ -38,6 +38,9 @@ create table if not exists public.profiles (
   is_civil_servant boolean default false,
   monthly_income  text,
   employment_phone text,
+  employer_contact_person text,
+  employer_email text,
+  employer_address text,
   
   -- STATUS
   is_profile_complete boolean default false

@@ -62,6 +62,9 @@ export default function SummaryPage() {
         employer_no:     employmentDetails.employerNo || null,
         ministry:        employmentDetails.ministry || null,
         employer_phone:  employmentDetails.phoneNumber,
+        employer_contact_person: employmentDetails.contactPerson || null,
+        employer_email:  employmentDetails.emailAddress || null,
+        employer_address: employmentDetails.physicalAddress || null,
         kin_full_name:   nextOfKin.fullName,
         kin_relationship: nextOfKin.relationship,
         kin_mobile:      nextOfKin.mobileNumber,
@@ -109,10 +112,11 @@ export default function SummaryPage() {
 
       setLastReference(reference);
       router.push("/success");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Submission error:', error);
       useApplicationStore.getState().addNotification(
-        `Error submitting application: ${error.message}. Please try again.`,
+        `Error submitting application: ${message}. Please try again.`,
         'error'
       );
     } finally {
@@ -165,6 +169,9 @@ export default function SummaryPage() {
             ]
           : []),
         { label: "Employer Phone", value: employmentDetails.phoneNumber },
+        { label: "Employer Contact", value: employmentDetails.contactPerson },
+        { label: "Employer Email", value: employmentDetails.emailAddress },
+        { label: "Employer Address", value: employmentDetails.physicalAddress },
       ],
     },
     {

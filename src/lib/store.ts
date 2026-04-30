@@ -69,6 +69,9 @@ export interface ApplicationState {
     employerNo: string;    // EC Number (conditional: only if isCivilServant = true)
     ministry: string;      // Ministry name (conditional: only if isCivilServant = true)
     phoneNumber: string;
+    contactPerson: string;
+    emailAddress: string;
+    physicalAddress: string;
   };
   setEmploymentDetails: (details: Partial<ApplicationState["employmentDetails"]>) => void;
 
@@ -132,6 +135,9 @@ const initialState = {
     employerNo: "",
     ministry: "",
     phoneNumber: "",
+    contactPerson: "",
+    emailAddress: "",
+    physicalAddress: "",
   },
   nextOfKin: {
     fullName: "",

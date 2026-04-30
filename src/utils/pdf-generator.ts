@@ -7,7 +7,32 @@ import autoTable from 'jspdf-autotable';
  * Generates a professional loan application summary PDF.
  */
 
-export async function generateLoanPDF(data: any) {
+type LoanPdfData = {
+  lookup?: { nationalId?: string };
+  basicInfo?: { firstName?: string; lastName?: string; dateOfBirth?: string; gender?: string; photoUrl?: string };
+  contactDetails?: { mobileNumber?: string; emailAddress?: string; physicalAddress?: string };
+  purchaseDetails?: { productName?: string; retailPrice?: string; depositAmount?: string; tenureMonths?: string };
+  employmentDetails?: {
+    employerName?: string;
+    isCivilServant?: boolean | null;
+    ministry?: string;
+    employerNo?: string;
+    phoneNumber?: string;
+    contactPerson?: string;
+    emailAddress?: string;
+    physicalAddress?: string;
+  };
+  nextOfKin?: { fullName?: string; relationship?: string; mobileNumber?: string; address?: string };
+  documentUploads?: { idCopyUrl?: string; payslipUrl?: string };
+  selectedStoreName?: string;
+  lastReference?: string;
+};
+
+type JsPdfWithAutoTable = jsPDF & {
+  lastAutoTable?: { finalY: number };
+};
+
+export async function generateLoanPDF(data: LoanPdfData) {
   // Validate input data
   if (!data) {
     throw new Error('No data provided to PDF generator');
@@ -32,7 +57,7 @@ export async function generateLoanPDF(data: any) {
   doc.text('Institutional Lending Platform - Application Summary', 15, 30);
   
   // Photo thumbnail — right side of header, fully within the 40px band
-  if (data.basicInfo.photoUrl) {
+  if (data.basicInfo?.photoUrl) {
     try {
       const imgSize = 30;
       const imgX = pageWidth - imgSize - 8;
@@ -85,7 +110,10 @@ export async function generateLoanPDF(data: any) {
         ['Ministry', data.employmentDetails?.ministry || 'N/A'],
         ['EC Number', data.employmentDetails?.employerNo || 'N/A']
       ] : []),
-      ['Employer Phone', data.employmentDetails?.phoneNumber || 'N/A']
+      ['Employer Phone', data.employmentDetails?.phoneNumber || 'N/A'],
+      ['Employer Contact', data.employmentDetails?.contactPerson || 'N/A'],
+      ['Employer Email', data.employmentDetails?.emailAddress || 'N/A'],
+      ['Employer Address', data.employmentDetails?.physicalAddress || 'N/A']
     ]},
     { title: 'Next of Kin', rows: [
       ['Name', data.nextOfKin?.fullName || 'N/A'],
@@ -114,7 +142,9 @@ export async function generateLoanPDF(data: any) {
       margin: { left: 15, right: 15 }
     });
     
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as JsPdfWithAutoTable).lastAutoTable?.finalY
+      ? (doc as JsPdfWithAutoTable).lastAutoTable!.finalY + 15
+      : currentY + 30;
   });
 
   // Footer

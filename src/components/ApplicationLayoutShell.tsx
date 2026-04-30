@@ -51,6 +51,9 @@ export default function ApplicationLayoutShell({
       employerNo: profile.employer_no || "",
       ministry: profile.ministry || "",
       phoneNumber: profile.employment_phone || "",
+      contactPerson: profile.employer_contact_person || "",
+      emailAddress: profile.employer_email || "",
+      physicalAddress: profile.employer_address || "",
     });
   }, [profile, setBasicInfo, setContactDetails, setEmploymentDetails, setNextOfKin]);
 

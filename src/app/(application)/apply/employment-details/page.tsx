@@ -121,6 +121,45 @@ export default function EmploymentDetailsPage() {
               onChange={(e) => setEmploymentDetails({ phoneNumber: e.target.value })}
             />
           </div>
+
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Contact Person <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="HR manager or supervisor"
+              value={employmentDetails.contactPerson}
+              onChange={(e) => setEmploymentDetails({ contactPerson: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Email
+            </label>
+            <input
+              type="email"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="hr@company.com"
+              value={employmentDetails.emailAddress}
+              onChange={(e) => setEmploymentDetails({ emailAddress: e.target.value })}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Address <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30 resize-none"
+              placeholder="Workplace physical address"
+              value={employmentDetails.physicalAddress}
+              onChange={(e) => setEmploymentDetails({ physicalAddress: e.target.value })}
+            />
+          </div>
         </div>
       </div>
 
@@ -139,6 +178,8 @@ export default function EmploymentDetailsPage() {
             !employmentDetails.employerName ||
             employmentDetails.isCivilServant === null ||
             !employmentDetails.phoneNumber ||
+            !employmentDetails.contactPerson ||
+            !employmentDetails.physicalAddress ||
             (employmentDetails.isCivilServant === true && (!employmentDetails.employerNo || !employmentDetails.ministry))
           }
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"

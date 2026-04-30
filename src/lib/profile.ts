@@ -37,6 +37,9 @@ export interface UserProfile {
   is_civil_servant: boolean;
   monthly_income: string | null;
   employment_phone: string | null;
+  employer_contact_person?: string | null;
+  employer_email?: string | null;
+  employer_address?: string | null;
   
   // STATUS
   is_profile_complete: boolean;
@@ -49,14 +52,18 @@ export interface UserProfile {
 export function isProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
   
-  // Must have first name OR full name, and profile_complete flag
   const hasName = profile.first_name || profile.full_name;
   const hasBasic = profile.national_id && profile.date_of_birth && profile.gender;
-  const hasContact = profile.physical_address && profile.mobile_number;
-  
-  // Profile is complete if they have name + basic + contact + photo + is_profile_complete flag
+  const hasContact = profile.physical_address && profile.mobile_number && profile.email_address;
+  const hasNextOfKin = profile.nok_full_name && profile.nok_address && profile.nok_mobile_number && profile.nok_relationship;
+  const hasEmployment =
+    profile.employment_phone &&
+    profile.employer_contact_person &&
+    profile.employer_address &&
+    (profile.is_civil_servant ? profile.employer_no && profile.ministry : profile.employer_name);
   const hasPhoto = !!(profile.photo_url || profile.avatar_url);
-  return !!(hasName && hasBasic && hasContact && hasPhoto && profile.is_profile_complete);
+
+  return !!(hasName && hasBasic && hasContact && hasNextOfKin && hasEmployment && hasPhoto && profile.is_profile_complete);
 }
 
 /**
