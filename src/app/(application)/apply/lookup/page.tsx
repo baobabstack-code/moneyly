@@ -12,32 +12,22 @@ export default function LookupPage() {
   const [searchDone, setSearchDone] = useState(false);
   const [customerFound, setCustomerFound] = useState(false);
 
-  /**
-   * Performs a lookup against the customer database.
-   * 
-   * INTEGRATION GOAL: This should query your backend (Supabase/Microsoft 365)
-   * to check if a customer with this National ID already exists.
-   * 
-   * If found, the application should fetch their 'basicInfo', 'contactDetails', etc.
-   * and update the Zustand store so they don't have to re-enter data.
-   */
   const handleSearch = async () => {
     if (!nationalId.trim()) return;
     setIsSearching(true);
     setSearchDone(false);
 
-    // BACKEND INTEGRATION TODO:
-    // const res = await fetch(`/api/customers?nationalId=${nationalId}`);
-    // const data = await res.json();
-    // if (data.customer) {
-    //   updateStoreWithCustomer(data.customer);
-    //   setCustomerFound(true);
-    // }
+    // Normalize: strip dashes and spaces for comparison
+    const normalized = nationalId.toUpperCase().replace(/[\s-]/g, "");
 
-    // Simulated delay — currently defaults to 'not found'
-    await new Promise((r) => setTimeout(r, 1200));
-    const found = false;
+    const { createClient } = await import("@/utils/supabase/client");
+    const supabase = createClient();
+    // Query using normalized form — Postgres strips dashes/spaces on both sides
+    const { data } = await supabase.rpc("find_profile_by_national_id", {
+      search_id: normalized,
+    });
 
+    const found = !!data;
     setLookup({ nationalId, customerFound: found });
     setCustomerFound(found);
     setIsSearching(false);
