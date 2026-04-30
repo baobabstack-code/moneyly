@@ -14,6 +14,20 @@ const navItems = [
   { name: "My Applications", href: "/applications", icon: "pending_actions" },
 ];
 
+const applicationProcessItems = [
+  { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
+  { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
+  { name: "Summary", href: "/apply/summary", icon: "fact_check" },
+];
+
+const profileItems = [
+  { name: "Photo", href: "/profile-setup?section=photo", icon: "photo_camera" },
+  { name: "Personal Info", href: "/profile-setup?section=personal", icon: "person" },
+  { name: "Contact", href: "/profile-setup?section=contact", icon: "contact_page" },
+  { name: "Employment", href: "/profile-setup?section=employment", icon: "business_center" },
+  { name: "Next of Kin", href: "/profile-setup?section=nok", icon: "family_restroom" },
+];
+
 export default function DashboardSidebar({ initialUser }: Props) {
   const pathname = usePathname();
   const router = useRouter();
@@ -32,7 +46,7 @@ export default function DashboardSidebar({ initialUser }: Props) {
   };
 
   return (
-    <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0">
+    <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0 overflow-y-auto">
       {/* User info */}
       <div className="p-6 border-b border-outline-variant/30">
         <div className="flex items-center gap-3">
@@ -68,6 +82,60 @@ export default function DashboardSidebar({ initialUser }: Props) {
             >
               <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
                 style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}>
+                {item.icon}
+              </span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          );
+        })}
+
+        <div className="pt-5 pb-2 px-4">
+          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
+        </div>
+
+        {applicationProcessItems.map((item) => {
+          const isActive = pathname === item.href;
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                isActive
+                  ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              >
+                {item.icon}
+              </span>
+              <span className="text-sm">{item.name}</span>
+            </Link>
+          );
+        })}
+
+        <div className="pt-5 pb-2 px-4">
+          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
+        </div>
+
+        {profileItems.map((item) => {
+          const isActive = pathname === "/profile-setup";
+          return (
+            <Link
+              key={item.name}
+              href={item.href}
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                isActive
+                  ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+              }`}
+            >
+              <span
+                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+              >
                 {item.icon}
               </span>
               <span className="text-sm">{item.name}</span>
