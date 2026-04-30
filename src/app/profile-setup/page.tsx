@@ -1,5 +1,20 @@
 "use client";
 
+/**
+ * Profile Setup — multi-step form for collecting user profile data.
+ *
+ * Steps: Photo → Personal → Contact → Next of Kin → Employment
+ *
+ * Key behaviors:
+ * - Draft is persisted to localStorage between steps so the user never loses progress.
+ * - On mount, the DB profile is fetched in the background and merged into the draft.
+ * - User ID is cached in a ref so photo uploads skip the getSession() network call.
+ * - Blob URL is shown instantly for photo preview; the real URL replaces it after upload.
+ * - Save button is disabled while uploading to prevent the user getting stuck.
+ * - After the final step (employment), a summary screen is shown before redirecting.
+ * - Monthly income is optional — users may not wish to disclose it.
+ */
+
 import { Suspense, useEffect, useState, useMemo, useCallback, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getMyProfile, saveProfile } from "@/lib/profile";
@@ -51,7 +66,7 @@ const sectionFields: Record<string, string[]> = {
   personal: ["first_name", "last_name", "national_id", "date_of_birth", "gender"],
   contact: ["physical_address", "mobile_number", "email_address"],
   nok: ["nok_full_name", "nok_address", "nok_mobile_number", "nok_relationship"],
-  employment: ["is_civil_servant", "employer_name", "employer_no", "ministry"],
+  employment: ["is_civil_servant", "employer_name", "employer_no", "ministry", "employment_phone", "monthly_income"],
 };
 
 const MINISTRIES = [
@@ -317,11 +332,15 @@ function ProfileSetupContent() {
       { label: "Email", value: form.email_address },
       { label: "Address", value: form.physical_address },
       { label: "Next of Kin", value: form.nok_full_name },
-      { label: "Relationship", value: form.nok_relationship },
+      { label: "NOK Relationship", value: form.nok_relationship },
       { label: "NOK Mobile", value: form.nok_mobile_number },
+      { label: "NOK Address", value: form.nok_address },
+      { label: "Civil Servant", value: form.is_civil_servant ? "Yes" : "No" },
       ...(form.is_civil_servant
         ? [{ label: "EC Number", value: form.employer_no }, { label: "Ministry", value: form.ministry }]
         : [{ label: "Employer", value: form.employer_name }]),
+      { label: "Employer Phone", value: form.employment_phone },
+      { label: "Monthly Income", value: form.monthly_income ? `$${form.monthly_income}` : "" },
     ];
     return (
       <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 md:p-6">
@@ -541,6 +560,22 @@ function ProfileSetupContent() {
                   </>
                 )}
                 {form.is_civil_servant === false && fld('employer_name', 'Employer Name')}
+                {fld('employment_phone', 'Employer Phone')}
+                <div>
+                  <label className="block font-label-md mb-2">Monthly Income <span className="text-on-surface-variant/50 font-normal text-xs">(optional)</span></label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 outline-none placeholder:text-on-surface-variant/30"
+                      placeholder="0.00"
+                      value={form.monthly_income}
+                      onChange={e => upd('monthly_income', e.target.value)}
+                    />
+                  </div>
+                </div>
               </>
             )}
           </div>

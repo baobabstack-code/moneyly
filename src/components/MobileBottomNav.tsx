@@ -1,5 +1,13 @@
 'use client';
 
+/**
+ * MobileBottomNav — fixed bottom tab bar shown on mobile only (hidden on lg+).
+ * Highlights the active route. Rendered inside the dashboard layout so it
+ * appears on /dashboard and /applications. Also imported directly into the
+ * /applications page which sits outside the dashboard layout group.
+ * Uses pb-safe for iPhone notch padding (defined in globals.css).
+ */
+
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 

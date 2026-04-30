@@ -1,5 +1,17 @@
 'use client'
 
+/**
+ * My Applications page (/applications)
+ *
+ * Fetches all loan applications for the logged-in user and renders them
+ * as expandable cards. Each card shows a summary row (product, ref, store,
+ * loan amount, date) and a full detail panel when expanded, covering every
+ * field saved to the applications table including tenure, NOK, documents,
+ * employment, and calculated monthly installment.
+ *
+ * Redirects to profile-setup if the user's profile is not complete.
+ */
+
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
@@ -189,6 +201,8 @@ export default function ApplicationsPage() {
                           { label: 'Next of Kin', value: app.kin_full_name },
                           { label: 'Relationship', value: app.kin_relationship },
                           { label: 'NOK Mobile', value: app.kin_mobile },
+                          { label: 'NOK Address', value: app.kin_address },
+                          { label: 'Employer Phone', value: app.employer_phone },
                           { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
                           { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
                         ].filter(r => r.value).map(r => (

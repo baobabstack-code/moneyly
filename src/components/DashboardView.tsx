@@ -1,5 +1,17 @@
 'use client';
 
+/**
+ * DashboardView — server-rendered data, client-interactive component.
+ *
+ * Receives profile and applications data from the dashboard server page.
+ * Shows a "complete your profile" prompt if the profile is incomplete,
+ * otherwise renders the welcome screen, quick-action cards, and the full
+ * loan applications list with expandable detail panels.
+ *
+ * Each application row can be expanded to reveal all stored fields:
+ * purchase details, personal info, employment, NOK, and documents.
+ */
+
 import Link from "next/link";
 import { useState } from "react";
 import { UserProfile } from "@/lib/profile";
@@ -188,6 +200,8 @@ export default function DashboardView({ email, displayName, profile, application
                             { label: 'Next of Kin', value: app.kin_full_name },
                             { label: 'Relationship', value: app.kin_relationship },
                             { label: 'NOK Mobile', value: app.kin_mobile },
+                            { label: 'NOK Address', value: app.kin_address },
+                            { label: 'Employer Phone', value: app.employer_phone },
                             { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
                             { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
                           ].filter(r => r.value).map(r => (
