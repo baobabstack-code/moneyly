@@ -173,13 +173,10 @@ export default function ApplicationLayout({
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="hidden md:block text-right mr-4 border-r border-outline-variant pr-4">
-              <p className="text-[10px] uppercase font-bold text-on-surface-variant/60 tracking-widest">Status</p>
-              <p className="text-xs font-bold text-secondary">Institutional Draft</p>
-            </div>
             <ThemeToggle />
             <div className="hidden sm:flex items-center gap-3 relative">
-              <button 
+              <button
+                type="button"
                 onClick={() => setShowNotifications(!showNotifications)}
                 className={`p-2 rounded-full transition-all relative ${showNotifications ? 'bg-secondary/10 text-secondary' : 'text-on-surface-variant hover:bg-surface-container'}`}
               >
@@ -191,11 +188,12 @@ export default function ApplicationLayout({
 
               {/* Notification Dropdown */}
               {showNotifications && (
-                <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-outline-variant rounded-2xl shadow-2xl z-[100] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                <div className="absolute top-full right-0 mt-2 w-80 bg-surface border border-outline-variant rounded-2xl shadow-2xl z-100 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="p-4 border-b border-outline-variant flex items-center justify-between bg-surface-container-low">
                     <h3 className="font-bold text-sm text-primary">Notifications</h3>
                     {notifications.length > 0 && (
-                      <button 
+                      <button
+                        type="button"
                         onClick={clearNotifications}
                         className="text-[10px] font-bold text-secondary uppercase tracking-widest hover:underline"
                       >
@@ -203,7 +201,7 @@ export default function ApplicationLayout({
                       </button>
                     )}
                   </div>
-                  <div className="max-h-[320px] overflow-y-auto">
+                  <div className="max-h-80 overflow-y-auto">
                     {notifications.length === 0 ? (
                       <div className="p-8 text-center">
                         <span className="material-symbols-outlined text-on-surface-variant/20 text-4xl mb-2">notifications_off</span>
@@ -214,7 +212,7 @@ export default function ApplicationLayout({
                         {notifications.map((notif) => (
                           <div key={notif.id} className="p-4 hover:bg-surface-container-lowest transition-colors flex gap-3">
                             <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${notif.type === 'success' ? 'bg-secondary/10 text-secondary' : 'bg-surface-container-highest text-on-surface-variant'}`}>
-                              <span className="material-symbols-outlined text-[18px]">{notif.type === 'success' ? 'check_circle' : 'info'}</span>
+                              <span className="material-symbols-outlined text-body-lg">{notif.type === 'success' ? 'check_circle' : 'info'}</span>
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-xs text-on-surface leading-normal line-clamp-2">{notif.message}</p>
@@ -228,7 +226,7 @@ export default function ApplicationLayout({
                     )}
                   </div>
                   <div className="p-3 bg-surface-container-lowest border-t border-outline-variant/30 text-center">
-                    <button className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest hover:text-primary transition-colors">
+                    <button type="button" className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest hover:text-primary transition-colors">
                       View All Activity
                     </button>
                   </div>
@@ -247,8 +245,9 @@ export default function ApplicationLayout({
         </div>
         {/* Mobile Progress Bar */}
         <div className="lg:hidden h-1 w-full bg-surface-container-highest overflow-hidden">
-          <div 
-            className="h-full bg-secondary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(0,81,213,0.5)]" 
+          <div
+            className="h-full bg-secondary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(0,81,213,0.5)] progress-bar-width"
+            data-progress={`${((currentStepIndex + 1) / steps.length) * 100}`}
             style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
           ></div>
         </div>
@@ -299,7 +298,8 @@ export default function ApplicationLayout({
                 {profileSections.map((section) => {
                   const sectionKey = section.href.split('=')[1] || 'photo';
                   return (
-                    <button 
+                    <button
+                      type="button"
                       key={section.name}
                       onClick={() => setEditSection(sectionKey)}
                       className="w-full flex items-center justify-between px-5 py-3.5 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all"
@@ -316,7 +316,8 @@ export default function ApplicationLayout({
             )}
           </nav>
           <nav className="px-4 py-4 space-y-2 border-t border-outline-variant/30">
-            <button 
+            <button
+              type="button"
               onClick={async () => {
                 const supabase = createClient();
                 await supabase.auth.signOut();
@@ -329,7 +330,8 @@ export default function ApplicationLayout({
             </button>
           </nav>
           <div className="p-8 border-t border-outline-variant/30 bg-surface-container-lowest">
-            <button 
+            <button
+              type="button"
               onClick={() => {
                 useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
               }}
@@ -341,7 +343,7 @@ export default function ApplicationLayout({
         </aside>
 
         {/* Main Content Area */}
-        <main className="pb-[180px] lg:pb-12 px-4 sm:px-8 lg:px-16 pt-6 lg:pt-10 transition-all bg-surface/30">
+        <main className="pb-45 lg:pb-12 px-4 sm:px-8 lg:px-16 pt-6 lg:pt-10 transition-all bg-surface/30">
           <div className="max-w-5xl mx-auto">
             {children}
           </div>
@@ -352,7 +354,8 @@ export default function ApplicationLayout({
       <nav className="fixed bottom-0 left-0 w-full z-50 lg:hidden flex flex-col">
         {/* Control Layer */}
         <div className="flex justify-between items-center h-20 px-6 bg-surface/90 backdrop-blur-2xl border-t border-outline-variant shadow-[0_-10px_30px_rgba(0,0,0,0.1)] transition-all">
-          <button 
+          <button
+            type="button"
             onClick={handleBack}
             className="flex flex-col items-center justify-center text-on-surface-variant/70 text-[10px] uppercase font-bold tracking-widest gap-1 active:scale-90 transition-all hover:text-primary"
           >
@@ -361,13 +364,14 @@ export default function ApplicationLayout({
           </button>
 
           <div className="flex items-center gap-3">
-            <button className="w-12 h-12 bg-surface-container border border-outline-variant rounded-xl flex items-center justify-center text-on-surface shadow-inner active:scale-90 transition-all">
+            <button type="button" className="w-12 h-12 bg-surface-container border border-outline-variant rounded-xl flex items-center justify-center text-on-surface shadow-inner active:scale-90 transition-all">
               <span className="material-symbols-outlined">save</span>
             </button>
-            <button 
-              onClick={isSummaryPage ? () => { /* Submission is handled in SummaryPage.tsx usually, but we need consistency */ 
+            <button
+              type="button"
+              onClick={isSummaryPage ? () => {
                 const submitBtn = document.getElementById('final-submit-button');
-                if (submitBtn) submitBtn.click();
+                if (submitBtn) (submitBtn as HTMLButtonElement).click();
               } : handleNext}
               className="h-12 px-8 bg-secondary text-on-secondary rounded-xl font-bold text-sm shadow-lg shadow-secondary/20 flex items-center gap-2 active:scale-95 transition-all"
             >
@@ -384,7 +388,7 @@ export default function ApplicationLayout({
             <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
           </Link>
           <Link href="/store-selection" className="flex flex-col items-center gap-1 text-secondary">
-            <span className="material-symbols-outlined" style={{ fontVariationSettings: "'FILL' 1" }}>add_circle</span>
+            <span className="material-symbols-outlined filled">add_circle</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Apply</span>
           </Link>
           <Link href="/dashboard" className="flex flex-col items-center gap-1 text-on-surface-variant/40">
@@ -395,18 +399,19 @@ export default function ApplicationLayout({
       </nav>
 
       {editSection && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditSection(null)} />
           <div className="relative w-full max-w-lg max-h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col">
             <div className="flex items-center justify-between p-4 border-b border-outline-variant">
               <h2 className="text-lg font-bold">{sectionTitles[editSection]?.title || 'Edit Profile'}</h2>
-              <button onClick={() => setEditSection(null)} className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center">
+              <button type="button" onClick={() => setEditSection(null)} className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center">
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <iframe 
-              src={`/profile-setup${profileSections.find(s => s.href.includes(editSection))?.href || ''}`} 
-              className="w-full flex-1 min-h-[400px] border-0"
+            <iframe
+              title={`Edit ${sectionTitles[editSection]?.title || 'Profile'}`}
+              src={`/profile-setup${profileSections.find(s => s.href.includes(editSection))?.href || ''}`}
+              className="w-full flex-1 min-h-100 border-0"
             />
           </div>
         </div>
