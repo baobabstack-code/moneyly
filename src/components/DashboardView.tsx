@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { UserProfile } from "@/lib/profile";
 
+function fmt(n: any) {
+  const v = parseFloat(n);
+  return isNaN(v) ? null : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 interface Props {
   email: string;
   displayName: string;
@@ -114,32 +119,37 @@ export default function DashboardView({ email, displayName, profile, application
                 </Link>
               </div>
             ) : (
-              applications.map((app) => (
-                <div key={app.id} className="flex items-center gap-6 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors group">
-                  <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all">
-                    <span className="material-symbols-outlined">
-                      {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
-                    </span>
+              applications.map((app) => {
+                const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
+                return (
+                  <div key={app.id} className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors group">
+                    <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all shrink-0">
+                      <span className="material-symbols-outlined text-xl">
+                        {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-primary truncate">{app.product_name}</p>
+                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-0.5">
+                        <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
+                        {app.store_name && <span>{app.store_name}</span>}
+                        {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <p className="text-xs text-on-surface-variant mb-1">{new Date(app.created_at).toLocaleDateString()}</p>
+                      <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
+                        app.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
+                        app.status === 'approved' ? 'bg-green-100 text-green-700' :
+                        app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <p className="font-bold text-primary">{app.product_name}</p>
-                    <p className="text-xs text-on-surface-variant">Ref: {app.reference}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-primary">
-                      {new Date(app.created_at).toLocaleDateString()}
-                    </p>
-                    <span className={`inline-block px-2 py-1 text-[10px] font-bold rounded-full uppercase ${
-                      app.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                      app.status === 'approved' ? 'bg-green-100 text-green-700' :
-                      app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                      'bg-yellow-100 text-yellow-700'
-                    }`}>
-                      {app.status}
-                    </span>
-                  </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

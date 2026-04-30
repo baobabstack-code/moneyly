@@ -5,10 +5,16 @@ import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
 
+function fmt(n: any) {
+  const v = parseFloat(n);
+  return isNaN(v) ? "—" : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 export default function ApplicationsPage() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [applications, setApplications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<string | null>(null);
   const supabase = createClient();
 
   useEffect(() => {
@@ -107,42 +113,90 @@ export default function ApplicationsPage() {
               </Link>
             </div>
           ) : (
-            applications.map((app) => (
-              <div
-                key={app.id}
-                className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-6 rounded-2xl bg-surface border border-outline-variant hover:border-secondary/30 transition-colors"
-              >
-                <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
-                  <span className="material-symbols-outlined text-xl text-on-surface-variant">
-                    {app.status === 'submitted' ? 'hourglass_empty' :
-                     app.status === 'approved' ? 'check_circle' :
-                     app.status === 'rejected' ? 'cancel' : 'pending'}
-                  </span>
-                </div>
+            applications.map((app) => {
+              const isOpen = expanded === app.id;
+              const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
+              return (
+                <div
+                  key={app.id}
+                  className="rounded-2xl bg-surface border border-outline-variant overflow-hidden transition-colors"
+                >
+                  {/* Summary row */}
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-5 sm:p-6">
+                    <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
+                      <span className={`material-symbols-outlined text-xl ${app.status === 'approved' ? 'text-green-600' : app.status === 'rejected' ? 'text-red-500' : 'text-on-surface-variant'}`}>
+                        {app.status === 'submitted' ? 'hourglass_empty' :
+                         app.status === 'approved' ? 'check_circle' :
+                         app.status === 'rejected' ? 'cancel' : 'pending'}
+                      </span>
+                    </div>
 
-                <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                    <h3 className="font-bold text-lg text-primary">{app.product_name}</h3>
-                    <span className={`inline-block px-3 py-1 text-xs font-bold rounded-full uppercase w-fit ${getStatusStyles(app.status)}`}>
-                      {app.status}
-                    </span>
-                  </div>
-                  <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-on-surface-variant">
-                    <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
-                    <span>Submitted: <span className="font-medium">{new Date(app.created_at).toLocaleDateString()}</span></span>
-                    {app.amount && <span>Amount: <span className="font-bold">${parseFloat(app.amount).toLocaleString()}</span></span>}
-                  </div>
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
+                        <h3 className="font-bold text-lg text-primary leading-tight">{app.product_name}</h3>
+                        <span className={`inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase ${getStatusStyles(app.status)}`}>
+                          {app.status}
+                        </span>
+                      </div>
+                      <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
+                        <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
+                        <span>Submitted: <span className="font-medium text-on-surface">{new Date(app.created_at).toLocaleDateString()}</span></span>
+                        {app.store_name && <span>Store: <span className="font-medium text-on-surface">{app.store_name}</span></span>}
+                        <span>Loan: <span className="font-bold text-secondary">{fmt(loanAmount)}</span></span>
+                      </div>
+                    </div>
 
-                <div className="flex items-center gap-2 sm:flex-col sm:items-end gap-y-2">
-                  {app.status === 'submitted' && (
-                    <button className="text-xs font-bold text-secondary hover:underline">
-                      Cancel
-                    </button>
+                    <div className="flex items-center gap-3 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(isOpen ? null : app.id)}
+                        className="flex items-center gap-1 px-4 py-2 rounded-xl border border-outline-variant text-sm font-bold text-on-surface hover:bg-surface-container transition-all"
+                      >
+                        {isOpen ? 'Hide' : 'View'}
+                        <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
+                      </button>
+                      {app.status === 'submitted' && (
+                        <button type="button" className="text-xs font-bold text-error hover:underline">
+                          Cancel
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Expanded details panel */}
+                  {isOpen && (
+                    <div className="border-t border-outline-variant/50 bg-surface-container-low px-5 sm:px-6 py-5">
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {[
+                          { label: 'Store', value: app.store_name },
+                          { label: 'Product', value: app.product_name },
+                          { label: 'Retail Price', value: fmt(app.retail_price) },
+                          { label: 'Deposit', value: fmt(app.deposit_amount) },
+                          { label: 'Loan Amount', value: fmt(loanAmount) },
+                          { label: 'National ID', value: app.national_id },
+                          { label: 'Mobile', value: app.mobile_number },
+                          { label: 'Email', value: app.email_address },
+                          { label: 'Address', value: app.physical_address },
+                          { label: 'Employer', value: app.is_civil_servant ? `${app.ministry || ''}` : app.employer_name },
+                          { label: 'Civil Servant', value: app.is_civil_servant ? 'Yes' : 'No' },
+                          ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
+                          { label: 'Next of Kin', value: app.kin_full_name },
+                          { label: 'Relationship', value: app.kin_relationship },
+                          { label: 'NOK Mobile', value: app.kin_mobile },
+                          { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                          { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                        ].filter(r => r.value).map(r => (
+                          <div key={r.label}>
+                            <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
+                            <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
 
