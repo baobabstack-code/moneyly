@@ -230,14 +230,16 @@ create table if not exists public.stores (
 
 alter table public.stores enable row level security;
 
+-- Anyone (including unauthenticated visitors) can read stores —
+-- required for the store-selection step that runs before login.
+create policy "Anyone can view stores"
+  on public.stores for select
+  using (true);
+
 create policy "Super admin full access on stores"
   on public.stores for all
-  using (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'))
-  with check (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'));
-
-create policy "Admin can view own store"
-  on public.stores for select
-  using (admin_id = auth.uid());
+  using (get_my_role() = 'super_admin')
+  with check (get_my_role() = 'super_admin');
 
 create index if not exists idx_stores_admin_id on public.stores(admin_id);
 create index if not exists idx_profiles_role on public.profiles(role);
