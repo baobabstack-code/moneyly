@@ -1,6 +1,7 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
+import { startImpersonation } from '@/app/super-admin/impersonate/actions'
 
 type Customer = {
   id: string
@@ -17,8 +18,18 @@ type Customer = {
   physical_address: string | null
 }
 
-export default function CustomersClient({ customers, storeName }: { customers: Customer[]; storeName?: string }) {
+export default function CustomersClient({ customers, storeName, showImpersonate }: { customers: Customer[]; storeName?: string; showImpersonate?: boolean }) {
   const [query, setQuery] = useState('')
+  const [isPending, startTransition] = useTransition()
+  const [impersonatingId, setImpersonatingId] = useState<string | null>(null)
+
+  const handleImpersonate = (c: Customer) => {
+    setImpersonatingId(c.id)
+    startTransition(() => {
+      const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email_address || 'Customer'
+      startImpersonation(c.id, name, '/super-admin/customers')
+    })
+  }
 
   const filtered = query.trim()
     ? customers.filter(c =>
@@ -130,6 +141,23 @@ export default function CustomersClient({ customers, storeName }: { customers: C
                   </div>
                 ))}
               </div>
+
+              {/* Impersonate button — super admin only */}
+              {showImpersonate && (
+                <div className="pt-4 border-t border-outline-variant/30 mt-2">
+                  <button
+                    type="button"
+                    onClick={() => handleImpersonate(c)}
+                    disabled={isPending}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-secondary/10 text-secondary border border-secondary/20 font-bold text-sm hover:bg-secondary/20 disabled:opacity-50 transition-all"
+                  >
+                    <span className="material-symbols-outlined text-base">
+                      {impersonatingId === c.id && isPending ? 'hourglass_empty' : 'visibility'}
+                    </span>
+                    {impersonatingId === c.id && isPending ? 'Opening…' : 'View as Customer'}
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>

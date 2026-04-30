@@ -80,25 +80,6 @@ export default function SuperAdminSidebar({ user }: Props) {
           );
         })}
 
-        {/* Admin section link */}
-        <div className="pt-5 pb-2 px-4">
-          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Store Admin</p>
-        </div>
-        <Link
-          href="/admin"
-          className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-            pathname.startsWith('/admin')
-              ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
-              : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-          }`}
-        >
-          <span
-            className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${pathname.startsWith('/admin') ? "icon-filled" : "group-hover:scale-110"}`}
-          >
-            manage_accounts
-          </span>
-          <span className="text-sm">Admin Dashboard</span>
-        </Link>
       </nav>
 
       {/* Theme toggle + sign out */}

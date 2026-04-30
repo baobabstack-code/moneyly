@@ -23,5 +23,5 @@ export default async function SuperAdminCustomersPage() {
         .in('id', uniqueUserIds)
     : { data: [] }
 
-  return <CustomersClient customers={customers ?? []} />
+  return <CustomersClient customers={customers ?? []} showImpersonate />
 }

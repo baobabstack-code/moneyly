@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
+import ImpersonationBanner from "@/components/ImpersonationBanner";
 import { createClient } from "@/utils/supabase/server";
 import { isProfileComplete, type UserProfile } from "@/lib/profile";
 
@@ -32,9 +33,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
+      <ImpersonationBanner />
       <Navbar initialUser={initialUser} />
       <div className="flex flex-1">
-        {profileComplete && <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} />}
+        {profileComplete && <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} profile={profile} />}
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           {children}
         </main>
