@@ -4,6 +4,7 @@ import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useState } from "react";
 import { getMyProfile, isProfileComplete, UserProfile } from "@/lib/profile";
+import MobileBottomNav from "@/components/MobileBottomNav";
 
 function fmt(n: any) {
   const v = parseFloat(n);
@@ -37,7 +38,8 @@ export default function ApplicationsPage() {
 
   if (!loading && !profileComplete) {
     return (
-      <div className="font-manrope">
+      <div className="font-manrope pb-20 lg:pb-0">
+        <MobileBottomNav />
         <div className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
           <div className="bg-amber-500 text-white p-8 rounded-[32px] shadow-2xl shadow-amber-500/20">
             <div className="flex items-center gap-4 mb-4">
@@ -71,7 +73,8 @@ export default function ApplicationsPage() {
   };
 
   return (
-    <div className="font-manrope">
+    <div className="font-manrope pb-20 lg:pb-0">
+      <MobileBottomNav />
       <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
         <div className="flex items-center justify-between mb-12">
           <div>

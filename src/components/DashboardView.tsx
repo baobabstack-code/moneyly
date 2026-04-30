@@ -1,9 +1,21 @@
+'use client';
+
 import Link from "next/link";
+import { useState } from "react";
 import { UserProfile } from "@/lib/profile";
 
 function fmt(n: any) {
   const v = parseFloat(n);
   return isNaN(v) ? null : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function statusBadge(status: string) {
+  const map: Record<string, string> = {
+    submitted: 'bg-blue-100 text-blue-700',
+    approved: 'bg-green-100 text-green-700',
+    rejected: 'bg-red-100 text-red-700',
+  };
+  return map[status] ?? 'bg-yellow-100 text-yellow-700';
 }
 
 interface Props {
@@ -15,6 +27,7 @@ interface Props {
 }
 
 export default function DashboardView({ email, displayName, profile, applications, profileComplete }: Props) {
+  const [expanded, setExpanded] = useState<string | null>(null);
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
   if (!profileComplete) {
@@ -120,33 +133,69 @@ export default function DashboardView({ email, displayName, profile, application
               </div>
             ) : (
               applications.map((app) => {
+                const isOpen = expanded === app.id;
                 const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
                 return (
-                  <div key={app.id} className="flex items-center gap-4 p-4 rounded-2xl bg-surface-container-low hover:bg-surface-container transition-colors group">
-                    <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant group-hover:bg-secondary group-hover:text-on-secondary transition-all shrink-0">
-                      <span className="material-symbols-outlined text-xl">
-                        {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
-                      </span>
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-primary truncate">{app.product_name}</p>
-                      <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant mt-0.5">
-                        <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
-                        {app.store_name && <span>{app.store_name}</span>}
-                        {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
+                  <div key={app.id} className="rounded-2xl border border-outline-variant overflow-hidden bg-surface">
+                    {/* Summary row */}
+                    <div className="flex items-center gap-4 p-4">
+                      <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center text-on-surface-variant shrink-0">
+                        <span className="material-symbols-outlined text-xl">
+                          {app.status === 'submitted' ? 'hourglass_empty' : app.status === 'approved' ? 'check_circle' : app.status === 'rejected' ? 'cancel' : 'pending'}
+                        </span>
                       </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2 mb-0.5">
+                          <p className="font-bold text-primary truncate">{app.product_name}</p>
+                          <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${statusBadge(app.status)}`}>{app.status}</span>
+                        </div>
+                        <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-on-surface-variant">
+                          <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
+                          {app.store_name && <span>{app.store_name}</span>}
+                          {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
+                          <span>{new Date(app.created_at).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExpanded(isOpen ? null : app.id)}
+                        className="w-9 h-9 flex items-center justify-center rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container transition-all shrink-0"
+                      >
+                        <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
+                      </button>
                     </div>
-                    <div className="text-right shrink-0">
-                      <p className="text-xs text-on-surface-variant mb-1">{new Date(app.created_at).toLocaleDateString()}</p>
-                      <span className={`inline-block px-2 py-0.5 text-[10px] font-bold rounded-full uppercase ${
-                        app.status === 'submitted' ? 'bg-blue-100 text-blue-700' :
-                        app.status === 'approved' ? 'bg-green-100 text-green-700' :
-                        app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                        'bg-yellow-100 text-yellow-700'
-                      }`}>
-                        {app.status}
-                      </span>
-                    </div>
+
+                    {/* Expanded detail panel */}
+                    {isOpen && (
+                      <div className="border-t border-outline-variant/50 bg-surface-container-low px-4 py-4">
+                        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                          {[
+                            { label: 'Store', value: app.store_name },
+                            { label: 'Product', value: app.product_name },
+                            { label: 'Retail Price', value: fmt(app.retail_price) },
+                            { label: 'Deposit', value: fmt(app.deposit_amount) },
+                            { label: 'Loan Amount', value: fmt(loanAmount) },
+                            { label: 'National ID', value: app.national_id },
+                            { label: 'Mobile', value: app.mobile_number },
+                            { label: 'Email', value: app.email_address },
+                            { label: 'Address', value: app.physical_address },
+                            { label: 'Civil Servant', value: app.is_civil_servant ? 'Yes' : 'No' },
+                            { label: 'Employer', value: app.is_civil_servant ? (app.ministry || '') : app.employer_name },
+                            ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
+                            { label: 'Next of Kin', value: app.kin_full_name },
+                            { label: 'Relationship', value: app.kin_relationship },
+                            { label: 'NOK Mobile', value: app.kin_mobile },
+                            { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                            { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
+                          ].filter(r => r.value).map(r => (
+                            <div key={r.label}>
+                              <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
+                              <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 );
               })
