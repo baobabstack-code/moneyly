@@ -110,7 +110,7 @@ export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfi
     }),
     supabase
       .from('profiles')
-      .upsert({ id: userId, full_name: fullName, ...data, updated_at: new Date().toISOString() })
+      .upsert({ id: userId, full_name: fullName, ...data })
       .select()
       .single(),
   ]);
