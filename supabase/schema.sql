@@ -45,27 +45,53 @@ create table if not exists public.profiles (
   employer_address    text,
 
   -- Status
-  is_profile_complete boolean default false
+  is_profile_complete boolean default false,
+
+  -- Multi-tenant role: 'customer' | 'admin' | 'super_admin'
+  role text not null default 'customer' check (role in ('customer', 'admin', 'super_admin'))
 );
 
 alter table public.profiles enable row level security;
 
-create policy "Users can view own profile"
+-- Customers: own row only
+create policy "Customers view own profile"
   on public.profiles for select using (auth.uid() = id);
-create policy "Users can insert own profile"
+create policy "Customers insert own profile"
   on public.profiles for insert with check (auth.uid() = id);
-create policy "Users can update own profile"
+create policy "Customers update own profile"
   on public.profiles for update using (auth.uid() = id);
 
--- Auto-create profile row on signup
+-- Admins: view profiles of customers who applied to their store
+create policy "Admins view store customer profiles"
+  on public.profiles for select
+  using (
+    exists (
+      select 1
+      from public.profiles me
+      join public.stores s on s.admin_id = me.id
+      join public.applications a on a.store_id = s.id and a.user_id = profiles.id
+      where me.id = auth.uid() and me.role = 'admin'
+    )
+  );
+
+-- Super admins: full access
+create policy "Super admins view all profiles"
+  on public.profiles for select
+  using (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'));
+create policy "Super admins update any profile"
+  on public.profiles for update
+  using (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'));
+
+-- Auto-create profile row on signup (reads role from invite metadata)
 create or replace function public.handle_new_user()
 returns trigger language plpgsql security definer set search_path = public as $$
 begin
-  insert into public.profiles (id, full_name, avatar_url)
+  insert into public.profiles (id, full_name, avatar_url, role)
   values (
     new.id,
     new.raw_user_meta_data ->> 'full_name',
-    new.raw_user_meta_data ->> 'avatar_url'
+    new.raw_user_meta_data ->> 'avatar_url',
+    coalesce(new.raw_user_meta_data ->> 'role', 'customer')
   )
   on conflict (id) do nothing;
   return new;
@@ -149,20 +175,72 @@ create table if not exists public.applications (
 
 alter table public.applications enable row level security;
 
-create policy "Users can view own applications"
+-- Customers: own applications only
+create policy "Customers view own applications"
   on public.applications for select using (auth.uid() = user_id);
-create policy "Users can insert own applications"
+create policy "Customers insert own applications"
   on public.applications for insert with check (auth.uid() = user_id);
-create policy "Users can update own applications"
+create policy "Customers update own applications"
   on public.applications for update using (auth.uid() = user_id);
 
--- Index for fast per-user lookups
-create index if not exists idx_applications_user_id
-  on public.applications(user_id);
+-- Admins: applications for their store
+create policy "Admins view store applications"
+  on public.applications for select
+  using (
+    exists (
+      select 1 from public.stores s
+      join public.profiles p on p.id = s.admin_id
+      where p.id = auth.uid() and p.role = 'admin' and s.id = applications.store_id
+    )
+  );
+create policy "Admins update store applications"
+  on public.applications for update
+  using (
+    exists (
+      select 1 from public.stores s
+      join public.profiles p on p.id = s.admin_id
+      where p.id = auth.uid() and p.role = 'admin' and s.id = applications.store_id
+    )
+  );
+
+-- Super admins: full access
+create policy "Super admins full access on applications"
+  on public.applications for all
+  using (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'))
+  with check (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'));
+
+-- Indexes
+create index if not exists idx_applications_user_id on public.applications(user_id);
+create index if not exists idx_applications_store_id on public.applications(store_id);
 
 
 -- ────────────────────────────────────────────────────────────
--- 3. STORAGE BUCKETS
+-- 3. STORES
+-- ────────────────────────────────────────────────────────────
+create table if not exists public.stores (
+  id         serial primary key,
+  name       text not null,
+  admin_id   uuid references auth.users(id) on delete set null,
+  created_at timestamptz default now()
+);
+
+alter table public.stores enable row level security;
+
+create policy "Super admin full access on stores"
+  on public.stores for all
+  using (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'))
+  with check (exists (select 1 from public.profiles where id = auth.uid() and role = 'super_admin'));
+
+create policy "Admin can view own store"
+  on public.stores for select
+  using (admin_id = auth.uid());
+
+create index if not exists idx_stores_admin_id on public.stores(admin_id);
+create index if not exists idx_profiles_role on public.profiles(role);
+
+
+-- ────────────────────────────────────────────────────────────
+-- 4. STORAGE BUCKETS
 -- ────────────────────────────────────────────────────────────
 
 -- Avatars (profile photos)

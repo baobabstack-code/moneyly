@@ -55,10 +55,28 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith('/auth') &&
     pathname !== '/'
   ) {
-    // no user, potentially respond by redirecting the user to the login page
     const url = request.nextUrl.clone()
     url.pathname = '/login'
     return NextResponse.redirect(url)
+  }
+
+  // Role-based route protection
+  if (user && (pathname.startsWith('/admin') || pathname.startsWith('/super-admin'))) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const role = profile?.role ?? 'customer'
+
+    if (pathname.startsWith('/super-admin') && role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    if (pathname.startsWith('/admin') && role !== 'admin' && role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as is. If you're creating a
