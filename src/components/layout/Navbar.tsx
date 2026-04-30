@@ -4,8 +4,8 @@ import Link from "next/link";
 import { ThemeToggle } from "../theme-toggle";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useMemo, useState } from "react";
-import { User } from "@supabase/supabase-js";
-import { useRouter, usePathname } from "next/navigation";
+import type { User } from "@supabase/supabase-js";
+import { usePathname } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
 
 interface NavbarProps {
@@ -15,23 +15,11 @@ interface NavbarProps {
 export default function Navbar({ initialUser }: NavbarProps) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
-  const [hydrated, setHydrated] = useState(false);
+  const [authChanged, setAuthChanged] = useState(false);
   const supabase = useMemo(() => createClient(), []);
-  const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const getUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        const profileData = await getMyProfile();
-        setProfile(profileData);
-      }
-      setHydrated(true);
-    };
-    getUserData();
-
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         const currentUser = session?.user ?? null;
@@ -42,7 +30,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
         } else {
           setProfile(null);
         }
-        setHydrated(true);
+        setAuthChanged(true);
       }
     );
 
@@ -55,12 +43,12 @@ export default function Navbar({ initialUser }: NavbarProps) {
   };
 
   // Before client hydration completes, use server-provided initialUser to avoid flash
-  const isLoggedIn = hydrated ? !!user : !!initialUser;
-  const displayEmail = hydrated
+  const isLoggedIn = authChanged ? !!user : !!initialUser;
+  const displayEmail = authChanged
     ? (profile?.full_name || user?.email || '')
     : (initialUser?.displayName || initialUser?.email || '');
-  const avatarUrl = hydrated
-    ? (profile?.avatar_url || profile?.photo_url || null)
+  const avatarUrl = authChanged
+    ? (profile?.avatar_url || profile?.photo_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null)
     : (initialUser?.avatarUrl || null);
 
   return (
