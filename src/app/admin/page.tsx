@@ -17,7 +17,7 @@ export default async function AdminDashboardPage() {
 
   if (!store) {
     return (
-      <div className="max-w-2xl">
+      <div className="w-full">
         <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-3">Admin Dashboard</h1>
         <p className="text-on-surface-variant">
           No store is assigned to your account.{' '}
@@ -35,7 +35,7 @@ export default async function AdminDashboardPage() {
   ])
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="w-full space-y-8">
 
       {/* Page heading */}
       <div>

@@ -38,7 +38,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
   ])
 
   return (
-    <div className="max-w-5xl space-y-6">
+    <div className="w-full space-y-6">
       <div className="flex items-center gap-2 flex-wrap">
         <Link href="/super-admin/stores" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
           ← Stores

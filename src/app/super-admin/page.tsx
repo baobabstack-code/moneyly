@@ -16,7 +16,7 @@ export default async function SuperAdminOverviewPage() {
   ])
 
   return (
-    <div className="max-w-4xl space-y-10">
+    <div className="w-full space-y-10">
 
       {/* Page heading */}
       <div>

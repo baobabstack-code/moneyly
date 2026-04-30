@@ -16,7 +16,7 @@ export default async function StoresPage() {
     .order('id', { ascending: true })
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="w-full space-y-8">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl sm:text-4xl font-bold text-secondary">Stores</h1>
         <Link href="/super-admin" className="text-sm text-on-surface-variant hover:text-primary transition-colors">

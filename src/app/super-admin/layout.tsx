@@ -35,7 +35,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
         <SuperAdminSidebar
           user={{ email: user.email ?? '', displayName }}
         />
-        <main className="flex-1 min-w-0 p-6 md:p-10">{children}</main>
+        <main className="flex-1 min-w-0 px-6 py-8 md:px-10">{children}</main>
       </div>
     </div>
   )

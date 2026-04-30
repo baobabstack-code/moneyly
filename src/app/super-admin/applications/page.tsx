@@ -27,7 +27,7 @@ export default async function SuperAdminApplicationsPage({
   const { data: applications } = await query
 
   return (
-    <div className="max-w-6xl">
+    <div className="w-full">
       <AdminApplicationsClient
         applications={applications ?? []}
         statusFilter={params.status}

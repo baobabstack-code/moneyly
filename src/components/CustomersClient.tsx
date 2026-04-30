@@ -27,7 +27,7 @@ export default function CustomersClient({ customers, storeName }: { customers: C
     : customers
 
   return (
-    <div className="max-w-4xl space-y-8">
+    <div className="w-full space-y-8">
 
       {/* Page header */}
       <div>
@@ -55,7 +55,7 @@ export default function CustomersClient({ customers, storeName }: { customers: C
             onClick={() => setQuery('')}
             className="absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant/50 hover:text-on-surface transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <span className="material-symbols-outlined text-body-lg">close</span>
           </button>
         )}
       </div>
@@ -126,7 +126,7 @@ export default function CustomersClient({ customers, storeName }: { customers: C
                 ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
                   <div key={r.label}>
                     <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
-                    <p className="text-sm font-medium text-on-surface break-words">{r.value}</p>
+                    <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
                   </div>
                 ))}
               </div>

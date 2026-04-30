@@ -46,7 +46,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           role={profile.role as 'admin' | 'super_admin'}
           storeName={store?.name}
         />
-        <main className="flex-1 min-w-0 p-6 md:p-10">{children}</main>
+        <main className="flex-1 min-w-0 px-6 py-8 md:px-10">{children}</main>
       </div>
     </div>
   )
