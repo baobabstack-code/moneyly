@@ -13,6 +13,17 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
+  // Redirect admin and super_admin away from the customer dashboard
+  // to their dedicated management interface
+  const { data: roleRow } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', session.user.id)
+    .single()
+
+  if (roleRow?.role === 'super_admin') redirect('/super-admin')
+  if (roleRow?.role === 'admin') redirect('/admin')
+
   // Fetch profile and applications in parallel server-side
   const [profileResult, applicationsResult] = await Promise.all([
     supabase

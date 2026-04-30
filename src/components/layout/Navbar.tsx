@@ -39,7 +39,9 @@ export default function Navbar({ initialUser }: NavbarProps) {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/';
+    // Redirect to /login rather than '/' — the landing page redirects
+    // authenticated users back to /dashboard which creates a redirect loop.
+    window.location.href = '/login';
   };
 
   // Before client hydration completes, use server-provided initialUser to avoid flash
