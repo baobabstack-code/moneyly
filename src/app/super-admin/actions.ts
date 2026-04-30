@@ -5,14 +5,20 @@ import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
 export async function createStore(formData: FormData) {
-  const name = formData.get('name') as string
-  if (!name?.trim()) return { error: 'Store name is required' }
+  const name = (formData.get('name') as string)?.trim()
+  if (!name) return { error: 'Store name is required' }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const { error } = await supabase.from('stores').insert({ name: name.trim() })
+  const { error } = await supabase.from('stores').insert({
+    name,
+    code:     (formData.get('code')     as string)?.trim() || null,
+    location: (formData.get('location') as string)?.trim() || null,
+    hours:    (formData.get('hours')    as string)?.trim() || null,
+    logo_url: (formData.get('logo_url') as string)?.trim() || null,
+  })
   if (error) return { error: error.message }
 
   revalidatePath('/super-admin/stores')

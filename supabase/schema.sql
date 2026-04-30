@@ -220,6 +220,10 @@ create index if not exists idx_applications_store_id on public.applications(stor
 create table if not exists public.stores (
   id         serial primary key,
   name       text not null,
+  code       text,
+  location   text,
+  hours      text,
+  logo_url   text,
   admin_id   uuid references auth.users(id) on delete set null,
   created_at timestamptz default now()
 );

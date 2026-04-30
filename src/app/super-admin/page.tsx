@@ -10,7 +10,7 @@ export default async function SuperAdminOverviewPage() {
   if (!user) redirect('/login')
 
   const [{ data: stores }, { count: totalApps }, { count: pendingApps }] = await Promise.all([
-    supabase.from('stores').select('id, name, admin_id, created_at').order('created_at', { ascending: false }),
+    supabase.from('stores').select('id, name, code, location, admin_id, created_at').order('id', { ascending: true }),
     supabase.from('applications').select('id', { count: 'exact', head: true }),
     supabase.from('applications').select('id', { count: 'exact', head: true }).eq('status', 'submitted'),
   ])

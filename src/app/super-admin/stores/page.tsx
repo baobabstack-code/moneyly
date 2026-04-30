@@ -12,8 +12,8 @@ export default async function StoresPage() {
 
   const { data: stores } = await supabase
     .from('stores')
-    .select('id, name, admin_id, created_at')
-    .order('created_at', { ascending: false })
+    .select('id, name, code, location, hours, logo_url, admin_id, created_at')
+    .order('id', { ascending: true })
 
   return (
     <div className="max-w-4xl space-y-8">
