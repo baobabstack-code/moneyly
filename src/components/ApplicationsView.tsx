@@ -63,7 +63,7 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
   if (!profileComplete) {
     return (
       <div className="font-manrope pb-20 lg:pb-0">
-        <div className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
+        <div className="w-full py-10 px-6 md:px-10 xl:px-12">
           <div className="bg-amber-500 text-white p-8 rounded-[32px] shadow-2xl shadow-amber-500/20">
             <div className="flex items-center gap-4 mb-4">
               <span className="material-symbols-outlined text-4xl">person_add</span>
@@ -84,7 +84,7 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
 
   return (
     <div className="font-manrope pb-20 lg:pb-0">
-      <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
+      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
         <div className="flex items-center justify-between mb-12">
           <div>
             <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2">My Applications</h1>

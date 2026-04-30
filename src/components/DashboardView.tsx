@@ -16,36 +16,67 @@ import Link from "next/link";
 import { useState } from "react";
 import { UserProfile } from "@/lib/profile";
 
-function fmt(n: any) {
-  const v = parseFloat(n);
+type Application = {
+  id: string;
+  status: string | null;
+  reference: string | null;
+  created_at: string;
+  store_name: string | null;
+  product_name: string | null;
+  retail_price: string | number | null;
+  deposit_amount: string | number | null;
+  tenure_months: number | null;
+  national_id: string | null;
+  mobile_number: string | null;
+  email_address: string | null;
+  physical_address: string | null;
+  employer_name: string | null;
+  employer_no: string | null;
+  ministry: string | null;
+  is_civil_servant: boolean | null;
+  kin_full_name: string | null;
+  kin_relationship: string | null;
+  kin_mobile: string | null;
+  kin_address: string | null;
+  employer_phone: string | null;
+  id_copy_url: string | null;
+  payslip_url: string | null;
+};
+
+function parseAmount(n: string | number | null) {
+  return typeof n === 'number' ? n : parseFloat(n ?? '');
+}
+
+function fmt(n: string | number | null) {
+  const v = parseAmount(n);
   return isNaN(v) ? null : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function statusBadge(status: string) {
+function statusBadge(status: string | null) {
   const map: Record<string, string> = {
     submitted: 'bg-blue-100 text-blue-700',
     approved: 'bg-green-100 text-green-700',
     rejected: 'bg-red-100 text-red-700',
   };
-  return map[status] ?? 'bg-yellow-100 text-yellow-700';
+  return map[status ?? ''] ?? 'bg-yellow-100 text-yellow-700';
 }
 
 interface Props {
   email: string;
   displayName: string;
   profile: UserProfile | null;
-  applications: any[];
+  applications: Application[];
   profileComplete: boolean;
 }
 
-export default function DashboardView({ email, displayName, profile, applications, profileComplete }: Props) {
+export default function DashboardView({ displayName, profile, applications, profileComplete }: Props) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
   if (!profileComplete) {
     return (
       <div className="font-manrope">
-        <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
+        <section className="w-full py-10 px-6 md:px-10 xl:px-12">
           <div className="mb-12">
             <h1 className="text-4xl font-bold text-primary mb-2">
               Welcome, {firstName}
@@ -74,7 +105,7 @@ export default function DashboardView({ email, displayName, profile, application
 
   return (
     <div className="font-manrope">
-      <section className="py-10 px-6 md:px-12 max-w-5xl mx-auto">
+      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
         <div className="mb-12">
           <h1 className="text-4xl font-bold text-primary mb-2">
             Welcome back, {firstName}
@@ -146,7 +177,7 @@ export default function DashboardView({ email, displayName, profile, application
             ) : (
               applications.map((app) => {
                 const isOpen = expanded === app.id;
-                const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
+                const loanAmount = (parseAmount(app.retail_price) || 0) - (parseAmount(app.deposit_amount) || 0);
                 const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
                 return (
                   <div key={app.id} className="rounded-2xl border border-outline-variant overflow-hidden bg-surface">
@@ -204,7 +235,7 @@ export default function DashboardView({ email, displayName, profile, application
                             { label: 'Employer Phone', value: app.employer_phone },
                             { label: 'ID Copy', value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
                             { label: 'Payslip', value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
-                          ].filter(r => r.value).map(r => (
+                        ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
                             <div key={r.label}>
                               <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
                               <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>

@@ -90,9 +90,9 @@ export default function ApplicationLayoutShell({
   const isSummaryPage = pathname.includes("/summary");
   const isSuccessPage = pathname.includes("/success");
   const primaryNavItems = [
-    { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
-    { name: "New Application", href: "/store-selection", icon: "add_circle" },
-    { name: "My Applications", href: "/applications", icon: "pending_actions" },
+    { name: "Dashboard", href: "/dashboard", icon: "dashboard", tooltip: "View your account dashboard" },
+    { name: "New Application", href: "/store-selection", icon: "add_circle", tooltip: "Start a new loan application" },
+    { name: "My Applications", href: "/applications", icon: "pending_actions", tooltip: "View your submitted loan applications" },
   ];
 
   const handleNext = () => {
@@ -233,6 +233,8 @@ export default function ApplicationLayoutShell({
                 <Link
                   key={item.name}
                   href={item.href}
+                  title={item.tooltip}
+                  aria-label={item.tooltip}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                     isActive
                       ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
@@ -260,6 +262,8 @@ export default function ApplicationLayoutShell({
                 <Link 
                   key={step.name} 
                   href={step.href} 
+                  title={`${step.name} step`}
+                  aria-label={`${step.name} step`}
                   className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                     isActive 
                       ? "bg-secondary/10 text-secondary font-bold border border-secondary/20" 
@@ -290,6 +294,8 @@ export default function ApplicationLayoutShell({
                       type="button"
                       key={section.name}
                       onClick={() => setEditSection(sectionKey)}
+                      title={`Edit ${section.name}`}
+                      aria-label={`Edit ${section.name}`}
                       className="w-full flex items-center justify-between px-4 py-3 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all duration-200"
                     >
                       <div className="flex items-center gap-3">
@@ -311,6 +317,8 @@ export default function ApplicationLayoutShell({
                 onClick={() => {
                   useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
                 }}
+                title="Save application progress"
+                aria-label="Save application progress"
                 className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-200 group"
               >
                 <span className="material-symbols-outlined text-[20px]">save</span>
@@ -324,6 +332,8 @@ export default function ApplicationLayoutShell({
                 await supabase.auth.signOut();
                 router.push("/");
               }}
+              title="Sign out of your account"
+              aria-label="Sign out of your account"
               className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-200 group"
             >
               <span className="material-symbols-outlined text-[20px] group-hover:rotate-180 transition-transform duration-500">logout</span>
@@ -333,8 +343,8 @@ export default function ApplicationLayoutShell({
         </aside>
 
         {/* Main Content Area */}
-        <main className="pb-45 lg:pb-12 px-4 sm:px-8 lg:px-16 pt-6 lg:pt-10 transition-all bg-surface/30">
-          <div className="max-w-5xl mx-auto">
+        <main className="pb-45 lg:pb-12 px-4 sm:px-8 lg:px-10 xl:px-12 pt-6 lg:pt-10 transition-all bg-surface/30">
+          <div className="w-full">
             {children}
           </div>
         </main>

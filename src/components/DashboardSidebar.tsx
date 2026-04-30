@@ -9,23 +9,23 @@ interface Props {
 }
 
 const navItems = [
-  { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
-  { name: "New Application", href: "/store-selection", icon: "add_circle" },
-  { name: "My Applications", href: "/applications", icon: "pending_actions" },
+  { name: "Dashboard", href: "/dashboard", icon: "dashboard", tooltip: "View your account dashboard" },
+  { name: "New Application", href: "/store-selection", icon: "add_circle", tooltip: "Start a new loan application" },
+  { name: "My Applications", href: "/applications", icon: "pending_actions", tooltip: "View your submitted loan applications" },
 ];
 
 const applicationProcessItems = [
-  { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
-  { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
-  { name: "Summary", href: "/apply/summary", icon: "fact_check" },
+  { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long", tooltip: "Enter product and purchase details" },
+  { name: "Documents", href: "/apply/document-uploads", icon: "upload_file", tooltip: "Upload ID and payslip documents" },
+  { name: "Summary", href: "/apply/summary", icon: "fact_check", tooltip: "Review and submit your application" },
 ];
 
 const profileItems = [
-  { name: "Photo", href: "/profile-setup?section=photo", icon: "photo_camera" },
-  { name: "Personal Info", href: "/profile-setup?section=personal", icon: "person" },
-  { name: "Contact", href: "/profile-setup?section=contact", icon: "contact_page" },
-  { name: "Employment", href: "/profile-setup?section=employment", icon: "business_center" },
-  { name: "Next of Kin", href: "/profile-setup?section=nok", icon: "family_restroom" },
+  { name: "Photo", href: "/profile-setup?section=photo", icon: "photo_camera", tooltip: "Update your profile photo" },
+  { name: "Personal Info", href: "/profile-setup?section=personal", icon: "person", tooltip: "Update your personal information" },
+  { name: "Contact", href: "/profile-setup?section=contact", icon: "contact_page", tooltip: "Update your contact details" },
+  { name: "Employment", href: "/profile-setup?section=employment", icon: "business_center", tooltip: "Update employment information" },
+  { name: "Next of Kin", href: "/profile-setup?section=nok", icon: "family_restroom", tooltip: "Update next of kin details" },
 ];
 
 export default function DashboardSidebar({ initialUser }: Props) {
@@ -48,7 +48,7 @@ export default function DashboardSidebar({ initialUser }: Props) {
   return (
     <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0 overflow-y-auto">
       {/* User info */}
-      <div className="p-6 border-b border-outline-variant/30">
+      <div className="p-6 border-b border-outline-variant/30" title="Signed in account">
         <div className="flex items-center gap-3">
           {initialUser?.avatarUrl ? (
             <img src={initialUser.avatarUrl} alt="Avatar" className="w-10 h-10 rounded-xl object-cover border border-outline-variant" />
@@ -74,6 +74,8 @@ export default function DashboardSidebar({ initialUser }: Props) {
             <Link
               key={item.name}
               href={item.href}
+              title={item.tooltip}
+              aria-label={item.tooltip}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive
                   ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
@@ -99,6 +101,8 @@ export default function DashboardSidebar({ initialUser }: Props) {
             <Link
               key={item.name}
               href={item.href}
+              title={item.tooltip}
+              aria-label={item.tooltip}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive
                   ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
@@ -126,6 +130,8 @@ export default function DashboardSidebar({ initialUser }: Props) {
             <Link
               key={item.name}
               href={item.href}
+              title={item.tooltip}
+              aria-label={item.tooltip}
               className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                 isActive
                   ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
@@ -149,6 +155,8 @@ export default function DashboardSidebar({ initialUser }: Props) {
         <button
           type="button"
           onClick={handleSignOut}
+          title="Sign out of your account"
+          aria-label="Sign out of your account"
           className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-200 group"
         >
           <span className="material-symbols-outlined text-[20px] group-hover:rotate-180 transition-transform duration-500">logout</span>
