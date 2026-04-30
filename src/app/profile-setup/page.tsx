@@ -116,6 +116,12 @@ function ProfileSetupContent() {
     return hasName && hasBasic && hasContact && hasPhoto;
   };
 
+  const getNextSection = (current: string): string | null => {
+    const sections = ['photo', 'personal', 'contact', 'nok', 'employment'];
+    const currentIndex = sections.indexOf(current);
+    return currentIndex < sections.length - 1 ? sections[currentIndex + 1] : null;
+  };
+
   const saveSection = async () => {
     const fields = section === 'photo' ? [] : sectionFields[section] || [];
     const errs: FormErrors = {};
@@ -133,7 +139,10 @@ function ProfileSetupContent() {
       if (profileComplete) {
         router.push('/dashboard');
       } else {
-        alert('Saved. Your profile is not complete yet — please finish the remaining sections to unlock dashboard features.');
+        const nextSection = getNextSection(section);
+        if (nextSection) {
+          router.push(`/profile-setup?section=${nextSection}`);
+        }
       }
     } else alert('Failed to save');
   };
