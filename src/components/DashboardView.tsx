@@ -135,6 +135,7 @@ export default function DashboardView({ email, displayName, profile, application
               applications.map((app) => {
                 const isOpen = expanded === app.id;
                 const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
+                const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
                 return (
                   <div key={app.id} className="rounded-2xl border border-outline-variant overflow-hidden bg-surface">
                     {/* Summary row */}
@@ -153,7 +154,7 @@ export default function DashboardView({ email, displayName, profile, application
                           <span>Ref: <span className="font-mono font-bold">{app.reference}</span></span>
                           {app.store_name && <span>{app.store_name}</span>}
                           {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
-                          <span>{new Date(app.created_at).toLocaleDateString()}</span>
+                          <span>{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                         </div>
                       </div>
                       <button
@@ -175,6 +176,8 @@ export default function DashboardView({ email, displayName, profile, application
                             { label: 'Retail Price', value: fmt(app.retail_price) },
                             { label: 'Deposit', value: fmt(app.deposit_amount) },
                             { label: 'Loan Amount', value: fmt(loanAmount) },
+                            { label: 'Tenure', value: app.tenure_months ? `${app.tenure_months} months` : null },
+                            { label: 'Monthly Instalment', value: monthlyInstallment ? fmt(monthlyInstallment) : null },
                             { label: 'National ID', value: app.national_id },
                             { label: 'Mobile', value: app.mobile_number },
                             { label: 'Email', value: app.email_address },

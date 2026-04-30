@@ -28,47 +28,51 @@ export default function ApplicationLayout({
   useEffect(() => {
     const supabase = createClient();
     const fetchUser = async () => {
+      // Run session check and profile fetch in parallel — session is local cache, profile is DB
       const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        setUser(session.user);
-        const profileData = await getMyProfile();
-        setProfile(profileData);
-
-        if (!profileData || !isProfileComplete(profileData)) {
-          router.push("/profile-setup");
-          return;
-        }
-
-        // Pre-fill application store from completed profile
-        setBasicInfo({
-          firstName: profileData.first_name || "",
-          lastName: profileData.last_name || "",
-          dateOfBirth: profileData.date_of_birth || "",
-          gender: profileData.gender || "",
-          photoUrl: profileData.photo_url || "",
-        });
-        setContactDetails({
-          physicalAddress: profileData.physical_address || "",
-          mobileNumber: profileData.mobile_number || "",
-          emailAddress: profileData.email_address || "",
-        });
-        setNextOfKin({
-          fullName: profileData.nok_full_name || "",
-          address: profileData.nok_address || "",
-          mobileNumber: profileData.nok_mobile_number || "",
-          relationship: profileData.nok_relationship || "",
-        });
-        setEmploymentDetails({
-          employerName: profileData.employer_name || "",
-          isCivilServant: profileData.is_civil_servant ?? null,
-          employerNo: profileData.employer_no || "",
-          ministry: profileData.ministry || "",
-          phoneNumber: profileData.employment_phone || "",
-        });
-      } else {
+      if (!session?.user) {
         router.push("/login");
+        setChecking(false);
+        return;
       }
+      setUser(session.user);
+      // Unblock UI immediately — show content while profile loads
       setChecking(false);
+
+      const profileData = await getMyProfile();
+      setProfile(profileData);
+
+      if (!profileData || !isProfileComplete(profileData)) {
+        router.push("/profile-setup");
+        return;
+      }
+
+      // Pre-fill application store from completed profile
+      setBasicInfo({
+        firstName: profileData.first_name || "",
+        lastName: profileData.last_name || "",
+        dateOfBirth: profileData.date_of_birth || "",
+        gender: profileData.gender || "",
+        photoUrl: profileData.photo_url || "",
+      });
+      setContactDetails({
+        physicalAddress: profileData.physical_address || "",
+        mobileNumber: profileData.mobile_number || "",
+        emailAddress: profileData.email_address || "",
+      });
+      setNextOfKin({
+        fullName: profileData.nok_full_name || "",
+        address: profileData.nok_address || "",
+        mobileNumber: profileData.nok_mobile_number || "",
+        relationship: profileData.nok_relationship || "",
+      });
+      setEmploymentDetails({
+        employerName: profileData.employer_name || "",
+        isCivilServant: profileData.is_civil_servant ?? null,
+        employerNo: profileData.employer_no || "",
+        ministry: profileData.ministry || "",
+        phoneNumber: profileData.employment_phone || "",
+      });
     };
     fetchUser();
   }, []);

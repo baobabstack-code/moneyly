@@ -119,6 +119,7 @@ export default function ApplicationsPage() {
             applications.map((app) => {
               const isOpen = expanded === app.id;
               const loanAmount = (parseFloat(app.retail_price) || 0) - (parseFloat(app.deposit_amount) || 0);
+              const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
               return (
                 <div
                   key={app.id}
@@ -143,7 +144,7 @@ export default function ApplicationsPage() {
                       </div>
                       <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
                         <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
-                        <span>Submitted: <span className="font-medium text-on-surface">{new Date(app.created_at).toLocaleDateString()}</span></span>
+                        <span>Submitted: <span className="font-medium text-on-surface">{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span></span>
                         {app.store_name && <span>Store: <span className="font-medium text-on-surface">{app.store_name}</span></span>}
                         <span>Loan: <span className="font-bold text-secondary">{fmt(loanAmount)}</span></span>
                       </div>
@@ -176,6 +177,8 @@ export default function ApplicationsPage() {
                           { label: 'Retail Price', value: fmt(app.retail_price) },
                           { label: 'Deposit', value: fmt(app.deposit_amount) },
                           { label: 'Loan Amount', value: fmt(loanAmount) },
+                          { label: 'Tenure', value: app.tenure_months ? `${app.tenure_months} months` : null },
+                          { label: 'Monthly Instalment', value: monthlyInstallment ? fmt(monthlyInstallment) : null },
                           { label: 'National ID', value: app.national_id },
                           { label: 'Mobile', value: app.mobile_number },
                           { label: 'Email', value: app.email_address },

@@ -48,6 +48,7 @@ export default function SummaryPage() {
         retail_price:    retailPrice,
         deposit_amount:  depositAmount,
         balance_amount:  balance,
+        tenure_months:   parseInt(purchaseDetails.tenureMonths) || null,
         first_name:      basicInfo.firstName,
         last_name:       basicInfo.lastName,
         date_of_birth:   basicInfo.dateOfBirth,
