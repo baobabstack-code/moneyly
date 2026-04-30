@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useApplicationStore } from "@/lib/store";
 import { useRouter } from "next/navigation";
+import { getMyProfile } from "@/lib/profile";
 
 export default function LookupPage() {
   const router = useRouter();
@@ -11,6 +12,18 @@ export default function LookupPage() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchDone, setSearchDone] = useState(false);
   const [customerFound, setCustomerFound] = useState(false);
+
+  // Pre-fill National ID from user's profile if available
+  useEffect(() => {
+    if (!lookup.nationalId) {
+      getMyProfile().then(p => {
+        if (p?.national_id) {
+          setNationalId(p.national_id);
+          setLookup({ nationalId: p.national_id });
+        }
+      });
+    }
+  }, []);
 
   const handleSearch = async () => {
     if (!nationalId.trim()) return;
