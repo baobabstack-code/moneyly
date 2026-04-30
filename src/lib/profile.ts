@@ -64,14 +64,15 @@ export function isProfileComplete(profile: UserProfile | null): boolean {
  */
 export async function getMyProfile(): Promise<UserProfile | null> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
 
-  if (!user) return null;
+  if (!userId) return null;
 
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
-    .eq('id', user.id)
+    .eq('id', userId)
     .single();
 
   if (error) {
@@ -88,33 +89,24 @@ export async function getMyProfile(): Promise<UserProfile | null> {
  */
 export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfile | null> {
   const supabase = createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
 
-  if (!user) return null;
+  if (!userId) return null;
 
-  // Build full name from first + last
   const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
 
-  // First update auth.users metadata
-  await supabase.auth.updateUser({
-    data: {
-      full_name: fullName,
-      first_name: data.first_name,
-      last_name: data.last_name,
-    }
-  });
-
-  // Then save to profiles table
-  const { data: updated, error } = await supabase
-    .from('profiles')
-    .upsert({ 
-      id: user.id, 
-      full_name: fullName,
-      ...data,
-      updated_at: new Date().toISOString()
-    })
-    .select()
-    .single();
+  // Run auth metadata update and DB upsert in parallel
+  const [, { data: updated, error }] = await Promise.all([
+    supabase.auth.updateUser({
+      data: { full_name: fullName, first_name: data.first_name, last_name: data.last_name },
+    }),
+    supabase
+      .from('profiles')
+      .upsert({ id: userId, full_name: fullName, ...data, updated_at: new Date().toISOString() })
+      .select()
+      .single(),
+  ]);
 
   if (error) {
     console.error('Error saving profile:', error);

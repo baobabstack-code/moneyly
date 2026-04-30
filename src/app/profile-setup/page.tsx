@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useMemo, useCallback, memo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getMyProfile, saveProfile } from "@/lib/profile";
 import { createClient } from "@/utils/supabase/client";
@@ -29,6 +29,7 @@ const emptyForm = {
   physical_address: "", mobile_number: "", email_address: "",
   nok_full_name: "", nok_address: "", nok_mobile_number: "", nok_relationship: "",
   employer_name: "", employer_no: "", ministry: "", is_civil_servant: false, monthly_income: "", employment_phone: "",
+  photo_url: "",
 };
 
 const STORAGE_KEY = 'profile_draft';
@@ -48,7 +49,7 @@ function ProfileSetupContent() {
   const sp = useSearchParams();
   const section = sp.get('section') || 'photo';
   const supabase = createClient();
-  const [load, setLoad] = useState(true);
+  const [load, setLoad] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photo, setPhoto] = useState("");
   const [uploading, setUploading] = useState(false);
@@ -59,15 +60,49 @@ function ProfileSetupContent() {
   useEffect(() => {
     const draft = loadFromStorage();
     setForm(draft);
+    setPhoto(draft.photo_url ? draft.photo_url : "");
+    // Immediately show the form from localStorage (fast load)
+    setLoad(false);
+    
+    // Fetch profile data in background with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
+    
     getMyProfile().then(p => {
-      if (p) setForm({ first_name: p.first_name||draft.first_name||"", last_name: p.last_name||draft.last_name||"", national_id: p.national_id||draft.national_id||"", date_of_birth: p.date_of_birth||draft.date_of_birth||"", gender: p.gender||draft.gender||"", physical_address: p.physical_address||draft.physical_address||"", mobile_number: p.mobile_number||draft.mobile_number||"", email_address: p.email_address||draft.email_address||"", nok_full_name: p.nok_full_name||draft.nok_full_name||"", nok_address: p.nok_address||draft.nok_address||"", nok_mobile_number: p.nok_mobile_number||draft.nok_mobile_number||"", nok_relationship: p.nok_relationship||draft.nok_relationship||"", employer_name: p.employer_name||draft.employer_name||"", employer_no: p.employer_no||draft.employer_no||"", ministry: p.ministry||draft.ministry||"", is_civil_servant: p.is_civil_servant??draft.is_civil_servant??false, monthly_income: p.monthly_income||draft.monthly_income||"", employment_phone: p.employment_phone||draft.employment_phone||"" });
-      setPhoto(p?.photo_url || "");
-      setLoad(false);
+      clearTimeout(timeoutId);
+      if (p) {
+        setForm(prev => ({
+          first_name: p.first_name || prev.first_name || "",
+          last_name: p.last_name || prev.last_name || "",
+          national_id: p.national_id || prev.national_id || "",
+          date_of_birth: p.date_of_birth || prev.date_of_birth || "",
+          gender: p.gender || prev.gender || "",
+          physical_address: p.physical_address || prev.physical_address || "",
+          mobile_number: p.mobile_number || prev.mobile_number || "",
+          email_address: p.email_address || prev.email_address || "",
+          nok_full_name: p.nok_full_name || prev.nok_full_name || "",
+          nok_address: p.nok_address || prev.nok_address || "",
+          nok_mobile_number: p.nok_mobile_number || prev.nok_mobile_number || "",
+          nok_relationship: p.nok_relationship || prev.nok_relationship || "",
+          employer_name: p.employer_name || prev.employer_name || "",
+          employer_no: p.employer_no || prev.employer_no || "",
+          ministry: p.ministry || prev.ministry || "",
+          is_civil_servant: p.is_civil_servant ?? prev.is_civil_servant ?? false,
+          monthly_income: p.monthly_income || prev.monthly_income || "",
+          employment_phone: p.employment_phone || prev.employment_phone || "",
+          photo_url: p.photo_url || prev.photo_url || "",
+        }));
+        setPhoto(p.photo_url || "");
+      }
+    }).catch(() => {
+      clearTimeout(timeoutId);
+      // If fetch fails or times out, use localStorage data (already loaded)
     });
   }, []);
+  
   useEffect(() => { saveToStorage(form); }, [form]);
 
-  const validate = (f: string): string | null => {
+  const validate = useCallback((f: string): string | null => {
     const v = form[f as keyof typeof form];
     const s = typeof v === 'string' ? v : '';
     const fullName = `${form.first_name} ${form.last_name}`.toLowerCase().trim();
@@ -91,10 +126,10 @@ function ProfileSetupContent() {
       case "nok_relationship": return !form.nok_relationship ? "Required" : null; case "employer_name": return !form.is_civil_servant && !s.trim() ? "Required" : null; case "is_civil_servant": return null;
       default: return null;
     }
-  };
+  }, [form]);
 
-  const handleBlur = (f: string) => { setTouched(t => ({...t, [f]: true})); setErrors(e => ({...e, [f]: validate(f) || undefined})); };
-  const upd = (f: string, v: any) => { setForm(p => ({...p, [f]: v})); if (touched[f]) setErrors(e => ({...e, [f]: validate(f) || undefined})); };
+  const handleBlur = useCallback((f: string) => { setTouched(t => ({...t, [f]: true})); setErrors(e => ({...e, [f]: validate(f) || undefined})); }, [validate]);
+  const upd = useCallback((f: string, v: any) => { setForm(p => ({...p, [f]: v})); if (touched[f]) setErrors(e => ({...e, [f]: validate(f) || undefined})); }, [touched, validate]);
 
   const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0]; if (!f) return;
@@ -153,7 +188,7 @@ function ProfileSetupContent() {
     } else alert('Failed to save');
   };
 
-  const fieldTooltips: Record<string, {icon: string, title: string, tips: string[]}> = {
+  const fieldTooltips: Record<string, {icon: string, title: string, tips: string[]}> = useMemo(() => ({
     first_name: { icon: "person", title: "First Name", tips: ["Your legal first name", "Example: John", "Must match your ID document"] },
     last_name: { icon: "person", title: "Last Name", tips: ["Your legal surname", "Example: Moyo", "Must match your ID document"] },
     national_id: { icon: "badge", title: "National ID", tips: ["Examples:", "63-1234567K00 (Harare)", "08-800950Z08 (Bulawayo)", "08-2047823Q29 (Digital)"] },
@@ -170,7 +205,7 @@ function ProfileSetupContent() {
     employer_no: { icon: "badge", title: "EC Number", tips: ["Employee Code number", "Example: EC123456"] },
     ministry: { icon: "domain", title: "Ministry", tips: ["Your government ministry", "Example: Finance"] },
     employer_name: { icon: "business", title: "Employer", tips: ["Company name", "Registered company name"] },
-  };
+  }), []);
 
   const Tooltip = ({ field }: { field: string }) => {
     const t = fieldTooltips[field];
