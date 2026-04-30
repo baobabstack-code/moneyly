@@ -34,12 +34,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar initialUser={initialUser} />
       <div className="flex flex-1">
-        <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} />
+        {profileComplete && <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} />}
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           {children}
         </main>
       </div>
-      <MobileBottomNav />
+      {profileComplete && <MobileBottomNav />}
     </div>
   );
 }

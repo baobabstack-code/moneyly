@@ -4,13 +4,18 @@ import LoginClient from "@/components/LoginClient";
 
 export const dynamic = "force-dynamic";
 
-export default async function LoginPage() {
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ next?: string }>
+}) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
+  const { next } = await searchParams;
 
   if (session?.user) {
-    redirect("/dashboard");
+    redirect(next ?? "/dashboard");
   }
 
-  return <LoginClient />;
+  return <LoginClient next={next ?? "/dashboard"} />;
 }

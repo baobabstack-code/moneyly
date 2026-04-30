@@ -55,8 +55,11 @@ export async function updateSession(request: NextRequest) {
     !pathname.startsWith('/auth') &&
     pathname !== '/'
   ) {
+    // Include the original path as ?next= so LoginClient can send the user
+    // straight back to where they were trying to go after signing in.
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
   }
 

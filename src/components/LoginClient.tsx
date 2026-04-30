@@ -4,7 +4,7 @@ import { createClient } from '@/utils/supabase/client'
 import { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 
-export default function LoginClient() {
+export default function LoginClient({ next = '/dashboard' }: { next?: string }) {
   const [loading, setLoading] = useState(false)
   const [isSignUp, setIsSignUp] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
@@ -12,7 +12,7 @@ export default function LoginClient() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  
+
   const supabase = useMemo(() => createClient(), [])
   const router = useRouter()
 
@@ -23,7 +23,7 @@ export default function LoginClient() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
       },
     })
     if (error) {
@@ -44,7 +44,7 @@ export default function LoginClient() {
           email,
           password,
           options: {
-            emailRedirectTo: `${window.location.origin}/auth/callback?next=/dashboard`,
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`,
           },
         })
         if (error) throw error
@@ -56,7 +56,7 @@ export default function LoginClient() {
         })
         if (error) throw error
         if (data.session) {
-          router.push('/dashboard')
+          router.push(next)
           router.refresh()
         }
       }
