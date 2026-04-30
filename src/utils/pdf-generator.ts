@@ -29,15 +29,18 @@ export async function generateLoanPDF(data: any) {
 
   let currentY = 50;
 
-  // Add Selfie if available
+  // Add photo thumbnail — contained within the header band
   if (data.basicInfo.photoUrl) {
     try {
-      // Small thumbnail at the top right
-      doc.addImage(data.basicInfo.photoUrl, 'JPEG', pageWidth - 45, 45, 30, 30);
-      doc.setDrawColor(0, 81, 213);
-      doc.rect(pageWidth - 45, 45, 30, 30);
+      const imgSize = 28;
+      const imgX = pageWidth - imgSize - 10;
+      const imgY = 8;
+      doc.addImage(data.basicInfo.photoUrl, 'JPEG', imgX, imgY, imgSize, imgSize);
+      doc.setDrawColor(255, 255, 255);
+      doc.setLineWidth(0.5);
+      doc.rect(imgX, imgY, imgSize, imgSize);
     } catch (e) {
-      console.warn("Could not add selfie to PDF", e);
+      console.warn("Could not add photo to PDF", e);
     }
   }
 
