@@ -426,11 +426,6 @@ function ProfileSetupContent({
             );
           })}
         </nav>
-
-        <button type="button" onClick={() => router.push('/dashboard')} className="flex items-center gap-2 text-sm text-on-surface-variant hover:text-on-surface transition-colors mt-6">
-          <span className="material-symbols-outlined text-sm">close</span>
-          Close & go to Dashboard
-        </button>
       </aside>
 
       {/* Main */}
