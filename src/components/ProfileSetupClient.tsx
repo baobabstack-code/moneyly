@@ -494,7 +494,7 @@ function ProfileSetupContent({
                     {uploading ? 'Uploading...' : photo ? 'Change' : 'Upload'}
                     <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                   </label>
-                  <label className={`flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all border-2 ${uploading ? 'border-outline-variant text-on-surface-variant pointer-events-none' : 'border-secondary text-secondary hover:bg-secondary/10'}`}>
+                  <label className={`sm:hidden flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all border-2 ${uploading ? 'border-outline-variant text-on-surface-variant pointer-events-none' : 'border-secondary text-secondary hover:bg-secondary/10'}`}>
                     <span className="material-symbols-outlined text-base">photo_camera</span>
                     Take Photo
                     <input type="file" accept="image/*" capture="user" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
