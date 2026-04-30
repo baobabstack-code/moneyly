@@ -488,10 +488,18 @@ function ProfileSetupContent({
                     ? <img src={photo} alt="" className="w-full h-full object-cover" />
                     : <span className="material-symbols-outlined text-5xl md:text-6xl text-on-surface-variant/30">person</span>}
                 </div>
-                <label className={`w-full max-w-xs text-center px-6 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all ${uploading ? 'bg-surface-container text-on-surface-variant' : 'bg-secondary text-on-secondary hover:opacity-90'}`}>
-                  {uploading ? 'Uploading...' : photo ? 'Change Photo' : 'Upload Photo'}
-                  <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
-                </label>
+                <div className="flex flex-col sm:flex-row gap-3 w-full max-w-xs">
+                  <label className={`flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all ${uploading ? 'bg-surface-container text-on-surface-variant pointer-events-none' : 'bg-secondary text-on-secondary hover:opacity-90'}`}>
+                    <span className="material-symbols-outlined text-base">upload</span>
+                    {uploading ? 'Uploading...' : photo ? 'Change' : 'Upload'}
+                    <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                  </label>
+                  <label className={`flex-1 flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all border-2 ${uploading ? 'border-outline-variant text-on-surface-variant pointer-events-none' : 'border-secondary text-secondary hover:bg-secondary/10'}`}>
+                    <span className="material-symbols-outlined text-base">photo_camera</span>
+                    Take Photo
+                    <input type="file" accept="image/*" capture="user" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
+                  </label>
+                </div>
                 {photo && <p className="text-xs text-green-600 flex items-center gap-1"><span className="material-symbols-outlined text-sm">check_circle</span>Photo ready</p>}
               </div>
             )}
