@@ -324,7 +324,7 @@ function ProfileSetupContent() {
         : [{ label: "Employer", value: form.employer_name }]),
     ];
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+      <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8 md:p-6">
         <div className="w-full max-w-lg">
           {/* Success header */}
           <div className="text-center mb-8">
@@ -336,24 +336,24 @@ function ProfileSetupContent() {
           </div>
 
           {/* Photo + name */}
-          <div className="flex items-center gap-4 mb-6 p-4 bg-surface rounded-2xl border border-outline-variant">
+          <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-surface rounded-2xl border border-outline-variant">
             <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-secondary shrink-0">
               {photo
                 ? <img src={photo} alt="" className="w-full h-full object-cover" />
                 : <div className="w-full h-full bg-surface-container flex items-center justify-center"><span className="material-symbols-outlined text-on-surface-variant">person</span></div>}
             </div>
-            <div>
-              <p className="font-bold text-on-surface text-lg">{form.first_name} {form.last_name}</p>
-              <p className="text-sm text-on-surface-variant">{form.email_address}</p>
+            <div className="min-w-0">
+              <p className="font-bold text-on-surface text-lg leading-tight">{form.first_name} {form.last_name}</p>
+              <p className="text-sm text-on-surface-variant truncate">{form.email_address}</p>
             </div>
           </div>
 
           {/* Details grid */}
           <div className="bg-surface rounded-2xl border border-outline-variant divide-y divide-outline-variant/40 mb-6">
             {rows.filter(r => r.value).map(r => (
-              <div key={r.label} className="flex justify-between items-center px-5 py-3">
-                <span className="text-sm text-on-surface-variant">{r.label}</span>
-                <span className="text-sm font-medium text-on-surface text-right max-w-[60%] truncate">{r.value}</span>
+              <div key={r.label} className="flex justify-between items-start gap-3 px-4 py-3 md:px-5">
+                <span className="text-sm text-on-surface-variant shrink-0">{r.label}</span>
+                <span className="text-sm font-medium text-on-surface text-right wrap-break-word max-w-[60%]">{r.value}</span>
               </div>
             ))}
           </div>
@@ -411,35 +411,65 @@ function ProfileSetupContent() {
 
       {/* Main */}
       <main className="flex-1 flex flex-col min-h-screen">
-        <div className="md:hidden flex items-center justify-between px-4 py-3 border-b border-outline-variant bg-surface">
-          <p className="font-bold text-sm">{SECTION_TITLES[section]?.title}</p>
-          <button type="button" onClick={() => router.push('/dashboard')} className="text-on-surface-variant">
+        {/* Mobile header — back/cancel on left, title center, close on right */}
+        <div className="md:hidden flex items-center justify-between px-2 py-2 border-b border-outline-variant bg-surface">
+          <button
+            type="button"
+            onClick={() => {
+              const prev = getPreviousSection(section);
+              if (prev) router.push(`/profile-setup?section=${prev}`);
+              else router.push('/dashboard');
+            }}
+            className="w-11 h-11 flex items-center justify-center rounded-xl text-on-surface-variant active:bg-surface-container"
+          >
+            <span className="material-symbols-outlined">{getPreviousSection(section) ? 'arrow_back' : 'close'}</span>
+          </button>
+          <div className="text-center">
+            <p className="font-bold text-sm text-on-surface">{SECTION_TITLES[section]?.title}</p>
+            <p className="text-[10px] text-on-surface-variant">Step {currentStepIndex + 1} of {STEPS.length}</p>
+          </div>
+          <button type="button" onClick={() => router.push('/dashboard')} className="w-11 h-11 flex items-center justify-center rounded-xl text-on-surface-variant active:bg-surface-container">
             <span className="material-symbols-outlined">close</span>
           </button>
         </div>
 
-        <div className="h-1 bg-outline-variant w-full">
+        {/* Progress bar (desktop) + step dots (mobile) */}
+        <div className="hidden md:block h-1 bg-outline-variant w-full">
           <div className="h-full bg-secondary transition-all duration-500" style={{ width: `${((currentStepIndex + 1) / STEPS.length) * 100}%` }} />
         </div>
+        <div className="md:hidden flex items-center justify-between px-4 py-3 bg-surface border-b border-outline-variant/30">
+          {STEPS.map((s, i) => {
+            const isActive = s.key === section;
+            const isDone = i < currentStepIndex;
+            return (
+              <div key={s.key} className="flex flex-col items-center gap-1 flex-1">
+                <div className={`w-7 h-7 rounded-full flex items-center justify-center border-2 transition-all ${isActive ? 'bg-secondary border-secondary text-on-secondary' : isDone ? 'bg-green-500 border-green-500 text-white' : 'border-outline-variant text-on-surface-variant/40'}`}>
+                  <span className="material-symbols-outlined text-body-sm">{isDone ? 'check' : s.icon}</span>
+                </div>
+                <span className={`text-[9px] font-medium leading-tight text-center ${isActive ? 'text-secondary' : isDone ? 'text-on-surface' : 'text-on-surface-variant/40'}`}>{s.label}</span>
+              </div>
+            );
+          })}
+        </div>
 
-        <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-6 py-10">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-1">
+        <div className="flex-1 flex flex-col max-w-2xl w-full mx-auto px-4 py-6 md:px-6 md:py-10 pb-28 md:pb-10">
+          <div className="mb-6 md:mb-8">
+            <div className="hidden md:flex items-center gap-3 mb-1">
               <span className="material-symbols-outlined text-secondary text-2xl">{SECTION_TITLES[section]?.icon}</span>
               <h1 className="text-2xl font-bold text-on-surface">{SECTION_TITLES[section]?.title}</h1>
             </div>
-            <p className="text-sm text-on-surface-variant ml-9">Step {currentStepIndex + 1} of {STEPS.length}</p>
+            <p className="hidden md:block text-sm text-on-surface-variant ml-9">Step {currentStepIndex + 1} of {STEPS.length}</p>
           </div>
 
           <div className="space-y-5 flex-1">
             {section === 'photo' && (
-              <div className="flex flex-col items-center py-8 gap-6">
-                <div className="w-36 h-36 rounded-full bg-surface-container border-4 border-outline-variant flex items-center justify-center overflow-hidden shadow-lg">
+              <div className="flex flex-col items-center py-6 md:py-8 gap-5 md:gap-6">
+                <div className="w-28 h-28 md:w-36 md:h-36 rounded-full bg-surface-container border-4 border-outline-variant flex items-center justify-center overflow-hidden shadow-lg">
                   {photo
                     ? <img src={photo} alt="" className="w-full h-full object-cover" />
-                    : <span className="material-symbols-outlined text-6xl text-on-surface-variant/30">person</span>}
+                    : <span className="material-symbols-outlined text-5xl md:text-6xl text-on-surface-variant/30">person</span>}
                 </div>
-                <label className={`px-6 py-3 rounded-xl font-bold text-sm cursor-pointer transition-all ${uploading ? 'bg-surface-container text-on-surface-variant' : 'bg-secondary text-on-secondary hover:opacity-90'}`}>
+                <label className={`w-full max-w-xs text-center px-6 py-4 rounded-2xl font-bold text-sm cursor-pointer transition-all ${uploading ? 'bg-surface-container text-on-surface-variant' : 'bg-secondary text-on-secondary hover:opacity-90'}`}>
                   {uploading ? 'Uploading...' : photo ? 'Change Photo' : 'Upload Photo'}
                   <input type="file" accept="image/*" className="hidden" onChange={handlePhotoUpload} disabled={uploading} />
                 </label>
@@ -515,7 +545,8 @@ function ProfileSetupContent() {
             )}
           </div>
 
-          <div className="flex gap-3 pt-8 mt-8 border-t border-outline-variant">
+          {/* Desktop nav — inline at bottom of form */}
+          <div className="hidden md:flex gap-3 pt-8 mt-8 border-t border-outline-variant">
             {getPreviousSection(section)
               ? <button type="button" onClick={() => router.push(`/profile-setup?section=${getPreviousSection(section)}`)}
                   className="px-6 py-3.5 border border-outline-variant text-on-surface rounded-xl font-bold hover:bg-surface-container flex items-center gap-2 transition-all">
@@ -532,6 +563,15 @@ function ProfileSetupContent() {
               {uploading ? 'Uploading photo...' : saving ? 'Saving...' : getNextSection(section) ? 'Save & Continue' : 'Complete Profile'}
             </button>
           </div>
+        </div>
+
+        {/* Mobile nav — fixed bottom bar */}
+        <div className="md:hidden fixed bottom-0 inset-x-0 z-10 bg-surface border-t border-outline-variant px-4 py-3 pb-safe">
+          <button type="button" onClick={saveSection} disabled={saving || uploading}
+            className="w-full py-4 bg-secondary text-on-secondary rounded-2xl font-bold shadow-lg hover:opacity-90 flex items-center justify-center gap-2 transition-all disabled:opacity-50 text-base">
+            <span className="material-symbols-outlined">{(saving || uploading) ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>
+            {uploading ? 'Uploading photo...' : saving ? 'Saving...' : getNextSection(section) ? 'Save & Continue' : 'Complete Profile'}
+          </button>
         </div>
       </main>
     </div>
