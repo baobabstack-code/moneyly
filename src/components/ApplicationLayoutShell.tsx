@@ -89,6 +89,11 @@ export default function ApplicationLayoutShell({
   const currentStepIndex = steps.findIndex(step => pathname.includes(step.href));
   const isSummaryPage = pathname.includes("/summary");
   const isSuccessPage = pathname.includes("/success");
+  const primaryNavItems = [
+    { name: "Dashboard", href: "/dashboard", icon: "dashboard" },
+    { name: "New Application", href: "/store-selection", icon: "add_circle" },
+    { name: "My Applications", href: "/applications", icon: "pending_actions" },
+  ];
 
   const handleNext = () => {
     if (currentStepIndex < steps.length - 1) {
@@ -103,25 +108,6 @@ export default function ApplicationLayoutShell({
       router.push("/store-selection");
     }
   };
-
-  // If it's the success page, we might want a different layout or just hide the navigation
-  if (isSuccessPage) {
-    return (
-      <div className="bg-background min-h-screen flex flex-col font-manrope">
-        <header className="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant">
-          <div className="flex justify-between items-center h-16 px-8 max-w-container-max mx-auto w-full">
-            <div className="flex items-center gap-4">
-              <span className="text-xl font-h1 font-bold tracking-tight text-primary">HTB GLOBAL</span>
-            </div>
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="pt-24 pb-12 px-6 flex-grow flex items-center justify-center">
-          {children}
-        </main>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-background min-h-screen flex flex-col font-manrope selection:bg-secondary/20">
@@ -220,21 +206,52 @@ export default function ApplicationLayoutShell({
         </div>
       </header>
 
-      <div className="flex-1 lg:grid lg:grid-cols-[288px_1fr] pt-16 min-h-screen">
-        {/* SideNavBar - Grid Managed */}
-        <aside className="hidden lg:flex flex-col bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 z-40 overflow-y-auto transition-all">
-          <div className="p-8 border-b border-outline-variant/30">
-            <div className="flex items-center gap-3 mb-1">
-              <div className="w-10 h-10 bg-primary text-on-primary rounded-lg flex items-center justify-center font-black shadow-lg shadow-primary/20">H</div>
-              <div>
-                <h2 className="text-base font-bold text-primary leading-none">Your Application</h2>
-                <p className="text-[10px] text-on-surface-variant/80 uppercase font-bold mt-1 tracking-wider">Ref: #LN-8820</p>
+      <div className="flex-1 lg:grid lg:grid-cols-[256px_1fr] pt-16 min-h-screen">
+        <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0 overflow-y-auto">
+          <div className="p-6 border-b border-outline-variant/30">
+            <div className="flex items-center gap-3">
+              {avatarUrl ? (
+                <img src={avatarUrl} alt="Avatar" className="w-10 h-10 rounded-xl object-cover border border-outline-variant" />
+              ) : (
+                <div className="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center font-black text-sm shadow-lg shadow-primary/20">
+                  {userInitials}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="text-sm font-bold text-primary truncate">
+                  {profile.full_name || user.email}
+                </p>
+                <p className="text-[10px] text-on-surface-variant/60 uppercase font-bold tracking-widest">My Account</p>
               </div>
             </div>
           </div>
-          <nav className="flex-1 py-6 px-4 space-y-2">
-            <div className="pb-2 px-5">
-              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Application Process</p>
+
+          <nav className="flex-1 py-6 px-4 space-y-1">
+            {primaryNavItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    isActive
+                      ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                      : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
+
+            <div className="pt-5 pb-2 px-4">
+              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
             </div>
 
             {steps.map((step) => {
@@ -243,23 +260,27 @@ export default function ApplicationLayoutShell({
                 <Link 
                   key={step.name} 
                   href={step.href} 
-                  className={`flex items-center gap-3 px-5 py-3.5 rounded-xl transition-all duration-300 group ${
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
                     isActive 
-                      ? "text-secondary bg-secondary/10 font-bold shadow-sm shadow-secondary/5 border border-secondary/20" 
+                      ? "bg-secondary/10 text-secondary font-bold border border-secondary/20" 
                       : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
                   }`}
                 >
-                  <span className={`material-symbols-outlined transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}>{step.icon}</span>
-                  <span className="text-sm tracking-tight">{step.name}</span>
+                  <span
+                    className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    {step.icon}
+                  </span>
+                  <span className="text-sm">{step.name}</span>
                 </Link>
               );
             })}
 
-            {/* Profile Sections - Editable */}
             {profileComplete && (
               <>
-                <div className="pt-4 pb-2 px-5">
-                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-[0.2em]">Your Profile</p>
+                <div className="pt-5 pb-2 px-4">
+                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
                 </div>
 
                 {profileSections.map((section) => {
@@ -269,11 +290,11 @@ export default function ApplicationLayoutShell({
                       type="button"
                       key={section.name}
                       onClick={() => setEditSection(sectionKey)}
-                      className="w-full flex items-center justify-between px-5 py-3.5 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all"
+                      className="w-full flex items-center justify-between px-4 py-3 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all duration-200"
                     >
                       <div className="flex items-center gap-3">
                         <span className="material-symbols-outlined text-[20px]">{section.icon}</span>
-                        <span className="text-sm tracking-tight">{section.name}</span>
+                        <span className="text-sm">{section.name}</span>
                       </div>
                       <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
                     </button>
@@ -282,7 +303,20 @@ export default function ApplicationLayoutShell({
               </>
             )}
           </nav>
-          <nav className="px-4 py-4 space-y-2 border-t border-outline-variant/30">
+
+          <div className="p-4 border-t border-outline-variant/30 space-y-1">
+            {!isSuccessPage && (
+              <button
+                type="button"
+                onClick={() => {
+                  useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
+                }}
+                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-200 group"
+              >
+                <span className="material-symbols-outlined text-[20px]">save</span>
+                <span className="text-sm font-medium">Save Application</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={async () => {
@@ -290,21 +324,10 @@ export default function ApplicationLayoutShell({
                 await supabase.auth.signOut();
                 router.push("/");
               }}
-              className="w-full flex items-center gap-3 px-5 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-300 group"
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-error hover:bg-error/5 transition-all duration-200 group"
             >
               <span className="material-symbols-outlined text-[20px] group-hover:rotate-180 transition-transform duration-500">logout</span>
-              <span className="text-sm tracking-tight font-medium">Sign Out</span>
-            </button>
-          </nav>
-          <div className="p-8 border-t border-outline-variant/30 bg-surface-container-lowest">
-            <button
-              type="button"
-              onClick={() => {
-                useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
-              }}
-              className="w-full py-4 bg-primary text-on-primary rounded-xl font-bold text-sm shadow-xl hover:shadow-primary/30 hover:-translate-y-0.5 transition-all active:scale-[0.98]"
-            >
-              Save Application
+              <span className="text-sm font-medium">Sign Out</span>
             </button>
           </div>
         </aside>
