@@ -6,6 +6,7 @@ import { createClient } from "@/utils/supabase/client";
 
 interface Props {
   initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
+  profileComplete?: boolean;
 }
 
 const navItems = [
@@ -28,7 +29,7 @@ const profileItems = [
   { name: "Next of Kin", href: "/profile-setup?section=nok", icon: "family_restroom", tooltip: "Update next of kin details" },
 ];
 
-export default function DashboardSidebar({ initialUser }: Props) {
+export default function DashboardSidebar({ initialUser, profileComplete = true }: Props) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -68,7 +69,7 @@ export default function DashboardSidebar({ initialUser }: Props) {
 
       {/* Nav links */}
       <nav className="flex-1 py-6 px-4 space-y-1">
-        {navItems.map((item) => {
+        {navItems.filter((item) => profileComplete || item.href === "/dashboard").map((item) => {
           const isActive = pathname === item.href;
           return (
             <Link
@@ -91,63 +92,67 @@ export default function DashboardSidebar({ initialUser }: Props) {
           );
         })}
 
-        <div className="pt-5 pb-2 px-4">
-          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
-        </div>
+        {profileComplete && (
+          <>
+            <div className="pt-5 pb-2 px-4">
+              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
+            </div>
 
-        {applicationProcessItems.map((item) => {
-          const isActive = pathname === item.href;
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              title={item.tooltip}
-              aria-label={item.tooltip}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
-                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <span
-                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
-                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
-              >
-                {item.icon}
-              </span>
-              <span className="text-sm">{item.name}</span>
-            </Link>
-          );
-        })}
+            {applicationProcessItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  title={item.tooltip}
+                  aria-label={item.tooltip}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    isActive
+                      ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                      : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
 
-        <div className="pt-5 pb-2 px-4">
-          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
-        </div>
+            <div className="pt-5 pb-2 px-4">
+              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
+            </div>
 
-        {profileItems.map((item) => {
-          const isActive = pathname === "/profile-setup";
-          return (
-            <Link
-              key={item.name}
-              href={item.href}
-              title={item.tooltip}
-              aria-label={item.tooltip}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                isActive
-                  ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
-                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <span
-                className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
-                style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
-              >
-                {item.icon}
-              </span>
-              <span className="text-sm">{item.name}</span>
-            </Link>
-          );
-        })}
+            {profileItems.map((item) => {
+              const isActive = pathname === "/profile-setup";
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  title={item.tooltip}
+                  aria-label={item.tooltip}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+                    isActive
+                      ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                      : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+                  }`}
+                >
+                  <span
+                    className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
+                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
+                  >
+                    {item.icon}
+                  </span>
+                  <span className="text-sm">{item.name}</span>
+                </Link>
+              );
+            })}
+          </>
+        )}
       </nav>
 
       {/* Sign out */}

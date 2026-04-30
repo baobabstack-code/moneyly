@@ -48,7 +48,9 @@ export default async function ApplicationsPage() {
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar initialUser={initialUser} />
       <div className="flex flex-1">
-        <DashboardSidebar initialUser={initialUser} />
+        {profileComplete && (
+          <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} />
+        )}
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           <ApplicationsView
             applications={applications}
@@ -56,7 +58,7 @@ export default async function ApplicationsPage() {
           />
         </main>
       </div>
-      <MobileBottomNav />
+      {profileComplete && <MobileBottomNav />}
     </div>
   )
 }
