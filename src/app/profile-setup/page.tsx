@@ -122,6 +122,12 @@ function ProfileSetupContent() {
     return currentIndex < sections.length - 1 ? sections[currentIndex + 1] : null;
   };
 
+  const getPreviousSection = (current: string): string | null => {
+    const sections = ['photo', 'personal', 'contact', 'nok', 'employment'];
+    const currentIndex = sections.indexOf(current);
+    return currentIndex > 0 ? sections[currentIndex - 1] : null;
+  };
+
   const saveSection = async () => {
     const fields = section === 'photo' ? [] : sectionFields[section] || [];
     const errs: FormErrors = {};
@@ -221,7 +227,10 @@ function ProfileSetupContent() {
           {section === 'nok' && <>{fld('nok_full_name','Full Name')}{fld('nok_address','Address','<br/>')}{fld('nok_mobile_number','Mobile Number')}<div><label className="block font-label-md mb-2">Relationship<span className="text-red-500">*</span></label><select className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface" value={form.nok_relationship} onChange={e => upd('nok_relationship',e.target.value)}><option value="">Select</option>{['Spouse','Parent','Sibling','Child','Other'].map(r => <option key={r} value={r}>{r}</option>)}</select></div></>}
           {section === 'employment' && <><div><label className="block font-label-md mb-2">Civil Servant?<span className="text-red-500">*</span></label><div className="grid grid-cols-2 gap-3"><button type="button" onClick={() => {upd('is_civil_servant',true); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant?'bg-white text-secondary border-white':'border-outline-variant'}`}><span className="material-symbols-outlined">work</span>Yes</button><button type="button" onClick={() => {upd('is_civil_servant',false); setTouched(t => ({...t,is_civil_servant:true}));}} className={`py-4 rounded-xl border-2 font-bold flex items-center justify-center gap-2 ${form.is_civil_servant===false?'bg-white text-secondary border-white':'border-outline-variant'}`}><span className="material-symbols-outlined">business</span>No</button></div></div>{form.is_civil_servant && <>{fld('employer_no','EC Number')} {fld('ministry','Ministry')}</>}{form.is_civil_servant === false && fld('employer_name','Employer Name')}</>}
         </div>
-        <div className="p-6 border-t"><button onClick={saveSection} disabled={saving} className="w-full py-4 bg-secondary text-on-secondary rounded-xl font-bold text-lg shadow-lg hover:opacity-90">{saving ? 'Saving...' : 'Save'}</button></div>
+        <div className="p-6 border-t flex gap-3">
+          {getPreviousSection(section) && <button type="button" onClick={() => router.push(`/profile-setup?section=${getPreviousSection(section)}`)} className="px-6 py-4 border border-outline-variant text-on-surface rounded-xl font-bold text-lg hover:bg-surface-container flex items-center gap-2"><span className="material-symbols-outlined">arrow_back</span>Back</button>}
+          <button onClick={saveSection} disabled={saving} className={`flex-1 py-4 bg-secondary text-on-secondary rounded-xl font-bold text-lg shadow-lg hover:opacity-90 flex items-center justify-center gap-2`}><span className="material-symbols-outlined">{saving ? 'hourglass_empty' : getNextSection(section) ? 'arrow_forward' : 'check'}</span>{saving ? 'Saving...' : getNextSection(section) ? 'Save & Next' : 'Complete Profile'}</button>
+        </div>
       </div>
     </div>
   );
