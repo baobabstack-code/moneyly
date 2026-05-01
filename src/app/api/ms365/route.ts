@@ -71,17 +71,21 @@ interface MS365Payload {
     employerNo: string;           // EC number — only for civil servants
     ministry: string;             // only for civil servants
     phoneNumber: string;
+    contactPerson: string;
+    emailAddress: string;
+    physicalAddress: string;
+  };
+  purchaseDetails: {
+    productName: string;          // src/lib/store.ts → purchaseDetails.*
+    retailPrice: string;          // stored as string in Zustand, parsed to float here
+    depositAmount: string;
+    tenureMonths: string;
   };
   nextOfKin: {
     fullName: string;             // src/lib/store.ts → nextOfKin.*
     relationship: string;
     mobileNumber: string;
     address: string;
-  };
-  purchaseDetails: {
-    productName: string;          // src/lib/store.ts → purchaseDetails.*
-    retailPrice: string;          // stored as string in Zustand, parsed to float here
-    depositAmount: string;
   };
   documentUploads: {
     idCopyUrl: string;            // Supabase Storage public URL — uploaded in document-uploads/page.tsx
@@ -146,16 +150,20 @@ async function createSharePointListItem(
         EmailAddress:    data.contactDetails.emailAddress,
         PhysicalAddress: data.contactDetails.physicalAddress,
         // ── Employment (collected in: apply/employment-details/page.tsx) ─────
-        EmployerName:    data.employmentDetails.employerName,
-        IsCivilServant:  data.employmentDetails.isCivilServant ?? false,
-        EmployerNo:      data.employmentDetails.employerNo || '',   // civil servants only
-        Ministry:        data.employmentDetails.ministry || '',     // civil servants only
-        EmployerPhone:   data.employmentDetails.phoneNumber,
+        EmployerName:          data.employmentDetails.employerName,
+        IsCivilServant:        data.employmentDetails.isCivilServant ?? false,
+        EmployerNo:            data.employmentDetails.employerNo || '',   // civil servants only
+        Ministry:              data.employmentDetails.ministry || '',     // civil servants only
+        EmployerPhone:         data.employmentDetails.phoneNumber,
+        EmployerContactPerson: data.employmentDetails.contactPerson || '',
+        EmployerEmail:         data.employmentDetails.emailAddress || '',
+        EmployerAddress:       data.employmentDetails.physicalAddress || '',
         // ── Purchase / Loan (collected in: apply/purchase-details/page.tsx) ──
         ProductName:     data.purchaseDetails.productName,
         RetailPrice:     parseFloat(data.purchaseDetails.retailPrice) || 0,
         DepositAmount:   parseFloat(data.purchaseDetails.depositAmount) || 0,
         BalanceAmount:   balance,                  // computed: retailPrice - depositAmount
+        TenureMonths:    parseInt(data.purchaseDetails.tenureMonths) || 0,
         // ── Next of Kin (collected in: apply/next-of-kin/page.tsx) ───────────
         KinFullName:     data.nextOfKin.fullName,
         KinRelationship: data.nextOfKin.relationship,
