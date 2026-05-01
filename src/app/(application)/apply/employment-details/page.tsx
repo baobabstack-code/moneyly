@@ -34,10 +34,11 @@ export default function EmploymentDetailsPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+            <label htmlFor="employerName" className="block font-label-md text-label-md mb-2 text-on-surface">
               Name of Employer <span className="text-red-500">*</span>
             </label>
             <input
+              id="employerName"
               type="text"
               className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
               placeholder="Company or Organization Name"
@@ -63,6 +64,7 @@ export default function EmploymentDetailsPage() {
                 <button
                   key={isCivil.toString()}
                   type="button"
+                  aria-label={isCivil ? "Yes" : "No"}
                   onClick={() => setEmploymentDetails({ isCivilServant: isCivil })}
                   className={`py-4 rounded-xl border-2 font-bold text-base transition-all active:scale-[0.98] flex items-center justify-center gap-3 ${
                     employmentDetails.isCivilServant === isCivil
@@ -83,10 +85,11 @@ export default function EmploymentDetailsPage() {
           {employmentDetails.isCivilServant === true && (
             <>
               <div>
-                <label className="block font-label-md text-label-md mb-2 text-on-surface">
+                <label htmlFor="employerNo" className="block font-label-md text-label-md mb-2 text-on-surface">
                   Employer No. <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="employerNo"
                   type="text"
                   className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
                   placeholder="e.g. EC Number"
@@ -95,10 +98,11 @@ export default function EmploymentDetailsPage() {
                 />
               </div>
               <div>
-                <label className="block font-label-md text-label-md mb-2 text-on-surface">
+                <label htmlFor="ministry" className="block font-label-md text-label-md mb-2 text-on-surface">
                   Ministry <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="ministry"
                   type="text"
                   className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
                   placeholder="Ministry of..."
@@ -110,15 +114,58 @@ export default function EmploymentDetailsPage() {
           )}
 
           <div className="md:col-span-2 pt-2 border-t border-outline-variant/30 mt-2">
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+            <label htmlFor="employerPhone" className="block font-label-md text-label-md mb-2 text-on-surface">
               Employer Phone Number <span className="text-red-500">*</span>
             </label>
             <input
+              id="employerPhone"
               type="tel"
               className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
               placeholder="+263 242 XXX XXX"
               value={employmentDetails.phoneNumber}
               onChange={(e) => setEmploymentDetails({ phoneNumber: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="employerContactPerson" className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Contact Person <span className="text-red-500">*</span>
+            </label>
+            <input
+              id="employerContactPerson"
+              type="text"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="HR manager or supervisor"
+              value={employmentDetails.contactPerson}
+              onChange={(e) => setEmploymentDetails({ contactPerson: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label htmlFor="employerEmail" className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Email
+            </label>
+            <input
+              id="employerEmail"
+              type="email"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="hr@company.com"
+              value={employmentDetails.emailAddress}
+              onChange={(e) => setEmploymentDetails({ emailAddress: e.target.value })}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label htmlFor="employerAddress" className="block font-label-md text-label-md mb-2 text-on-surface">
+              Employer Address <span className="text-red-500">*</span>
+            </label>
+            <textarea
+              id="employerAddress"
+              rows={3}
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30 resize-none"
+              placeholder="Workplace physical address"
+              value={employmentDetails.physicalAddress}
+              onChange={(e) => setEmploymentDetails({ physicalAddress: e.target.value })}
             />
           </div>
         </div>
@@ -139,6 +186,8 @@ export default function EmploymentDetailsPage() {
             !employmentDetails.employerName ||
             employmentDetails.isCivilServant === null ||
             !employmentDetails.phoneNumber ||
+            !employmentDetails.contactPerson ||
+            !employmentDetails.physicalAddress ||
             (employmentDetails.isCivilServant === true && (!employmentDetails.employerNo || !employmentDetails.ministry))
           }
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"

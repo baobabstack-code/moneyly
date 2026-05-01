@@ -1,16 +1,49 @@
 -- ============================================================
--- HTB Global: User Profiles Table
--- Run this FIRST (before create_applications_table.sql)
--- in the Supabase SQL Editor
+-- HTB Global: Complete User Profile Table
+-- Run this in the Supabase SQL Editor
 -- ============================================================
 
+-- Create profiles table
 create table if not exists public.profiles (
-  id          uuid references auth.users(id) on delete cascade primary key,
-  full_name   text,
-  avatar_url  text,
-  username    text,
-  created_at  timestamptz default now(),
-  updated_at  timestamptz default now()
+  id                uuid references auth.users(id) on delete cascade primary key,
+  full_name         text,
+  avatar_url        text,
+  username         text,
+  created_at       timestamptz default now(),
+  updated_at       timestamptz default now(),
+  
+  -- BASIC INFO
+  first_name       text,
+  last_name        text,
+  national_id      text,
+  date_of_birth   text,
+  gender          text,
+  photo_url       text,
+  
+  -- CONTACT
+  physical_address text,
+  mobile_number   text,
+  email_address  text,
+  
+  -- NEXT OF KIN
+  nok_full_name   text,
+  nok_address    text,
+  nok_mobile_number text,
+  nok_relationship text,
+  
+  -- EMPLOYMENT
+  employer_name  text,
+  employer_no    text,
+  ministry       text,
+  is_civil_servant boolean default false,
+  monthly_income  text,
+  employment_phone text,
+  employer_contact_person text,
+  employer_email text,
+  employer_address text,
+  
+  -- STATUS
+  is_profile_complete boolean default false
 );
 
 -- Enable Row Level Security
@@ -31,13 +64,7 @@ create policy "Users can insert own profile"
   on public.profiles for insert
   with check (auth.uid() = id);
 
--- ============================================================
--- Auto-sync trigger: Copies OAuth user metadata (Google name,
--- avatar etc.) into the profiles table on first sign-up.
--- This ensures profile data is always available even if the
--- user signed up via Google and never manually set a profile.
--- ============================================================
-
+-- Auto-sync trigger: Creates profile on user signup
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
@@ -55,9 +82,11 @@ begin
 end;
 $$;
 
--- Drop trigger if it already exists, then recreate
 drop trigger if exists on_auth_user_created on auth.users;
 
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Index for faster lookups
+create index if not exists idx_profiles_national_id on public.profiles(national_id) where national_id is not null;

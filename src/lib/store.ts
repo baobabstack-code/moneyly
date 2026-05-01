@@ -69,6 +69,9 @@ export interface ApplicationState {
     employerNo: string;    // EC Number (conditional: only if isCivilServant = true)
     ministry: string;      // Ministry name (conditional: only if isCivilServant = true)
     phoneNumber: string;
+    contactPerson: string;
+    emailAddress: string;
+    physicalAddress: string;
   };
   setEmploymentDetails: (details: Partial<ApplicationState["employmentDetails"]>) => void;
 
@@ -86,6 +89,7 @@ export interface ApplicationState {
     productName: string;
     retailPrice: string;
     depositAmount: string;
+    tenureMonths: string;
     // balanceAmount is computed: retailPrice - depositAmount
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
@@ -131,6 +135,9 @@ const initialState = {
     employerNo: "",
     ministry: "",
     phoneNumber: "",
+    contactPerson: "",
+    emailAddress: "",
+    physicalAddress: "",
   },
   nextOfKin: {
     fullName: "",
@@ -142,6 +149,7 @@ const initialState = {
     productName: "",
     retailPrice: "",
     depositAmount: "",
+    tenureMonths: "",
   },
   documentUploads: {
     idCopyUrl: "",

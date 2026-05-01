@@ -81,33 +81,30 @@ export default function SummaryPage() {
         user_id:          user?.id ?? null,
         reference,
         status:           'submitted',
-        // Store (collected in: store-selection/page.tsx)
         store_id:         selectedStoreId,
         store_name:       selectedStoreName,
-        // Identity (collected in: apply/lookup/page.tsx)
         national_id:      lookup.nationalId,
-        // Purchase (collected in: apply/purchase-details/page.tsx)
         product_name:     purchaseDetails.productName,
         retail_price:     retailPrice,
         deposit_amount:   depositAmount,
         balance_amount:   balance,
-        // Personal (collected in: apply/basic-info/page.tsx)
+        tenure_months:    parseInt(purchaseDetails.tenureMonths) || null,
         first_name:       basicInfo.firstName,
         last_name:        basicInfo.lastName,
         date_of_birth:    basicInfo.dateOfBirth,
         gender:           basicInfo.gender,
         photo_url:        basicInfo.photoUrl || null,
-        // Contact (collected in: apply/contact-details/page.tsx)
         physical_address: contactDetails.physicalAddress,
         mobile_number:    contactDetails.mobileNumber,
         email_address:    contactDetails.emailAddress || user?.email,
-        // Employment (collected in: apply/employment-details/page.tsx)
         employer_name:    employmentDetails.employerName,
         is_civil_servant: employmentDetails.isCivilServant ?? false,
-        employer_no:      employmentDetails.employerNo || null,  // civil servants only
-        ministry:         employmentDetails.ministry || null,    // civil servants only
+        employer_no:      employmentDetails.employerNo || null,
+        ministry:         employmentDetails.ministry || null,
         employer_phone:   employmentDetails.phoneNumber,
-        // Next of Kin (collected in: apply/next-of-kin/page.tsx)
+        employer_contact_person: employmentDetails.contactPerson || null,
+        employer_email:   employmentDetails.emailAddress || null,
+        employer_address: employmentDetails.physicalAddress || null,
         kin_full_name:    nextOfKin.fullName,
         kin_relationship: nextOfKin.relationship,
         kin_mobile:       nextOfKin.mobileNumber,
@@ -200,10 +197,11 @@ export default function SummaryPage() {
 
       setLastReference(reference);
       router.push("/success");
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Submission error:', error);
       useApplicationStore.getState().addNotification(
-        `Error submitting application: ${error.message}. Please try again.`,
+        `Error submitting application: ${message}. Please try again.`,
         'error'
       );
     } finally {
@@ -256,6 +254,9 @@ export default function SummaryPage() {
             ]
           : []),
         { label: "Employer Phone", value: employmentDetails.phoneNumber },
+        { label: "Employer Contact", value: employmentDetails.contactPerson },
+        { label: "Employer Email", value: employmentDetails.emailAddress },
+        { label: "Employer Address", value: employmentDetails.physicalAddress },
       ],
     },
     {

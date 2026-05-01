@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { IMPERSONATE_COOKIE } from '@/lib/impersonate'
 
 /**
  * Synchronizes the Supabase authentication session with the Next.js request/response.
@@ -42,16 +43,47 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
+  const { pathname } = request.nextUrl
+  const isPublicAsset =
+    pathname === '/manifest.json' ||
+    pathname.startsWith('/icons/') ||
+    pathname.startsWith('/_next/')
+
   if (
     !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
+    !isPublicAsset &&
+    !pathname.startsWith('/login') &&
+    !pathname.startsWith('/auth') &&
+    pathname !== '/'
   ) {
-    // no user, potentially respond by redirecting the user to the login page
+    // Include the original path as ?next= so LoginClient can send the user
+    // straight back to where they were trying to go after signing in.
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('next', pathname)
     return NextResponse.redirect(url)
+  }
+
+  // Role-based route protection — skip when a super admin is impersonating
+  const impersonateCookie = request.cookies.get(IMPERSONATE_COOKIE)?.value
+  const isImpersonating = Boolean(impersonateCookie)
+
+  if (user && !isImpersonating && (pathname.startsWith('/admin') || pathname.startsWith('/super-admin'))) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
+
+    const role = profile?.role ?? 'customer'
+
+    if (pathname.startsWith('/super-admin') && role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+
+    if (pathname.startsWith('/admin') && role !== 'admin' && role !== 'super_admin') {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
   }
 
   // IMPORTANT: You *must* return the supabaseResponse object as is. If you're creating a
