@@ -65,14 +65,14 @@ describe('DashboardLayout sidebar gating', () => {
     });
   });
 
-  it('hides sidebar and mobile nav for incomplete profiles', async () => {
+  it('shows sidebar and mobile nav even for incomplete profiles', async () => {
     single.mockResolvedValue({ data: { ...completeProfile, employment_phone: '', is_profile_complete: true } });
 
     render(await DashboardLayout({ children: <div>Dashboard content</div> }));
 
     expect(screen.getByTestId('navbar')).toBeInTheDocument();
-    expect(screen.queryByTestId('dashboard-sidebar')).not.toBeInTheDocument();
-    expect(screen.queryByTestId('mobile-bottom-nav')).not.toBeInTheDocument();
+    expect(screen.getByTestId('dashboard-sidebar')).toBeInTheDocument();
+    expect(screen.getByTestId('mobile-bottom-nav')).toBeInTheDocument();
   });
 
   it('shows sidebar and mobile nav for complete profiles', async () => {
