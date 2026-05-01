@@ -36,12 +36,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
       <ImpersonationBanner />
       <Navbar initialUser={initialUser} />
       <div className="flex flex-1">
-        {profileComplete && <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} profile={profile} />}
+        <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} profile={profile} />
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           {children}
         </main>
       </div>
-      {profileComplete && <MobileBottomNav />}
+      <MobileBottomNav />
     </div>
   );
 }

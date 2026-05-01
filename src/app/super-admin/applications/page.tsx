@@ -31,6 +31,7 @@ export default async function SuperAdminApplicationsPage({
       <AdminApplicationsClient
         applications={applications ?? []}
         statusFilter={params.status}
+        basePath="/super-admin/applications"
       />
     </div>
   )

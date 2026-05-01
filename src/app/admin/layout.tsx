@@ -1,6 +1,8 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import AdminSidebar from '@/components/AdminSidebar'
+import ImpersonationBanner from '@/components/ImpersonationBanner'
+import { AdminMobileNav } from '@/components/AdminMobileNav'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -27,6 +29,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
   return (
     <div className="min-h-screen bg-background font-manrope flex flex-col">
+      <ImpersonationBanner />
 
       {/* ── Sticky top bar ── */}
       <header className="sticky top-0 z-40 h-16 border-b border-outline-variant bg-surface/80 backdrop-blur-md px-6 flex items-center gap-3">
@@ -46,8 +49,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
           role={profile.role as 'admin' | 'super_admin'}
           storeName={store?.name}
         />
-        <main className="flex-1 min-w-0 px-6 py-8 md:px-10">{children}</main>
+        <main className="flex-1 min-w-0 px-6 py-8 md:px-10 pb-24 lg:pb-8">{children}</main>
       </div>
+      <AdminMobileNav />
     </div>
   )
 }

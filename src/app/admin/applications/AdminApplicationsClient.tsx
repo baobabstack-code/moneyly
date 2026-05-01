@@ -79,9 +79,11 @@ function fmt(n: number | null): string | null {
 export default function AdminApplicationsClient({
   applications: initial,
   statusFilter,
+  basePath = '/admin/applications',
 }: {
   applications: Application[]
   statusFilter?: string
+  basePath?: string
 }) {
   // Track which application card is expanded (null = all collapsed)
   const [expanded, setExpanded] = useState<string | null>(null)
@@ -121,7 +123,7 @@ export default function AdminApplicationsClient({
         {/* Status filter pills — mirrors the expandable-card approach from ApplicationsView */}
         <div className="flex gap-2 flex-wrap mb-6">
           <a
-            href="/admin/applications"
+            href={basePath}
             className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-colors ${
               !statusFilter
                 ? 'bg-primary text-on-primary border-primary'
@@ -133,7 +135,7 @@ export default function AdminApplicationsClient({
           {STATUS_OPTIONS.map(s => (
             <a
               key={s}
-              href={`/admin/applications?status=${s}`}
+              href={`${basePath}?status=${s}`}
               className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wide border transition-colors ${
                 statusFilter === s
                   ? 'bg-primary text-on-primary border-primary'
@@ -184,8 +186,6 @@ export default function AdminApplicationsClient({
                 { label: 'Relationship',      value: app.kin_relationship },
                 { label: 'NOK Mobile',        value: app.kin_mobile },
                 { label: 'NOK Address',       value: app.kin_address },
-                { label: 'ID Copy',           value: app.id_copy_url ? '✅ Uploaded' : '❌ Not uploaded' },
-                { label: 'Payslip',           value: app.payslip_url ? '✅ Uploaded' : '❌ Not uploaded' },
               ].filter((r): r is { label: string; value: string } => Boolean(r.value))
 
               return (
@@ -246,7 +246,7 @@ export default function AdminApplicationsClient({
                         type="button"
                         onClick={() => setExpanded(isOpen ? null : app.id)}
                         className="flex items-center gap-1 px-4 py-2 rounded-xl border border-outline-variant text-sm font-bold text-on-surface hover:bg-surface-container transition-all"
-                        aria-expanded={isOpen}
+                        aria-expanded={isOpen ? "true" : "false"}
                       >
                         {isOpen ? 'Hide' : 'View'}
                         <span className="material-symbols-outlined text-sm">
@@ -258,8 +258,7 @@ export default function AdminApplicationsClient({
 
                   {/* ── Expanded detail panel ── */}
                   {isOpen && (
-                    <div className="border-t border-outline-variant/50 bg-surface-container-low px-5 sm:px-6 py-5">
-                      {/* Responsive grid: 2 cols on mobile → 3 on sm → 4 on lg */}
+                    <div className="border-t border-outline-variant/50 bg-surface-container-low px-5 sm:px-6 py-5 space-y-5">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                         {details.map(r => (
                           <div key={r.label}>
@@ -270,6 +269,39 @@ export default function AdminApplicationsClient({
                           </div>
                         ))}
                       </div>
+
+                      {/* Documents */}
+                      {(app.id_copy_url || app.payslip_url) && (
+                        <div className="flex flex-wrap gap-3 pt-3 border-t border-outline-variant/30">
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 w-full">Documents</p>
+                          {app.id_copy_url && (
+                            <a href={app.id_copy_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-bold text-secondary hover:bg-surface-container transition-colors">
+                              <span className="material-symbols-outlined text-base">badge</span>
+                              ID Copy
+                            </a>
+                          )}
+                          {app.payslip_url && (
+                            <a href={app.payslip_url} target="_blank" rel="noopener noreferrer"
+                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-bold text-secondary hover:bg-surface-container transition-colors">
+                              <span className="material-symbols-outlined text-base">receipt_long</span>
+                              Payslip
+                            </a>
+                          )}
+                          {!app.id_copy_url && (
+                            <span className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant/50 text-sm text-on-surface-variant/50">
+                              <span className="material-symbols-outlined text-base">badge</span>
+                              ID Copy missing
+                            </span>
+                          )}
+                          {!app.payslip_url && (
+                            <span className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant/50 text-sm text-on-surface-variant/50">
+                              <span className="material-symbols-outlined text-base">receipt_long</span>
+                              Payslip missing
+                            </span>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>

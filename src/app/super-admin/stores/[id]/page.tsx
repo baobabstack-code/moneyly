@@ -60,7 +60,10 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
         </p>
       </div>
 
-      <AdminApplicationsClient applications={applications ?? []} />
+      <AdminApplicationsClient
+        applications={applications ?? []}
+        basePath={`/super-admin/stores/${storeId}`}
+      />
     </div>
   )
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { createStore, inviteAdmin } from '../actions'
+import { startImpersonation } from '@/app/super-admin/impersonate/actions'
 
 // ── types ──────────────────────────────────────────────────────────────────
 
@@ -30,8 +31,16 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
   const [inviteError, setInviteError] = useState('')
   const [inviteSuccess, setInviteSuccess] = useState('')
   const [selectedStore, setSelectedStore] = useState<number | null>(null)
-  // Controls whether the "Add Store" form is expanded
   const [showCreate, setShowCreate] = useState(false)
+  const [impersonatingId, setImpersonatingId] = useState<number | null>(null)
+
+  const handleImpersonate = (s: Store) => {
+    if (!s.admin_id) return
+    setImpersonatingId(s.id)
+    startTransition(() => {
+      startImpersonation(s.admin_id!, s.name, '/super-admin/stores')
+    })
+  }
 
   function handleCreateStore(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -201,7 +210,7 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
                 </div>
 
                 {/* Actions */}
-                <div className="flex items-center gap-3 pt-2 border-t border-outline-variant/30 mt-auto">
+                <div className="flex items-center gap-3 pt-2 border-t border-outline-variant/30 mt-auto flex-wrap">
                   <Link
                     href={`/super-admin/stores/${s.id}`}
                     className="flex items-center gap-1.5 text-sm font-bold text-secondary hover:opacity-80 transition-opacity"
@@ -209,6 +218,19 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
                     <span className="material-symbols-outlined text-body-lg">open_in_new</span>
                     View Applications
                   </Link>
+                  {s.admin_id && (
+                    <button
+                      type="button"
+                      onClick={() => handleImpersonate(s)}
+                      disabled={isPending}
+                      className="flex items-center gap-1.5 text-sm font-bold text-on-surface-variant hover:text-primary disabled:opacity-50 transition-colors ml-auto"
+                    >
+                      <span className="material-symbols-outlined text-body-lg">
+                        {impersonatingId === s.id && isPending ? 'hourglass_empty' : 'manage_accounts'}
+                      </span>
+                      {impersonatingId === s.id && isPending ? 'Opening…' : 'View as Admin'}
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
