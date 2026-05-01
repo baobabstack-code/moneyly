@@ -1,33 +1,53 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import Navbar from "@/components/layout/Navbar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import { createClient } from "@/utils/supabase/server";
 import { isProfileComplete, type UserProfile } from "@/lib/profile";
+import { IMPERSONATE_COOKIE, parseImpersonationCookie } from "@/lib/impersonate";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
 
-  const initialUser = session?.user ? {
-    email: session.user.email!,
-    displayName: session.user.user_metadata?.full_name || session.user.email!,
-    avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
-  } : null;
-  const profileResult = session?.user
+  // Check if super admin is impersonating a customer
+  const cookieStore = await cookies();
+  const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value);
+  const isImpersonating = Boolean(impersonation?.targetUserId);
+
+  // Determine whose profile to display
+  const viewUserId = isImpersonating ? impersonation!.targetUserId : session?.user?.id;
+
+  const profileResult = viewUserId
     ? await supabase
         .from("profiles")
         .select("*")
-        .eq("id", session.user.id)
+        .eq("id", viewUserId)
         .single()
     : null;
   const profile = (profileResult?.data as UserProfile | null) || null;
 
-  // Admins and super_admins don't use the customer dashboard
-  const role = (profile as any)?.role ?? 'customer'
-  if (role === 'admin') redirect('/admin')
-  if (role === 'super_admin') redirect('/super-admin')
+  // When not impersonating, admins/super_admins redirect to their own views
+  if (!isImpersonating) {
+    const role = (profile as any)?.role ?? 'customer'
+    if (role === 'admin') redirect('/admin')
+    if (role === 'super_admin') redirect('/super-admin')
+  }
+
+  // UI user info: show impersonated user's name/email or real user
+  const initialUser = isImpersonating
+    ? {
+        email: (profile as any)?.email_address || impersonation!.targetName,
+        displayName: impersonation!.targetName,
+        avatarUrl: undefined,
+      }
+    : session?.user ? {
+        email: session.user.email!,
+        displayName: session.user.user_metadata?.full_name || session.user.email!,
+        avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+      } : null;
 
   const profileComplete = profile ? isProfileComplete(profile) : false;
 

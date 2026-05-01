@@ -1,5 +1,6 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
+import { IMPERSONATE_COOKIE } from '@/lib/impersonate'
 
 /**
  * Synchronizes the Supabase authentication session with the Next.js request/response.
@@ -63,8 +64,11 @@ export async function updateSession(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  // Role-based route protection
-  if (user && (pathname.startsWith('/admin') || pathname.startsWith('/super-admin'))) {
+  // Role-based route protection — skip when a super admin is impersonating
+  const impersonateCookie = request.cookies.get(IMPERSONATE_COOKIE)?.value
+  const isImpersonating = Boolean(impersonateCookie)
+
+  if (user && !isImpersonating && (pathname.startsWith('/admin') || pathname.startsWith('/super-admin'))) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')

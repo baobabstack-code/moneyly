@@ -38,7 +38,7 @@ export default function StoresClient({ stores: initial }: { stores: Store[] }) {
     if (!s.admin_id) return
     setImpersonatingId(s.id)
     startTransition(() => {
-      startImpersonation(s.admin_id!, s.name, '/super-admin/stores')
+      startImpersonation(s.admin_id!, s.name, '/super-admin/stores', 'admin')
     })
   }
 

@@ -1,31 +1,44 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import AdminSidebar from '@/components/AdminSidebar'
 import ImpersonationBanner from '@/components/ImpersonationBanner'
 import { AdminMobileNav } from '@/components/AdminMobileNav'
+import { IMPERSONATE_COOKIE, parseImpersonationCookie } from '@/lib/impersonate'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Check if super admin is impersonating a store admin
+  const cookieStore = await cookies()
+  const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value)
+  const isImpersonating = Boolean(impersonation?.targetUserId)
+
+  // Determine whose profile/store to show
+  const viewUserId = isImpersonating ? impersonation!.targetUserId : user.id
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('role, first_name, full_name')
-    .eq('id', user.id)
+    .eq('id', viewUserId)
     .single()
 
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin')) {
+  // When not impersonating, enforce role check
+  if (!isImpersonating && (!profile || (profile.role !== 'admin' && profile.role !== 'super_admin'))) {
     redirect('/dashboard')
   }
 
   const { data: store } = await supabase
     .from('stores')
     .select('id, name')
-    .eq('admin_id', user.id)
+    .eq('admin_id', viewUserId)
     .single()
 
-  const displayName = profile.first_name || profile.full_name?.split(' ')[0] || user.email || ''
+  const displayName = isImpersonating
+    ? impersonation!.targetName
+    : (profile?.first_name || profile?.full_name?.split(' ')[0] || user.email || '')
 
   return (
     <div className="min-h-screen bg-background font-manrope flex flex-col">
@@ -45,8 +58,8 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       {/* ── Body: sidebar + page content ── */}
       <div className="flex flex-1">
         <AdminSidebar
-          user={{ email: user.email ?? '', displayName }}
-          role={profile.role as 'admin' | 'super_admin'}
+          user={{ email: isImpersonating ? (impersonation!.targetName) : (user.email ?? ''), displayName }}
+          role={isImpersonating ? 'admin' : (profile?.role as 'admin' | 'super_admin')}
           storeName={store?.name}
         />
         <main className="flex-1 min-w-0 px-6 py-8 md:px-10 pb-24 lg:pb-8">{children}</main>

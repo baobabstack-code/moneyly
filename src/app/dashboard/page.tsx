@@ -1,7 +1,9 @@
 import { redirect } from 'next/navigation'
+import { cookies } from 'next/headers'
 import { createClient } from '@/utils/supabase/server'
 import { isProfileComplete } from '@/lib/profile'
 import DashboardView from '@/components/DashboardView'
+import { IMPERSONATE_COOKIE, parseImpersonationCookie } from '@/lib/impersonate'
 
 export const dynamic = 'force-dynamic'
 
@@ -13,27 +15,34 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Redirect admin and super_admin away from the customer dashboard
-  // to their dedicated management interface
-  const { data: roleRow } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', session.user.id)
-    .single()
+  const cookieStore = await cookies()
+  const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value)
+  const isImpersonating = Boolean(impersonation?.targetUserId)
+  const viewUserId = impersonation?.targetUserId ?? session.user.id
 
-  if (roleRow?.role === 'super_admin') redirect('/super-admin')
-  if (roleRow?.role === 'admin') redirect('/admin')
+  // Only redirect admins/super_admins when NOT impersonating
+  if (!isImpersonating) {
+    const { data: roleRow } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', session.user.id)
+      .single()
 
-  // Fetch profile and applications in parallel server-side
+    if (roleRow?.role === 'super_admin') redirect('/super-admin')
+    if (roleRow?.role === 'admin') redirect('/admin')
+  }
+
+  // Fetch impersonated (or real) user's profile and applications
   const [profileResult, applicationsResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', viewUserId)
       .single(),
     supabase
       .from('applications')
       .select('*')
+      .eq('user_id', viewUserId)
       .order('created_at', { ascending: false })
   ])
 
@@ -43,6 +52,7 @@ export default async function DashboardPage() {
   const displayName =
     profile?.first_name ||
     profile?.full_name?.split(' ')[0] ||
+    impersonation?.targetName ||
     session.user.email?.split('@')[0] ||
     'there'
 
@@ -50,7 +60,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardView
-      email={session.user.email!}
+      email={isImpersonating ? (profile?.email_address || impersonation!.targetName) : session.user.email!}
       displayName={displayName}
       profile={profile}
       applications={applications}
