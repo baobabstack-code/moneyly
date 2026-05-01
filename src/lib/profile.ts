@@ -61,9 +61,7 @@ export function isProfileComplete(profile: UserProfile | null): boolean {
     profile.employer_contact_person &&
     profile.employer_address &&
     (profile.is_civil_servant ? profile.employer_no && profile.ministry : profile.employer_name);
-  const hasPhoto = !!(profile.photo_url || profile.avatar_url);
-
-  return !!(hasName && hasBasic && hasContact && hasNextOfKin && hasEmployment && hasPhoto && profile.is_profile_complete);
+  return !!(hasName && hasBasic && hasContact && hasNextOfKin && hasEmployment && profile.is_profile_complete);
 }
 
 /**

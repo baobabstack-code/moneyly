@@ -266,7 +266,7 @@ function ProfileSetupContent({
     const hasName = form.first_name.trim().length > 0 && form.last_name.trim().length > 0;
     const hasBasic = form.national_id.trim().length > 0 && form.date_of_birth.trim().length > 0 && !!form.gender;
     const hasContact = form.physical_address.trim().length > 0 && form.mobile_number.trim().length > 0 && form.email_address.trim().length > 0;
-    return hasName && hasBasic && hasContact && !!photo;
+    return hasName && hasBasic && hasContact;
   };
 
   const getNextSection = (current: string): string | null => {
