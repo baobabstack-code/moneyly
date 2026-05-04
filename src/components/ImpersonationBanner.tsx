@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { stopImpersonation } from '@/app/super-admin/impersonate/actions'
+import { useRouter } from 'next/navigation'
 import { IMPERSONATE_COOKIE } from '@/lib/impersonate'
 
 interface ImpersonationData {
@@ -13,6 +13,7 @@ interface ImpersonationData {
 export default function ImpersonationBanner() {
   const [data, setData] = useState<ImpersonationData | null>(null)
   const [exiting, setExiting] = useState(false)
+  const router = useRouter()
 
   useEffect(() => {
     const raw = document.cookie
@@ -27,9 +28,10 @@ export default function ImpersonationBanner() {
 
   if (!data) return null
 
-  const handleStop = async () => {
+  const handleStop = () => {
     setExiting(true)
-    await stopImpersonation(data.returnPath)
+    document.cookie = `${IMPERSONATE_COOKIE}=; path=/; max-age=0`
+    router.push(data.returnPath || '/super-admin')
   }
 
   return (

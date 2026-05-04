@@ -1,7 +1,8 @@
 'use client'
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
+import { createClient } from "@/utils/supabase/client"
 
 const adminItems = [
   { name: "Dashboard",     href: "/admin",              icon: "dashboard" },
@@ -18,6 +19,13 @@ const superAdminItems = [
 
 export function AdminMobileNav() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-surface border-t border-outline-variant pb-safe">
@@ -35,6 +43,10 @@ export function AdminMobileNav() {
             </Link>
           )
         })}
+        <button type="button" onClick={handleSignOut} className="flex flex-col items-center gap-0.5 flex-1 py-1">
+          <span className="material-symbols-outlined text-[26px] text-on-surface-variant">logout</span>
+          <span className="text-[10px] font-bold tracking-wide text-on-surface-variant">Sign Out</span>
+        </button>
       </div>
     </nav>
   )
@@ -42,6 +54,13 @@ export function AdminMobileNav() {
 
 export function SuperAdminMobileNav() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleSignOut = async () => {
+    const supabase = createClient()
+    await supabase.auth.signOut()
+    router.push('/')
+  }
 
   return (
     <nav className="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-surface border-t border-outline-variant pb-safe">
@@ -59,6 +78,10 @@ export function SuperAdminMobileNav() {
             </Link>
           )
         })}
+        <button type="button" onClick={handleSignOut} className="flex flex-col items-center gap-0.5 flex-1 py-1">
+          <span className="material-symbols-outlined text-[26px] text-on-surface-variant">logout</span>
+          <span className="text-[10px] font-bold tracking-wide text-on-surface-variant">Sign Out</span>
+        </button>
       </div>
     </nav>
   )
