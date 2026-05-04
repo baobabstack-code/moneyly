@@ -1,6 +1,5 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import Link from 'next/link'
 
 export const dynamic = 'force-dynamic'
 
@@ -51,7 +50,7 @@ export default async function SuperAdminOverviewPage() {
       </div>
 
       {/* Stores table */}
-      <div className="space-y-4">
+      {/* <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h2 className="text-lg font-bold text-on-surface">Stores</h2>
           <Link
@@ -102,7 +101,7 @@ export default async function SuperAdminOverviewPage() {
             </table>
           </div>
         )}
-      </div>
+      </div> */}
     </div>
   )
 }
