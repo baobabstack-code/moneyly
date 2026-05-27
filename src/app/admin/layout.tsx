@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   }
 
   const { data: store } = await supabase
-    .from('stores')
+    .from('business_partners')
     .select('id, name')
     .eq('admin_id', viewUserId)
     .single()

@@ -15,14 +15,14 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
   if (!user) redirect('/login')
 
   const { data: store } = await supabase
-    .from('stores')
+    .from('business_partners')
     .select('id, name, admin_id')
     .eq('id', storeId)
     .single()
 
   if (!store) notFound()
 
-  const [{ data: applications }, { data: adminProfile }] = await Promise.all([
+  const [{ data: applications }, { data: adminProfile }, { data: funders }] = await Promise.all([
     supabase
       .from('applications')
       .select('*')
@@ -35,13 +35,18 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
           .eq('id', store.admin_id)
           .single()
       : Promise.resolve({ data: null }),
+    supabase
+      .from('business_partners')
+      .select('id, name, funder_type')
+      .eq('partner_type', 'funder')
+      .order('name', { ascending: true }),
   ])
 
   return (
     <div className="w-full space-y-6">
       <div className="flex items-center gap-2 flex-wrap">
-        <Link href="/super-admin/stores" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
-          ← Stores
+        <Link href="/super-admin/business-partners" className="text-sm text-on-surface-variant hover:text-primary transition-colors">
+          ← Business Partners
         </Link>
         <span className="text-on-surface-variant/40">/</span>
         <h1 className="text-3xl font-bold text-secondary">{store.name}</h1>
@@ -63,6 +68,8 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
       <AdminApplicationsClient
         applications={applications ?? []}
         basePath={`/super-admin/stores/${storeId}`}
+        funders={funders ?? []}
+        isSuperAdmin
       />
     </div>
   )

@@ -4,26 +4,34 @@ import { createClient } from '@/utils/supabase/server'
 import { createAdminClient } from '@/utils/supabase/admin'
 import { revalidatePath } from 'next/cache'
 
-export async function createStore(formData: FormData) {
+export async function createBusinessPartner(formData: FormData) {
   const name = (formData.get('name') as string)?.trim()
-  if (!name) return { error: 'Store name is required' }
+  if (!name) return { error: 'Name is required' }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const { error } = await supabase.from('stores').insert({
+  const partnerType = (formData.get('partner_type') as string)?.trim() || 'store'
+
+  const { error } = await supabase.from('business_partners').insert({
     name,
-    code:     (formData.get('code')     as string)?.trim() || null,
-    location: (formData.get('location') as string)?.trim() || null,
-    hours:    (formData.get('hours')    as string)?.trim() || null,
-    logo_url: (formData.get('logo_url') as string)?.trim() || null,
+    partner_type: partnerType,
+    code:          (formData.get('code')          as string)?.trim() || null,
+    location:      (formData.get('location')      as string)?.trim() || null,
+    hours:         (formData.get('hours')         as string)?.trim() || null,
+    logo_url:      (formData.get('logo_url')      as string)?.trim() || null,
+    funder_type:   (formData.get('funder_type')   as string)?.trim() || null,
+    contact_email: (formData.get('contact_email') as string)?.trim() || null,
   })
   if (error) return { error: error.message }
 
-  revalidatePath('/super-admin/stores')
+  revalidatePath('/super-admin/business-partners')
   return { success: true }
 }
+
+// Keep old name as alias so any remaining callers still work
+export const createStore = createBusinessPartner
 
 export async function inviteAdmin(formData: FormData) {
   const email = formData.get('email') as string
@@ -33,23 +41,21 @@ export async function inviteAdmin(formData: FormData) {
 
   const supabaseAdmin = createAdminClient()
 
-  // Invite the user with role=admin in metadata
   const { data, error } = await supabaseAdmin.auth.admin.inviteUserByEmail(email.trim(), {
     data: { role: 'admin' },
   })
 
   if (error) return { error: error.message }
 
-  // Assign admin to the store
   const supabase = await createClient()
-  const { error: storeError } = await supabase
-    .from('stores')
+  const { error: partnerError } = await supabase
+    .from('business_partners')
     .update({ admin_id: data.user.id })
     .eq('id', storeId)
 
-  if (storeError) return { error: storeError.message }
+  if (partnerError) return { error: partnerError.message }
 
-  revalidatePath('/super-admin/stores')
+  revalidatePath('/super-admin/business-partners')
   return { success: true }
 }
 
@@ -68,20 +74,30 @@ export async function updateApplicationStatus(id: string, status: string) {
 export async function assignAdminToStore(userId: string, storeId: number) {
   const supabase = await createClient()
 
-  // Update store's admin_id
-  const { error: storeError } = await supabase
-    .from('stores')
+  const { error: partnerError } = await supabase
+    .from('business_partners')
     .update({ admin_id: userId })
     .eq('id', storeId)
-  if (storeError) return { error: storeError.message }
+  if (partnerError) return { error: partnerError.message }
 
-  // Ensure the profile has role=admin
   const { error: profileError } = await supabase
     .from('profiles')
     .update({ role: 'admin' })
     .eq('id', userId)
   if (profileError) return { error: profileError.message }
 
-  revalidatePath('/super-admin/stores')
+  revalidatePath('/super-admin/business-partners')
+  return { success: true }
+}
+
+export async function assignFunderToApplication(applicationId: string, funderId: number | null) {
+  const supabase = await createClient()
+  const { error } = await supabase
+    .from('applications')
+    .update({ funder_id: funderId })
+    .eq('id', applicationId)
+  if (error) return { error: error.message }
+  revalidatePath('/super-admin/applications')
+  revalidatePath('/admin/applications')
   return { success: true }
 }

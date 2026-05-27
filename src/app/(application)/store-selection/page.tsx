@@ -8,8 +8,9 @@ export default async function StoreSelectionPage() {
 
   // Fetch stores from the DB so super-admin additions appear immediately
   const { data: stores } = await supabase
-    .from('stores')
+    .from('business_partners')
     .select('id, name, code, location, hours, logo_url')
+    .eq('partner_type', 'store')
     .order('id', { ascending: true })
 
   return <StoreSelectionClient stores={stores ?? []} />

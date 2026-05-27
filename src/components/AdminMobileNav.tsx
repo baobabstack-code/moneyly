@@ -12,7 +12,7 @@ const adminItems = [
 
 const superAdminItems = [
   { name: "Overview",      href: "/super-admin",               icon: "bar_chart" },
-  { name: "Stores",        href: "/super-admin/stores",        icon: "store" },
+  { name: "Partners",      href: "/super-admin/business-partners", icon: "handshake" },
   { name: "Applications",  href: "/super-admin/applications",  icon: "pending_actions" },
   { name: "Customers",     href: "/super-admin/customers",     icon: "group" },
 ]

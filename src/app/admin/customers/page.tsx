@@ -27,7 +27,7 @@ export default async function AdminCustomersPage() {
   const effectiveRole = impersonation ? 'admin' : profile?.role
   if (effectiveRole === 'admin') {
     const { data: store } = await supabase
-      .from('stores')
+      .from('business_partners')
       .select('id, name')
       .eq('admin_id', viewUserId)
       .single()

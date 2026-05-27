@@ -128,9 +128,10 @@ create table if not exists public.applications (
   status            text not null default 'submitted',
   created_at        timestamptz default now(),
 
-  -- Store
+  -- Store / partner
   store_id          int,
   store_name        text,
+  funder_id         int,
   national_id       text,
 
   -- Purchase
@@ -215,33 +216,37 @@ create index if not exists idx_applications_store_id on public.applications(stor
 
 
 -- ────────────────────────────────────────────────────────────
--- 3. STORES
+-- 3. BUSINESS PARTNERS (stores + funders)
 -- ────────────────────────────────────────────────────────────
-create table if not exists public.stores (
-  id         serial primary key,
-  name       text not null,
-  code       text,
-  location   text,
-  hours      text,
-  logo_url   text,
-  admin_id   uuid references auth.users(id) on delete set null,
-  created_at timestamptz default now()
+create table if not exists public.business_partners (
+  id            serial primary key,
+  name          text not null,
+  code          text,
+  location      text,
+  hours         text,
+  logo_url      text,
+  partner_type  text not null default 'store' check (partner_type in ('store', 'funder')),
+  funder_type   text,
+  contact_email text,
+  admin_id      uuid references auth.users(id) on delete set null,
+  created_at    timestamptz default now()
 );
 
-alter table public.stores enable row level security;
+alter table public.business_partners enable row level security;
 
--- Anyone (including unauthenticated visitors) can read stores —
+-- Anyone (including unauthenticated visitors) can read —
 -- required for the store-selection step that runs before login.
-create policy "Anyone can view stores"
-  on public.stores for select
+create policy "Anyone can view business_partners"
+  on public.business_partners for select
   using (true);
 
-create policy "Super admin full access on stores"
-  on public.stores for all
+create policy "Super admin full access on business_partners"
+  on public.business_partners for all
   using (get_my_role() = 'super_admin')
   with check (get_my_role() = 'super_admin');
 
-create index if not exists idx_stores_admin_id on public.stores(admin_id);
+create index if not exists idx_business_partners_partner_type on public.business_partners(partner_type);
+create index if not exists idx_business_partners_admin_id     on public.business_partners(admin_id);
 create index if not exists idx_profiles_role on public.profiles(role);
 
 

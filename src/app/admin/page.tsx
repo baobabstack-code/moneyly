@@ -16,7 +16,7 @@ export default async function AdminDashboardPage() {
   const viewUserId = impersonation?.targetUserId ?? user.id
 
   const { data: store } = await supabase
-    .from('stores')
+    .from('business_partners')
     .select('id, name')
     .eq('admin_id', viewUserId)
     .single()

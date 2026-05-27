@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { assignFunderToApplication } from '@/app/super-admin/actions'
 
 // ── types ──────────────────────────────────────────────────────────────────
 
@@ -11,6 +12,7 @@ type Application = {
   status: string
   created_at: string
   store_name: string | null
+  funder_id: number | null
   first_name: string | null
   last_name: string | null
   email_address: string | null
@@ -38,11 +40,16 @@ type Application = {
   payslip_url: string | null
 }
 
+type Funder = {
+  id: number
+  name: string
+  funder_type: string | null
+}
+
 // ── helpers ────────────────────────────────────────────────────────────────
 
 const STATUS_OPTIONS = ['submitted', 'approved', 'rejected', 'draft'] as const
 
-// Maps application status to the same colour tokens used in the customer views
 function statusBadge(status: string) {
   const map: Record<string, string> = {
     submitted: 'bg-status-info-bg text-status-info',
@@ -53,7 +60,6 @@ function statusBadge(status: string) {
   return map[status] ?? 'bg-status-warning-bg text-status-warning'
 }
 
-// Status icon mirrors the customer ApplicationsView icon logic
 function statusIcon(status: string) {
   switch (status) {
     case 'submitted': return 'hourglass_empty'
@@ -80,14 +86,16 @@ export default function AdminApplicationsClient({
   applications: initial,
   statusFilter,
   basePath = '/admin/applications',
+  funders = [],
+  isSuperAdmin = false,
 }: {
   applications: Application[]
   statusFilter?: string
   basePath?: string
+  funders?: Funder[]
+  isSuperAdmin?: boolean
 }) {
-  // Track which application card is expanded (null = all collapsed)
   const [expanded, setExpanded] = useState<string | null>(null)
-  // Optimistic local state so status updates feel instant without a page reload
   const [applications, setApplications] = useState(initial)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
@@ -102,10 +110,18 @@ export default function AdminApplicationsClient({
         .eq('id', id)
 
       if (!error) {
-        // Reflect new status immediately in the UI without a full reload
         setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)))
       }
       setUpdatingId(null)
+    })
+  }
+
+  async function updateFunder(id: string, funderId: number | null) {
+    startTransition(async () => {
+      const result = await assignFunderToApplication(id, funderId)
+      if (!result.error) {
+        setApplications(prev => prev.map(a => (a.id === id ? { ...a, funder_id: funderId } : a)))
+      }
     })
   }
 
@@ -120,7 +136,7 @@ export default function AdminApplicationsClient({
           </p>
         </div>
 
-        {/* Status filter pills — mirrors the expandable-card approach from ApplicationsView */}
+        {/* Status filter pills */}
         <div className="flex gap-2 flex-wrap mb-6">
           <a
             href={basePath}
@@ -161,8 +177,8 @@ export default function AdminApplicationsClient({
               const isOpen = expanded === app.id
               const loanAmount = parseAmount(app.retail_price) - parseAmount(app.deposit_amount)
               const monthly = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null
+              const assignedFunder = funders.find(f => f.id === app.funder_id)
 
-              // Detail rows rendered inside the expanded panel — same pattern as DashboardView
               const details = [
                 { label: 'Store',             value: app.store_name },
                 { label: 'Product',           value: app.product_name },
@@ -193,7 +209,7 @@ export default function AdminApplicationsClient({
                   key={app.id}
                   className="rounded-2xl bg-surface border border-outline-variant overflow-hidden transition-colors"
                 >
-                  {/* ── Summary row (always visible) ── */}
+                  {/* ── Summary row ── */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-5 sm:p-6">
 
                     {/* Status icon */}
@@ -216,6 +232,16 @@ export default function AdminApplicationsClient({
                         <span className={`inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase ${statusBadge(app.status)}`}>
                           {app.status}
                         </span>
+                        {/* Partner type badge */}
+                        {app.funder_id ? (
+                          <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-secondary/10 text-secondary">
+                            Funder: {assignedFunder?.name ?? 'Assigned'}
+                          </span>
+                        ) : (
+                          <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-primary/10 text-primary">
+                            Store
+                          </span>
+                        )}
                       </div>
                       <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
                         <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
@@ -225,9 +251,8 @@ export default function AdminApplicationsClient({
                       </div>
                     </div>
 
-                    {/* Status select + expand toggle — stacked on mobile, side-by-side on sm+ */}
+                    {/* Status select + expand toggle */}
                     <div className="flex items-center gap-3 shrink-0">
-                      {/* Inline status updater — admin can change without opening a modal */}
                       <select
                         aria-label={`Change status for application ${app.reference}`}
                         value={app.status}
@@ -269,6 +294,35 @@ export default function AdminApplicationsClient({
                           </div>
                         ))}
                       </div>
+
+                      {/* Funder assignment (super-admin only) */}
+                      {isSuperAdmin && funders.length > 0 && (
+                        <div className="pt-3 border-t border-outline-variant/30">
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-2">Assign Funder</p>
+                          <div className="flex items-center gap-3">
+                            <select
+                              aria-label="Assign funder to application"
+                              value={app.funder_id ?? ''}
+                              disabled={isPending}
+                              onChange={e => updateFunder(app.id, e.target.value ? Number(e.target.value) : null)}
+                              className="rounded-xl border border-outline-variant bg-surface px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary font-manrope"
+                            >
+                              <option value="">No funder assigned</option>
+                              {funders.map(f => (
+                                <option key={f.id} value={f.id}>
+                                  {f.name}{f.funder_type ? ` (${f.funder_type})` : ''}
+                                </option>
+                              ))}
+                            </select>
+                            {app.funder_id && (
+                              <span className="text-xs text-status-success font-bold flex items-center gap-1">
+                                <span className="material-symbols-outlined text-sm">check_circle</span>
+                                {assignedFunder?.name}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Documents */}
                       {(app.id_copy_url || app.payslip_url) && (
