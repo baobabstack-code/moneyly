@@ -12,7 +12,7 @@ export default async function BusinessPartnersPage() {
 
   const { data: partners } = await supabase
     .from('business_partners')
-    .select('id, name, code, location, hours, logo_url, partner_type, funder_type, contact_email, admin_id, created_at')
+    .select('id, uuid, name, code, location, hours, logo_url, partner_type, funder_type, contact_email, admin_id, created_at')
     .order('id', { ascending: true })
 
   return (

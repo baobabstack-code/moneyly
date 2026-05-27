@@ -9,6 +9,7 @@ import { startImpersonation } from '@/app/super-admin/impersonate/actions'
 
 type Partner = {
   id: number
+  uuid: string
   name: string
   code: string | null
   location: string | null
@@ -325,7 +326,7 @@ export default function BusinessPartnersClient({ partners: initial }: { partners
                 <div className="flex items-center gap-3 pt-2 border-t border-outline-variant/30 mt-auto flex-wrap">
                   {p.partner_type === 'store' && (
                     <Link
-                      href={`/super-admin/stores/${p.id}`}
+                      href={`/super-admin/stores/${p.uuid}`}
                       className="flex items-center gap-1.5 text-sm font-bold text-secondary hover:opacity-80 transition-opacity"
                     >
                       <span className="material-symbols-outlined text-body-lg">open_in_new</span>

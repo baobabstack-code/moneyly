@@ -5,10 +5,11 @@ import AdminApplicationsClient from '@/app/admin/applications/AdminApplicationsC
 
 export const dynamic = 'force-dynamic'
 
-export default async function StoreDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const storeId = Number(id)
-  if (isNaN(storeId)) notFound()
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+export default async function StoreDetailPage({ params }: { params: Promise<{ uuid: string }> }) {
+  const { uuid: storeUuid } = await params
+  if (!UUID_REGEX.test(storeUuid)) notFound()
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -16,8 +17,8 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
 
   const { data: store } = await supabase
     .from('business_partners')
-    .select('id, name, admin_id')
-    .eq('id', storeId)
+    .select('id, name, admin_id, uuid')
+    .eq('uuid', storeUuid)
     .single()
 
   if (!store) notFound()
@@ -26,7 +27,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
     supabase
       .from('applications')
       .select('*')
-      .eq('store_id', storeId)
+      .eq('store_id', store.id)
       .order('created_at', { ascending: false }),
     store.admin_id
       ? supabase
@@ -67,7 +68,7 @@ export default async function StoreDetailPage({ params }: { params: Promise<{ id
 
       <AdminApplicationsClient
         applications={applications ?? []}
-        basePath={`/super-admin/stores/${storeId}`}
+        basePath={`/super-admin/stores/${store.uuid}`}
         funders={funders ?? []}
         isSuperAdmin
       />
