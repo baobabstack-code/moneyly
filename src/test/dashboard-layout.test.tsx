@@ -7,6 +7,17 @@ const select = jest.fn(() => ({ eq }));
 const from = jest.fn(() => ({ select }));
 const getSession = jest.fn();
 
+jest.mock('next/headers', () => ({
+  cookies: jest.fn().mockResolvedValue({
+    get: jest.fn().mockReturnValue(undefined),
+  }),
+}));
+
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ push: jest.fn(), refresh: jest.fn() }),
+  redirect: jest.fn(),
+}));
+
 jest.mock('../utils/supabase/server', () => ({
   createClient: jest.fn(() => Promise.resolve({
     auth: { getSession },

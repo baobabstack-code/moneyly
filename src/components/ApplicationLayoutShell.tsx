@@ -2,9 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useApplicationStore } from "@/lib/store";
-import { createClient } from "@/utils/supabase/client";
 import type { User } from "@supabase/supabase-js";
 import type { UserProfile } from "@/lib/profile";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -21,41 +20,7 @@ export default function ApplicationLayoutShell({
   const pathname = usePathname();
   const router = useRouter();
   const [showNotifications, setShowNotifications] = useState(false);
-  const [editSection, setEditSection] = useState<string | null>(null);
   const { notifications, clearNotifications } = useApplicationStore();
-
-  const { setBasicInfo, setContactDetails, setNextOfKin, setEmploymentDetails } = useApplicationStore();
-
-  useEffect(() => {
-    setBasicInfo({
-      firstName: profile.first_name || "",
-      lastName: profile.last_name || "",
-      dateOfBirth: profile.date_of_birth || "",
-      gender: profile.gender || "",
-      photoUrl: profile.photo_url || "",
-    });
-    setContactDetails({
-      physicalAddress: profile.physical_address || "",
-      mobileNumber: profile.mobile_number || "",
-      emailAddress: profile.email_address || "",
-    });
-    setNextOfKin({
-      fullName: profile.nok_full_name || "",
-      address: profile.nok_address || "",
-      mobileNumber: profile.nok_mobile_number || "",
-      relationship: profile.nok_relationship || "",
-    });
-    setEmploymentDetails({
-      employerName: profile.employer_name || "",
-      isCivilServant: profile.is_civil_servant ?? null,
-      employerNo: profile.employer_no || "",
-      ministry: profile.ministry || "",
-      phoneNumber: profile.employment_phone || "",
-      contactPerson: profile.employer_contact_person || "",
-      emailAddress: profile.employer_email || "",
-      physicalAddress: profile.employer_address || "",
-    });
-  }, [profile, setBasicInfo, setContactDetails, setEmploymentDetails, setNextOfKin]);
 
   const userInitials = (profile.full_name || user.user_metadata?.full_name || user.email || "User")
     .split(' ')
@@ -63,39 +28,23 @@ export default function ApplicationLayoutShell({
     .join('')
     .toUpperCase()
     .slice(0, 2);
-  const avatarUrl = profile.avatar_url || profile.photo_url || user.user_metadata?.avatar_url || user.user_metadata?.picture;
-
-  const profileComplete = true;
-
-  const sectionTitles: Record<string, {title: string, icon: string}> = {
-    photo: {title: "Profile Photo", icon: "photo_camera"},
-    personal: {title: "Personal Info", icon: "person"},
-    contact: {title: "Contact Details", icon: "contact_page"},
-    nok: {title: "Next of Kin", icon: "family_restroom"},
-    employment: {title: "Employment", icon: "business_center"},
-  };
-
-  const profileSections = [
-    { name: "Photo", href: "?section=photo", icon: "photo_camera" },
-    { name: "Personal Info", href: "?section=personal", icon: "person" },
-    { name: "Contact", href: "?section=contact", icon: "contact_page" },
-    { name: "Employment", href: "?section=employment", icon: "business_center" },
-    { name: "Next of Kin", href: "?section=nok", icon: "family_restroom" },
-  ];
+  const avatarUrl = profile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture;
 
   const steps = [
-    { name: "Purchase", href: "/apply/purchase-details", icon: "receipt_long" },
-    { name: "Documents", href: "/apply/document-uploads", icon: "upload_file" },
-    { name: "Summary", href: "/apply/summary", icon: "fact_check" },
+    { name: "Source", href: "/plan/store", icon: "storefront" },
+    { name: "Details", href: "/plan/details", icon: "receipt_long" },
+    { name: "Files", href: "/plan/documents", icon: "upload_file" },
+    { name: "Summary", href: "/plan/summary", icon: "fact_check" },
   ];
 
   const currentStepIndex = steps.findIndex(step => pathname.includes(step.href));
   const isSummaryPage = pathname.includes("/summary");
   const isSuccessPage = pathname.includes("/success");
+
   const primaryNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: "dashboard", tooltip: "View your account dashboard" },
-    { name: "New Application", href: "/store-selection", icon: "add_circle", tooltip: "Start a new loan application" },
-    { name: "My Applications", href: "/applications", icon: "pending_actions", tooltip: "View your submitted loan applications" },
+    { name: "New Plan", href: "/plan/store", icon: "add_circle", tooltip: "Create a new spending plan" },
+    { name: "Spending Plans", href: "/applications", icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
   ];
 
   const handleNext = () => {
@@ -108,13 +57,13 @@ export default function ApplicationLayoutShell({
     if (currentStepIndex > 0) {
       router.push(steps[currentStepIndex - 1].href);
     } else {
-      router.push("/store-selection");
+      router.push("/plan/store");
     }
   };
 
   return (
     <div className="bg-background min-h-screen flex flex-col font-manrope selection:bg-secondary/20">
-      {/* TopAppBar - Refined for PWA */}
+      {/* TopAppBar */}
       <header className="fixed top-0 left-0 w-full z-50 bg-surface/80 backdrop-blur-md border-b border-outline-variant antialiased transition-all duration-300">
         <div className="flex justify-between items-center h-16 px-4 sm:px-8 max-w-container-max mx-auto w-full">
           <div className="flex items-center gap-2 sm:gap-4">
@@ -122,9 +71,9 @@ export default function ApplicationLayoutShell({
               <span className="material-symbols-outlined group-hover:scale-110 transition-transform">home</span>
             </Link>
             <div className="flex flex-col">
-              <span className="text-lg sm:text-xl font-h1 font-bold tracking-tight text-primary">HTB GLOBAL</span>
+              <span className="text-lg sm:text-xl font-h1 font-bold tracking-tight text-primary">Moneyly</span>
               <span className="lg:hidden text-[10px] font-bold text-secondary uppercase tracking-widest leading-none">
-                {steps[currentStepIndex]?.name || "Application"}
+                {steps[currentStepIndex]?.name || "Plan"}
               </span>
             </div>
           </div>
@@ -181,11 +130,6 @@ export default function ApplicationLayoutShell({
                       </div>
                     )}
                   </div>
-                  <div className="p-3 bg-surface-container-lowest border-t border-outline-variant/30 text-center">
-                    <button type="button" className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest hover:text-primary transition-colors">
-                      View All Activity
-                    </button>
-                  </div>
                 </div>
               )}
 
@@ -200,13 +144,14 @@ export default function ApplicationLayoutShell({
           </div>
         </div>
         {/* Mobile Progress Bar */}
-        <div className="lg:hidden h-1 w-full bg-surface-container-highest overflow-hidden">
-          <div
-            className="h-full bg-secondary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(0,81,213,0.5)] progress-bar-width"
-            data-progress={`${((currentStepIndex + 1) / steps.length) * 100}`}
-            style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
-          ></div>
-        </div>
+        {currentStepIndex >= 0 && (
+          <div className="lg:hidden h-1 w-full bg-surface-container-highest overflow-hidden">
+            <div
+              className="h-full bg-secondary transition-all duration-500 ease-out shadow-[0_0_8px_rgba(0,81,213,0.5)]"
+              style={{ width: `${((currentStepIndex + 1) / steps.length) * 100}%` }}
+            ></div>
+          </div>
+        )}
       </header>
 
       <div className="flex-1 lg:grid lg:grid-cols-[256px_1fr] pt-16 min-h-screen">
@@ -231,7 +176,7 @@ export default function ApplicationLayoutShell({
 
           <nav className="flex-1 py-6 px-4 space-y-1">
             {primaryNavItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href === "/plan/store" && pathname.startsWith("/plan"));
               return (
                 <Link
                   key={item.name}
@@ -256,10 +201,10 @@ export default function ApplicationLayoutShell({
             })}
 
             <div className="pt-5 pb-2 px-4">
-              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
+              <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Plan Steps</p>
             </div>
 
-            {steps.map((step) => {
+            {steps.map((step, idx) => {
               const isActive = pathname.includes(step.href);
               return (
                 <Link 
@@ -273,64 +218,20 @@ export default function ApplicationLayoutShell({
                       : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
                   }`}
                 >
-                  <span
-                    className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "" : "group-hover:scale-110"}`}
-                    style={isActive ? { fontVariationSettings: "'FILL' 1" } : {}}
-                  >
-                    {step.icon}
+                  <span className="w-5 h-5 rounded-full bg-surface-container-highest text-[10px] flex items-center justify-center font-bold text-on-surface-variant shrink-0">
+                    {idx + 1}
                   </span>
                   <span className="text-sm">{step.name}</span>
                 </Link>
               );
             })}
-
-            {profileComplete && (
-              <>
-                <div className="pt-5 pb-2 px-4">
-                  <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
-                </div>
-
-                {profileSections.map((section) => {
-                  const sectionKey = section.href.split('=')[1] || 'photo';
-                  return (
-                    <button
-                      type="button"
-                      key={section.name}
-                      onClick={() => setEditSection(sectionKey)}
-                      title={`Edit ${section.name}`}
-                      aria-label={`Edit ${section.name}`}
-                      className="w-full flex items-center justify-between px-4 py-3 group text-on-surface-variant hover:text-primary hover:bg-surface-container-low rounded-xl transition-all duration-200"
-                    >
-                      <div className="flex items-center gap-3">
-                        <span className="material-symbols-outlined text-[20px]">{section.icon}</span>
-                        <span className="text-sm">{section.name}</span>
-                      </div>
-                      <span className="text-xs text-secondary opacity-0 group-hover:opacity-100 transition-opacity">Edit</span>
-                    </button>
-                  );
-                })}
-              </>
-            )}
           </nav>
 
           <div className="p-4 border-t border-outline-variant/30 space-y-1">
-            {!isSuccessPage && (
-              <button
-                type="button"
-                onClick={() => {
-                  useApplicationStore.getState().addNotification('Application progress saved successfully.', 'success');
-                }}
-                title="Save application progress"
-                aria-label="Save application progress"
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-on-surface-variant hover:text-primary hover:bg-surface-container-low transition-all duration-200 group"
-              >
-                <span className="material-symbols-outlined text-[20px]">save</span>
-                <span className="text-sm font-medium">Save Application</span>
-              </button>
-            )}
             <button
               type="button"
               onClick={async () => {
+                const { createClient } = await import("@/utils/supabase/client");
                 const supabase = createClient();
                 await supabase.auth.signOut();
                 router.push("/");
@@ -353,36 +254,35 @@ export default function ApplicationLayoutShell({
         </main>
       </div>
 
-      {/* BottomNavBar - True Native Feel */}
+      {/* BottomNavBar */}
       <nav className="fixed bottom-0 left-0 w-full z-50 lg:hidden flex flex-col">
         {/* Control Layer */}
-        <div className="flex justify-between items-center h-20 px-6 bg-surface/90 backdrop-blur-2xl border-t border-outline-variant shadow-[0_-10px_30px_rgba(0,0,0,0.1)] transition-all">
-          <button
-            type="button"
-            onClick={handleBack}
-            className="flex flex-col items-center justify-center text-on-surface-variant/70 text-[10px] uppercase font-bold tracking-widest gap-1 active:scale-90 transition-all hover:text-primary"
-          >
-            <span className="material-symbols-outlined text-2xl">arrow_back</span>
-            <span>Back</span>
-          </button>
-
-          <div className="flex items-center gap-3">
-            <button type="button" className="w-12 h-12 bg-surface-container border border-outline-variant rounded-xl flex items-center justify-center text-on-surface shadow-inner active:scale-90 transition-all">
-              <span className="material-symbols-outlined">save</span>
-            </button>
+        {currentStepIndex >= 0 && (
+          <div className="flex justify-between items-center h-20 px-6 bg-surface/90 backdrop-blur-2xl border-t border-outline-variant shadow-[0_-10px_30px_rgba(0,0,0,0.1)] transition-all">
             <button
               type="button"
-              onClick={isSummaryPage ? () => {
-                const submitBtn = document.getElementById('final-submit-button');
-                if (submitBtn) (submitBtn as HTMLButtonElement).click();
-              } : handleNext}
-              className="h-12 px-8 bg-secondary text-on-secondary rounded-xl font-bold text-sm shadow-lg shadow-secondary/20 flex items-center gap-2 active:scale-95 transition-all"
+              onClick={handleBack}
+              className="flex flex-col items-center justify-center text-on-surface-variant/70 text-[10px] uppercase font-bold tracking-widest gap-1 active:scale-90 transition-all hover:text-primary"
             >
-              {isSummaryPage ? "Submit" : "Next"}
-              <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              <span className="material-symbols-outlined text-2xl">arrow_back</span>
+              <span>Back</span>
             </button>
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={isSummaryPage ? () => {
+                  const submitBtn = document.getElementById('final-submit-button');
+                  if (submitBtn) (submitBtn as HTMLButtonElement).click();
+                } : handleNext}
+                className="h-12 px-8 bg-secondary text-on-secondary rounded-xl font-bold text-sm shadow-lg shadow-secondary/20 flex items-center gap-2 active:scale-95 transition-all"
+              >
+                {isSummaryPage ? "Save" : "Next"}
+                <span className="material-symbols-outlined text-sm">arrow_forward</span>
+              </button>
+            </div>
           </div>
-        </div>
+        )}
         
         {/* Native Tab Bar Simulation */}
         <div className="flex justify-around items-center h-16 px-4 bg-surface-container-low border-t border-outline-variant/30">
@@ -390,9 +290,9 @@ export default function ApplicationLayoutShell({
             <span className="material-symbols-outlined">home</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
           </Link>
-          <Link href="/store-selection" className="flex flex-col items-center gap-1 text-secondary">
+          <Link href="/plan/store" className="flex flex-col items-center gap-1 text-secondary">
             <span className="material-symbols-outlined filled">add_circle</span>
-            <span className="text-[10px] font-bold uppercase tracking-tighter">Apply</span>
+            <span className="text-[10px] font-bold uppercase tracking-tighter">Plan</span>
           </Link>
           <Link href="/dashboard" className="flex flex-col items-center gap-1 text-on-surface-variant/40">
             <span className="material-symbols-outlined">account_circle</span>
@@ -400,25 +300,6 @@ export default function ApplicationLayoutShell({
           </Link>
         </div>
       </nav>
-
-      {editSection && (
-        <div className="fixed inset-0 z-100 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={() => setEditSection(null)} />
-          <div className="relative w-full max-w-lg max-h-[90vh] bg-surface rounded-3xl shadow-2xl overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-4 border-b border-outline-variant">
-              <h2 className="text-lg font-bold">{sectionTitles[editSection]?.title || 'Edit Profile'}</h2>
-              <button type="button" onClick={() => setEditSection(null)} className="w-10 h-10 rounded-full hover:bg-surface-container-low flex items-center justify-center">
-                <span className="material-symbols-outlined">close</span>
-              </button>
-            </div>
-            <iframe
-              title={`Edit ${sectionTitles[editSection]?.title || 'Profile'}`}
-              src={`/profile-setup${profileSections.find(s => s.href.includes(editSection))?.href || ''}`}
-              className="w-full flex-1 min-h-100 border-0"
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 }

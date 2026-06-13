@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useApplicationStore, type ApplicationState } from "@/lib/store";
-import { generateLoanPDF } from "@/utils/pdf-generator";
+import { useApplicationStore } from "@/lib/store";
+import { generatePlanPDF } from "@/utils/pdf-generator";
 
 export default function SuccessPage() {
   const store = useApplicationStore();
@@ -10,10 +10,13 @@ export default function SuccessPage() {
 
   const handleDownloadPDF = async () => {
     try {
-      const pdfDataUri = await generateLoanPDF(store);
+      const pdfDataUri = await generatePlanPDF({
+        ...store,
+        customerName: 'Valued Member'
+      });
       const link = document.createElement('a');
       link.href = pdfDataUri;
-      link.download = `HTB-Application-${lastReference || 'Summary'}.pdf`;
+      link.download = `Moneyly-Plan-${lastReference || 'Summary'}.pdf`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -35,16 +38,16 @@ export default function SuccessPage() {
               <span className="material-symbols-outlined text-secondary text-6xl" style={{ fontVariationSettings: "'FILL' 1" }}>check_circle</span>
             </div>
             
-            <h1 className="font-h1 text-4xl text-primary mb-4">Submission Successful</h1>
+            <h1 className="font-h1 text-4xl text-primary mb-4">Plan Saved</h1>
             <p className="text-xl text-on-surface max-w-2xl mx-auto mb-10 leading-relaxed font-body-md">
-              Congratulations! Your application has been received. Our systems are now processing your request, and an institutional officer will contact you shortly.
+              Your spending plan is now part of your Moneyly dashboard, where it can shape budgets, bills, savings goals, and cash-flow.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
               <Link 
                 onClick={() => resetStore()}
                 className="bg-secondary text-on-secondary px-12 py-3 rounded-lg font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
-                href="/"
+                href="/dashboard"
               >
                 Go to My Dashboard
               </Link>
@@ -53,7 +56,7 @@ export default function SuccessPage() {
                 className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-lg font-bold transition-all active:scale-95 hover:bg-surface-container flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-[20px]">download</span>
-                View Application PDF
+                View Plan PDF
               </button>
             </div>
           </div>
@@ -65,8 +68,8 @@ export default function SuccessPage() {
           <div className="bg-surface p-8 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between">
             <div>
               <span className="material-symbols-outlined text-secondary mb-4">receipt_long</span>
-              <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Reference Number</h3>
-              <p className="text-2xl font-bold text-on-surface">{lastReference || '#HTB-XXXX'}</p>
+              <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Plan Reference</h3>
+              <p className="text-2xl font-bold text-on-surface">{lastReference || '#PLN-XXXX'}</p>
             </div>
             <p className="text-xs text-on-surface-variant/80 mt-4 italic">Please keep this for your records</p>
           </div>
@@ -83,8 +86,8 @@ export default function SuccessPage() {
                   <span className="text-secondary font-bold text-sm">1</span>
                 </div>
                 <div>
-                  <p className="font-bold text-on-surface">Document Verification</p>
-                  <p className="text-sm text-on-surface-variant leading-relaxed">Our institutional system will validate your documents within 24 hours.</p>
+                  <p className="font-bold text-on-surface">Review your dashboard</p>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">Check how this plan changes your budget, savings progress, and monthly cash-flow.</p>
                 </div>
               </div>
               <div className="flex gap-4 items-start">
@@ -92,8 +95,8 @@ export default function SuccessPage() {
                   <span className="text-on-surface-variant font-bold text-sm">2</span>
                 </div>
                 <div>
-                  <p className="font-bold text-on-surface">Officer Review</p>
-                  <p className="text-sm text-on-surface-variant leading-relaxed">A dedicated loan officer will review your file and contact you via secure communication.</p>
+                  <p className="font-bold text-on-surface">Keep documents updated</p>
+                  <p className="text-sm text-on-surface-variant leading-relaxed">Use the attached documents/invoices as planning records for your purchase and update the plan details as they progress.</p>
                 </div>
               </div>
             </div>

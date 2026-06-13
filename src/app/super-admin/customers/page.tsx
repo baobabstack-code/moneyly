@@ -9,9 +9,9 @@ export default async function SuperAdminCustomersPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Fetch all unique customer IDs across every application in the platform
+  // Fetch all unique customer IDs across every spending plan in the platform
   const { data: apps } = await supabase
-    .from('applications')
+    .from('spending_plans')
     .select('user_id')
 
   const uniqueUserIds = [...new Set((apps ?? []).map(a => a.user_id).filter(Boolean))]
@@ -19,7 +19,7 @@ export default async function SuperAdminCustomersPage() {
   const { data: customers } = uniqueUserIds.length > 0
     ? await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email_address, mobile_number, national_id, is_profile_complete, created_at, employer_name, ministry, is_civil_servant, physical_address')
+        .select('id, full_name, avatar_url, username, monthly_income, created_at, role')
         .in('id', uniqueUserIds)
     : { data: [] }
 

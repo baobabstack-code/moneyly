@@ -1,5 +1,5 @@
 import autoTable from 'jspdf-autotable';
-import { generateLoanPDF } from '../utils/pdf-generator';
+import { generatePlanPDF } from '../utils/pdf-generator';
 
 jest.mock('jspdf', () => {
   return jest.fn().mockImplementation(() => ({
@@ -21,26 +21,28 @@ jest.mock('jspdf-autotable', () => jest.fn((doc) => {
   doc.lastAutoTable = { finalY: 80 };
 }));
 
-describe('generateLoanPDF', () => {
-  it('includes richer employer details in the generated table data', async () => {
-    const pdf = await generateLoanPDF({
-      employmentDetails: {
-        employerName: 'Employer Inc',
-        isCivilServant: false,
-        phoneNumber: '+263242123456',
-        contactPerson: 'Mary Manager',
-        emailAddress: 'hr@employer.test',
-        physicalAddress: '789 Work Avenue, Harare',
+describe('generatePlanPDF', () => {
+  it('includes spending plan details in the generated table data', async () => {
+    const pdf = await generatePlanPDF({
+      customerName: 'John Doe',
+      selectedStoreName: 'TV Sales & Home',
+      purchaseDetails: {
+        productName: 'Smart TV',
+        plannedCost: '500.00',
+        savedAmount: '200.00',
+        tenureMonths: '6',
       },
     });
 
     expect(pdf).toContain('data:application/pdf;base64,');
     expect(autoTable).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       body: expect.arrayContaining([
-        ['Employer Phone', '+263242123456'],
-        ['Employer Contact', 'Mary Manager'],
-        ['Employer Email', 'hr@employer.test'],
-        ['Employer Address', '789 Work Avenue, Harare'],
+        ['Planned Item', 'Smart TV'],
+        ['Planned Cost', '$500.00'],
+        ['Saved Amount', '$200.00'],
+        ['Cash Needed', '$300.00'],
+        ['Plan Length', '6 months'],
+        ['Estimated Monthly Commitment', '$50.00'],
       ]),
     }));
   });

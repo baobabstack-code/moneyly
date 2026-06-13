@@ -23,8 +23,9 @@ export default async function ApplicationsPage() {
       .eq('id', session.user.id)
       .single(),
     supabase
-      .from('applications')
+      .from('spending_plans')
       .select('*')
+      .eq('user_id', session.user.id)
       .order('created_at', { ascending: false }),
   ])
 
@@ -39,7 +40,6 @@ export default async function ApplicationsPage() {
       session.user.email!,
     avatarUrl:
       profile?.avatar_url ||
-      profile?.photo_url ||
       session.user.user_metadata?.avatar_url ||
       session.user.user_metadata?.picture,
   }
@@ -49,7 +49,7 @@ export default async function ApplicationsPage() {
       <Navbar initialUser={initialUser} />
       <div className="flex flex-1">
         {profileComplete && (
-          <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} />
+          <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} profile={profile} />
         )}
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
           <ApplicationsView

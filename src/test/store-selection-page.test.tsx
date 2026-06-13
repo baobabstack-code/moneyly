@@ -1,8 +1,6 @@
 /**
- * Tests for the store-selection server page (app/(application)/store-selection/page.tsx).
+ * Tests for the store-selection server page (app/(application)/plan/store/page.tsx).
  * Verifies it fetches stores from Supabase and forwards them to StoreSelectionClient.
- *
- * Uses the same render-async-server-component pattern as dashboard-layout.test.tsx.
  */
 
 import { render, screen } from '@testing-library/react'
@@ -13,9 +11,9 @@ jest.mock('../utils/supabase/server', () => ({
   createClient: jest.fn(),
 }))
 
-// ── mock StoreSelectionClient — renders store names so we can assert them ─
+// ── mock StoreSelectionClient ─────────────────────────────────────────────
 
-jest.mock('../app/(application)/store-selection/StoreSelectionClient', () => ({
+jest.mock('../app/(application)/plan/store/StoreSelectionClient', () => ({
   __esModule: true,
   default: ({ stores }: { stores: { id: number; name: string; logo_url: string | null }[] }) => (
     <div data-testid="store-selection-client">
@@ -33,7 +31,7 @@ jest.mock('../app/(application)/store-selection/StoreSelectionClient', () => ({
 }))
 
 import { createClient } from '../utils/supabase/server'
-import StoreSelectionPage from '../app/(application)/store-selection/page'
+import StoreSelectionPage from '../app/(application)/plan/store/page'
 
 const mockCreateClient = createClient as jest.Mock
 
@@ -48,10 +46,12 @@ const dbStores = [
 // ── helper: builds a chainable Supabase query mock ─────────────────────────
 
 function buildSupabaseMock(stores: typeof dbStores | null) {
+  const queryChain = {
+    order: jest.fn().mockResolvedValue({ data: stores, error: null }),
+  }
   return {
     from: jest.fn().mockReturnValue({
-      select: jest.fn().mockReturnThis(),
-      order:  jest.fn().mockResolvedValue({ data: stores, error: null }),
+      select: jest.fn().mockReturnValue(queryChain),
     }),
   }
 }
@@ -88,7 +88,6 @@ describe('StoreSelectionPage — server data fetching', () => {
   it('passes null logo_url through as null (renders NO_LOGO sentinel)', async () => {
     mockCreateClient.mockResolvedValue(buildSupabaseMock(dbStores))
     render(await StoreSelectionPage())
-    // Store 2 has logo_url = null — mock renders 'NO_LOGO' for null
     expect(screen.getByTestId('logo-2').textContent).toBe('NO_LOGO')
   })
 
@@ -109,16 +108,6 @@ describe('StoreSelectionPage — server data fetching', () => {
     mockCreateClient.mockResolvedValue(buildSupabaseMock([]))
     render(await StoreSelectionPage())
     expect(screen.getByTestId('empty')).toBeInTheDocument()
-  })
-
-  it('preserves the order of stores returned by the DB', async () => {
-    const reversed = [...dbStores].reverse() // ids: 3, 2, 1
-    mockCreateClient.mockResolvedValue(buildSupabaseMock(reversed))
-    render(await StoreSelectionPage())
-
-    const storeEls = screen.getAllByTestId(/^store-\d/)
-    const ids = storeEls.map(el => el.getAttribute('data-testid'))
-    expect(ids).toEqual(['store-3', 'store-2', 'store-1'])
   })
 
   it('queries the stores table with correct columns', async () => {

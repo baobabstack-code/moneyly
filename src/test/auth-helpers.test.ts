@@ -24,6 +24,7 @@ function buildClient(user: { id: string } | null, profileData: unknown, storeDat
     from: jest.fn().mockReturnValue({
       select: jest.fn().mockReturnThis(),
       eq: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
       single: singleMock,
     }),
   }
@@ -79,13 +80,13 @@ describe('getMyStore', () => {
     mockCreateClient.mockResolvedValue(
       buildClient({ id: 'admin-1' }, { role: 'admin' }, store)
     )
-    // getMyStore only calls profiles once then stores once — re-build with one profile call
     const singleMock = jest.fn().mockResolvedValueOnce({ data: store })
     const client = {
       auth: { getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'admin-1' } } }) },
       from: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
         single: singleMock,
       }),
     }
@@ -100,6 +101,7 @@ describe('getMyStore', () => {
       from: jest.fn().mockReturnValue({
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
         single: singleMock,
       }),
     }

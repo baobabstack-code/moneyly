@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     if (roleRow?.role === 'admin') redirect('/admin')
   }
 
-  // Fetch impersonated (or real) user's profile and applications
+  // Fetch impersonated (or real) user's profile and spending plans
   const [profileResult, applicationsResult] = await Promise.all([
     supabase
       .from('profiles')
@@ -40,7 +40,7 @@ export default async function DashboardPage() {
       .eq('id', viewUserId)
       .single(),
     supabase
-      .from('applications')
+      .from('spending_plans')
       .select('*')
       .eq('user_id', viewUserId)
       .order('created_at', { ascending: false })
@@ -60,7 +60,7 @@ export default async function DashboardPage() {
 
   return (
     <DashboardView
-      email={isImpersonating ? (profile?.email_address || impersonation!.targetName) : session.user.email!}
+      email={isImpersonating ? (impersonation!.targetName) : session.user.email!}
       displayName={displayName}
       profile={profile}
       applications={applications}

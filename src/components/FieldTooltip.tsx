@@ -20,7 +20,7 @@ const fieldTips: Record<string, FieldTip> = {
   mobileNumber: { icon: "phone_android", title: "Mobile", tips: ["Examples:"], example: "+263771234567" },
   emailAddress: { icon: "email", title: "Email", tips: ["Valid email address"], example: "john@gmail.com" },
   employerName: { icon: "business", title: "Employer", tips: ["Company name"] },
-  isCivilServant: { icon: "work", title: "Civil Servant", tips: ["Government employee?", "Affects SSB eligibility"] },
+  isCivilServant: { icon: "work", title: "Civil Servant", tips: ["Government employee?", "Helps organize income records"] },
   employerNo: { icon: "badge", title: "EC Number", tips: ["Employee code"], example: "EC123456" },
   ministry: { icon: "domain", title: "Ministry", tips: ["Government ministry"], example: "Finance" },
   nokFullName: { icon: "person", title: "Full Name", tips: ["Cannot be yourself", "Must be 18+ years"] },
@@ -28,8 +28,6 @@ const fieldTips: Record<string, FieldTip> = {
   nokMobileNumber: { icon: "phone_android", title: "Mobile", tips: ["Cannot be your number"], example: "+263771234567" },
   nokAddress: { icon: "home", title: "Address", tips: ["Residential address"] },
   monthlyIncome: { icon: "payments", title: "Income", tips: ["Your monthly net income"] },
-  loanAmount: { icon: "attach_money", title: "Loan Amount", tips: ["Amount you want to borrow"] },
-  loanTerm: { icon: "schedule", title: "Loan Term", tips: ["Months to repay"] },
 };
 
 export function FieldTooltip({ field, className = "" }: { field: string; className?: string }) {

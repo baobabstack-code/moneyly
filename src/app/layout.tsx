@@ -5,13 +5,13 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HTB Global | Institutional Loan Application",
-  description: "Modern institutional loan application system for HTB Global clients.",
+  title: "Moneyly | Personal Money Manager",
+  description: "Track net worth, budgets, bills, savings goals, spending plans, insights, and cash-flow with Moneyly.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "HTB Global",
+    title: "Moneyly",
   },
 };
 

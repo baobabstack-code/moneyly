@@ -5,8 +5,7 @@ import { saveProfile } from '../lib/profile';
 const push = jest.fn();
 
 jest.mock('next/navigation', () => ({
-  useRouter: () => ({ push }),
-  useSearchParams: () => new URLSearchParams('section=employment'),
+  useRouter: () => ({ push, refresh: jest.fn() }),
 }));
 
 jest.mock('../utils/supabase/client', () => ({
@@ -25,42 +24,37 @@ jest.mock('../lib/profile', () => {
   };
 });
 
-describe('ProfileSetupClient employment save', () => {
+describe('ProfileSetupClient save', () => {
   beforeEach(() => {
     push.mockClear();
     (saveProfile as jest.Mock).mockClear();
-    localStorage.clear();
   });
 
-  it('saves richer employer details to the profile', async () => {
+  it('saves simple profile details and redirects to dashboard', async () => {
     render(<ProfileSetupClient initialProfile={null} initialUserId="user-1" />);
 
-    fireEvent.click(screen.getByRole('button', { name: /^no$/i }));
-    fireEvent.change(screen.getByLabelText(/employer name/i), {
-      target: { value: 'Employer Inc' },
+    fireEvent.change(screen.getByLabelText(/first name/i), {
+      target: { value: 'John' },
     });
-    fireEvent.change(screen.getByLabelText(/employer phone/i), {
-      target: { value: '+263242123456' },
+    fireEvent.change(screen.getByLabelText(/last name/i), {
+      target: { value: 'Doe' },
     });
-    fireEvent.change(screen.getByLabelText(/employer contact person/i), {
-      target: { value: 'Mary Manager' },
+    fireEvent.change(screen.getByLabelText(/username/i), {
+      target: { value: 'johndoe' },
     });
-    fireEvent.change(screen.getByLabelText(/employer email/i), {
-      target: { value: 'hr@employer.test' },
-    });
-    fireEvent.change(screen.getByLabelText(/employer address/i), {
-      target: { value: '789 Work Avenue, Harare' },
+    fireEvent.change(screen.getByLabelText(/monthly income/i), {
+      target: { value: '5000' },
     });
 
-    fireEvent.click(screen.getAllByRole('button', { name: /complete profile/i })[0]);
+    fireEvent.click(screen.getByRole('button', { name: /start using moneyly/i }));
 
     await waitFor(() => expect(saveProfile).toHaveBeenCalledTimes(1));
-    expect(saveProfile).toHaveBeenCalledWith(expect.objectContaining({
-      employer_name: 'Employer Inc',
-      employment_phone: '+263242123456',
-      employer_contact_person: 'Mary Manager',
-      employer_email: 'hr@employer.test',
-      employer_address: '789 Work Avenue, Harare',
-    }));
+    expect(saveProfile).toHaveBeenCalledWith({
+      first_name: 'John',
+      last_name: 'Doe',
+      username: 'johndoe',
+      monthly_income: '5000',
+    });
+    expect(push).toHaveBeenCalledWith('/dashboard');
   });
 });

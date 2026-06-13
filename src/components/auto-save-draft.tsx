@@ -27,7 +27,7 @@ export default function AutoSaveDraft() {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [state.lookup, state.basicInfo, state.contactDetails, state.employmentDetails, state.nextOfKin, state.purchaseDetails, state.documentUploads]);
+  }, [state.purchaseDetails, state.fileUrl]);
 
   if (!lastSaved) return null;
 

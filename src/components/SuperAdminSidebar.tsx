@@ -11,8 +11,8 @@ interface Props {
 
 const navItems = [
   { name: "Overview", href: "/super-admin", icon: "bar_chart", exact: true },
-  { name: "Business Partners", href: "/super-admin/business-partners", icon: "handshake", exact: false },
-  { name: "All Applications", href: "/super-admin/applications", icon: "pending_actions", exact: false },
+  { name: "Plan Sources", href: "/super-admin/business-partners", icon: "handshake", exact: false },
+  { name: "All Plans", href: "/super-admin/applications", icon: "pending_actions", exact: false },
   { name: "All Customers", href: "/super-admin/customers", icon: "group", exact: false },
 ];
 

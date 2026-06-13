@@ -18,7 +18,7 @@ export default function StoreSelectionClient({ stores }: { stores: Store[] }) {
 
   const handleSelectStore = (id: number, name: string) => {
     setSelectedStore(id, name)
-    router.push('/apply/lookup')
+    router.push('/plan/details') // Redirect straight to purchase details, skipping identity lookup
   }
 
   return (
@@ -28,29 +28,29 @@ export default function StoreSelectionClient({ stores }: { stores: Store[] }) {
         <div className="flex justify-between items-center mb-4">
           <div>
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-secondary font-label-md uppercase tracking-wider block">Step 1 of 8</span>
+              <span className="text-secondary font-label-md uppercase tracking-wider block">Step 1 of 4</span>
               <div className="group relative">
                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 cursor-help">help</span>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl text-center">
-                  Select the branch or digital storefront where you intend to use this facility.
+                  Choose where this planned purchase belongs so Moneyly can organize it.
                 </div>
               </div>
             </div>
-            <h1 className="font-h1 text-on-surface">Select a Store</h1>
+            <h1 className="font-h1 text-on-surface">Choose Purchase Source</h1>
           </div>
           <div className="hidden md:block text-right">
             <span className="text-on-surface-variant font-body-sm">Completion</span>
             <div className="w-48 h-2 bg-outline-variant rounded-full mt-2 overflow-hidden">
-              <div className="bg-secondary h-full w-[8%] transition-all duration-500" />
+              <div className="bg-secondary h-full w-[25%] transition-all duration-500" />
             </div>
           </div>
         </div>
         <p className="text-on-surface-variant font-body-lg max-w-2xl">
-          Choose the store where you are making your purchase. This will be recorded with your application.
+          Choose the store, branch, or source connected to this planned purchase.
         </p>
       </div>
 
-      {/* Empty state — shown if no stores exist in the DB yet */}
+      {/* Empty state */}
       {stores.length === 0 ? (
         <div className="max-w-md text-center py-10 px-6 bg-surface rounded-2xl border border-outline-variant">
           <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3 block">storefront</span>
@@ -58,7 +58,7 @@ export default function StoreSelectionClient({ stores }: { stores: Store[] }) {
           <p className="text-on-surface-variant/60 text-sm mt-1">Please check back later.</p>
         </div>
       ) : (
-        /* Store tiles — same design as before, now driven by DB data */
+        /* Store tiles */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-gutter px-4 sm:px-0">
           {stores.map(store => (
             <button
@@ -67,7 +67,6 @@ export default function StoreSelectionClient({ stores }: { stores: Store[] }) {
               className="group flex flex-col text-left bg-surface border-2 border-outline-variant p-gutter rounded-2xl hover:border-secondary hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 shadow-sm active:scale-[0.98] cursor-pointer"
             >
               <div className="flex justify-between items-start mb-6">
-                {/* Logo — falls back to a storefront icon if no logo_url set */}
                 <div className="w-16 h-16 rounded-xl bg-white overflow-hidden flex items-center justify-center p-2 border border-outline-variant group-hover:border-secondary/50 shadow-inner transition-colors">
                   {store.logo_url ? (
                     <img alt={store.name} className="w-full h-full object-contain" src={store.logo_url} />
@@ -76,7 +75,6 @@ export default function StoreSelectionClient({ stores }: { stores: Store[] }) {
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  {/* Store code badge */}
                   {store.code && (
                     <span className="text-[10px] text-on-surface-variant/80 font-mono uppercase">{store.code}</span>
                   )}

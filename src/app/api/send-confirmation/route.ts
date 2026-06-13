@@ -5,8 +5,8 @@ import { NextResponse } from 'next/server';
  * @openapi
  * /api/send-confirmation:
  *   post:
- *     summary: Send loan application confirmation email
- *     description: Sends an email with the generated loan application PDF as an attachment using Resend. The application data captured before this step is also structured for future MSD backend submission.
+ *     summary: Send spending plan confirmation email
+ *     description: Sends an email with the generated spending plan PDF as an attachment using Resend. The planned purchase data captured before this step is also structured for future backend submission.
  *     requestBody:
  *       required: true
  *       content:
@@ -45,22 +45,22 @@ export async function POST(req: Request) {
     const base64Data = pdfBase64.split(',')[1] || pdfBase64;
 
     const { data, error } = await resend.emails.send({
-      from: 'HTB Global <notifications@htbglobal.app>', // Change to your verified domain
+      from: 'Moneyly <notifications@htbglobal.app>', // Change to your verified domain
       to: email,
-      subject: `Loan Application Submitted: ${reference}`,
+      subject: `Spending Plan Saved: ${reference}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #0f172a;">Application Submitted Successfully</h2>
+          <h2 style="color: #0f172a;">Spending Plan Saved</h2>
           <p>Dear ${customerName},</p>
-          <p>Your loan application (Ref: <strong>${reference}</strong>) has been successfully submitted for processing.</p>
-          <p>Please find the summary of your application attached as a PDF.</p>
+          <p>Your Moneyly spending plan (Ref: <strong>${reference}</strong>) has been saved successfully.</p>
+          <p>Please find the summary of your plan attached as a PDF.</p>
           <br/>
-          <p>Best regards,<br/>HTB Global Team</p>
+          <p>Best regards,<br/>Moneyly Team</p>
         </div>
       `,
       attachments: [
         {
-          filename: `Application-${reference}.pdf`,
+          filename: `Moneyly-Plan-${reference}.pdf`,
           content: base64Data,
         },
       ],

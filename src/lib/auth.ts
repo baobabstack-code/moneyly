@@ -19,9 +19,9 @@ export async function getMyStore() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return null
   const { data } = await supabase
-    .from('business_partners')
+    .from('stores')
     .select('id, name')
-    .eq('admin_id', user.id)
+    .limit(1)
     .single()
   return data
 }

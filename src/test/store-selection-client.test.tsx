@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react'
-import StoreSelectionClient from '../app/(application)/store-selection/StoreSelectionClient'
+import StoreSelectionClient from '../app/(application)/plan/store/StoreSelectionClient'
 
 type Store = { id: number; name: string; code: string | null; location: string | null; hours: string | null; logo_url: string | null }
 
@@ -60,9 +60,9 @@ describe('StoreSelectionClient — rendering', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('renders the page heading', () => {
-    setup()
-    expect(screen.getByText('Select a Store')).toBeInTheDocument()
-  })
+     setup()
+     expect(screen.getByText('Choose Purchase Source')).toBeInTheDocument()
+   })
 
   it('renders a tile for every store', () => {
     setup()
@@ -80,7 +80,6 @@ describe('StoreSelectionClient — rendering', () => {
 
   it('renders store locations', () => {
     setup()
-    // whitespace-pre-line means the newline is in the DOM; test just the first line
     expect(screen.getByText(/Sam Levy/)).toBeInTheDocument()
     expect(screen.getByText(/Plumtree Road/)).toBeInTheDocument()
     expect(screen.getByText(/Seke Road/)).toBeInTheDocument()
@@ -96,7 +95,6 @@ describe('StoreSelectionClient — rendering', () => {
   it('renders logo img tags for stores with a logo_url', () => {
     setup()
     const imgs = screen.getAllByRole('img')
-    // Only stores with logo_url get an <img> — Halsted has none
     expect(imgs).toHaveLength(2)
     expect(imgs[0]).toHaveAttribute('alt', 'TV Sales & Home')
     expect(imgs[1]).toHaveAttribute('alt', 'Electrosales')
@@ -104,7 +102,7 @@ describe('StoreSelectionClient — rendering', () => {
 
   it('shows the step counter', () => {
     setup()
-    expect(screen.getByText(/Step 1 of 8/i)).toBeInTheDocument()
+    expect(screen.getByText(/Step 1 of 4/i)).toBeInTheDocument()
   })
 })
 
@@ -135,17 +133,17 @@ describe('StoreSelectionClient — store selection', () => {
     expect(mockSetSelectedStore).toHaveBeenCalledWith(1, 'TV Sales & Home')
   })
 
-  it('navigates to /apply/lookup after selecting a store', () => {
+  it('navigates to /plan/details after selecting a store', () => {
     setup()
     fireEvent.click(screen.getByText('TV Sales & Home'))
-    expect(mockPush).toHaveBeenCalledWith('/apply/lookup')
+    expect(mockPush).toHaveBeenCalledWith('/plan/details')
   })
 
   it('selects the correct store when a different tile is clicked', () => {
     setup()
     fireEvent.click(screen.getByText('Electrosales'))
     expect(mockSetSelectedStore).toHaveBeenCalledWith(3, 'Electrosales')
-    expect(mockPush).toHaveBeenCalledWith('/apply/lookup')
+    expect(mockPush).toHaveBeenCalledWith('/plan/details')
   })
 
   it('calls setSelectedStore before navigating', () => {
@@ -161,7 +159,6 @@ describe('StoreSelectionClient — store selection', () => {
 
   it('does not navigate when empty store list is shown', () => {
     setup([])
-    // No tiles rendered so no click possible — confirm mocks untouched
     expect(mockSetSelectedStore).not.toHaveBeenCalled()
     expect(mockPush).not.toHaveBeenCalled()
   })
@@ -175,13 +172,11 @@ describe('StoreSelectionClient — partial store data', () => {
   it('renders a store with no logo_url without crashing', () => {
     setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null } as Store])
     expect(screen.getByText('New Branch')).toBeInTheDocument()
-    // No img rendered
     expect(screen.queryByRole('img')).not.toBeInTheDocument()
   })
 
   it('renders a store with no hours without the schedule row', () => {
     setup([{ id: 4, name: 'New Branch', code: 'NB-004', location: null, hours: null, logo_url: null } as Store])
-    // hours element absent — material icon 'schedule' not rendered inline
     expect(screen.queryByText(/AM - /)).not.toBeInTheDocument()
   })
 
@@ -189,6 +184,6 @@ describe('StoreSelectionClient — partial store data', () => {
     setup([{ id: 4, name: 'New Branch', code: null, location: null, hours: null, logo_url: null } as Store])
     fireEvent.click(screen.getByText('New Branch'))
     expect(mockSetSelectedStore).toHaveBeenCalledWith(4, 'New Branch')
-    expect(mockPush).toHaveBeenCalledWith('/apply/lookup')
+    expect(mockPush).toHaveBeenCalledWith('/plan/details')
   })
 })

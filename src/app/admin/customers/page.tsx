@@ -27,9 +27,9 @@ export default async function AdminCustomersPage() {
   const effectiveRole = impersonation ? 'admin' : profile?.role
   if (effectiveRole === 'admin') {
     const { data: store } = await supabase
-      .from('business_partners')
+      .from('stores')
       .select('id, name')
-      .eq('admin_id', viewUserId)
+      .limit(1)
       .single()
 
     if (!store) {
@@ -40,7 +40,7 @@ export default async function AdminCustomersPage() {
   }
 
   let appQuery = supabase
-    .from('applications')
+    .from('spending_plans')
     .select('user_id')
     .order('created_at', { ascending: false })
 
@@ -54,7 +54,7 @@ export default async function AdminCustomersPage() {
   const { data: customers } = uniqueUserIds.length > 0
     ? await supabase
         .from('profiles')
-        .select('id, first_name, last_name, email_address, mobile_number, national_id, is_profile_complete, created_at, employer_name, ministry, is_civil_servant, physical_address')
+        .select('id, full_name, avatar_url, username, monthly_income, created_at, role')
         .in('id', uniqueUserIds)
     : { data: [] }
 

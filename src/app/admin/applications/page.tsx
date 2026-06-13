@@ -29,21 +29,20 @@ export default async function AdminApplicationsPage({
   const statusFilter = params.status
 
   let query = supabase
-    .from('applications')
+    .from('spending_plans')
     .select('*')
     .order('created_at', { ascending: false })
 
-  // For admin view (impersonating or actual admin), filter by their store
   const effectiveRole = impersonation ? 'admin' : profile?.role
   if (effectiveRole === 'admin') {
     const { data: store } = await supabase
-      .from('business_partners')
+      .from('stores')
       .select('id')
-      .eq('admin_id', viewUserId)
+      .limit(1)
       .single()
 
     if (!store) {
-      return <p className="text-on-surface-variant">No store assigned.</p>
+      return <p className="text-on-surface-variant">No store available.</p>
     }
     query = query.eq('store_id', store.id)
   }

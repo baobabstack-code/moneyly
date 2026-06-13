@@ -27,7 +27,7 @@ export default async function SuperAdminLayout({ children }: { children: React.R
 
       {/* ── Sticky top bar ── */}
       <header className="sticky top-0 z-40 h-16 border-b border-outline-variant bg-surface/80 backdrop-blur-md px-6 flex items-center gap-3">
-        <span className="font-black text-lg text-secondary tracking-tight">HTB</span>
+        <span className="font-black text-lg text-secondary tracking-tight">Moneyly</span>
         <span className="text-[10px] bg-secondary/10 text-secondary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
           Super Admin
         </span>

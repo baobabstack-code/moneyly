@@ -13,8 +13,8 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { name: "Home", href: "/dashboard", icon: "dashboard" },
-  { name: "Apply", href: "/store-selection", icon: "add_circle" },
-  { name: "Applications", href: "/applications", icon: "pending_actions" },
+  { name: "Plan", href: "/store-selection", icon: "add_circle" },
+  { name: "Plans", href: "/applications", icon: "pending_actions" },
 ];
 
 export default function MobileBottomNav() {

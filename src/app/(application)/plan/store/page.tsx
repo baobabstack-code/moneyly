@@ -6,11 +6,10 @@ export const dynamic = 'force-dynamic'
 export default async function StoreSelectionPage() {
   const supabase = await createClient()
 
-  // Fetch stores from the DB so super-admin additions appear immediately
+  // Fetch stores from the new 'stores' table
   const { data: stores } = await supabase
-    .from('business_partners')
+    .from('stores')
     .select('id, name, code, location, hours, logo_url')
-    .eq('partner_type', 'store')
     .order('id', { ascending: true })
 
   return <StoreSelectionClient stores={stores ?? []} />

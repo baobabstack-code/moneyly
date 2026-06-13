@@ -2,69 +2,43 @@
 
 import { useState, useTransition } from 'react'
 import { createClient } from '@/utils/supabase/client'
-import { assignFunderToApplication } from '@/app/super-admin/actions'
 
 // ── types ──────────────────────────────────────────────────────────────────
 
-type Application = {
+type SpendingPlan = {
   id: string
   reference: string
   status: string
   created_at: string
   store_name: string | null
-  funder_id: number | null
-  first_name: string | null
-  last_name: string | null
-  email_address: string | null
-  mobile_number: string | null
-  national_id: string | null
-  physical_address: string | null
   product_name: string | null
-  retail_price: number | null
-  deposit_amount: number | null
-  balance_amount: number | null
+  planned_cost: number | null
+  saved_amount: number | null
   tenure_months: number | null
-  employer_name: string | null
-  employer_no: string | null
-  ministry: string | null
-  is_civil_servant: boolean | null
-  employer_phone: string | null
-  employer_contact_person: string | null
-  employer_email: string | null
-  employer_address: string | null
-  kin_full_name: string | null
-  kin_relationship: string | null
-  kin_mobile: string | null
-  kin_address: string | null
-  id_copy_url: string | null
-  payslip_url: string | null
-}
-
-type Funder = {
-  id: number
-  name: string
-  funder_type: string | null
+  file_url: string | null
+  profiles?: {
+    full_name: string | null
+  } | null
 }
 
 // ── helpers ────────────────────────────────────────────────────────────────
 
-const STATUS_OPTIONS = ['submitted', 'approved', 'rejected', 'draft'] as const
+const STATUS_OPTIONS = ['active', 'paused', 'completed'] as const
 
 function statusBadge(status: string) {
   const map: Record<string, string> = {
-    submitted: 'bg-status-info-bg text-status-info',
-    approved:  'bg-status-success-bg text-status-success',
-    rejected:  'bg-status-danger-bg text-status-danger',
-    draft:     'bg-status-warning-bg text-status-warning',
+    active:     'bg-status-info-bg text-status-info',
+    paused:     'bg-status-danger-bg text-status-danger',
+    completed:  'bg-status-success-bg text-status-success',
   }
-  return map[status] ?? 'bg-status-warning-bg text-status-warning'
+  return map[status] ?? 'bg-status-info-bg text-status-info'
 }
 
 function statusIcon(status: string) {
   switch (status) {
-    case 'submitted': return 'hourglass_empty'
-    case 'approved':  return 'check_circle'
-    case 'rejected':  return 'cancel'
+    case 'active':    return 'schedule'
+    case 'paused':    return 'pause_circle'
+    case 'completed': return 'check_circle'
     default:          return 'pending'
   }
 }
@@ -86,14 +60,10 @@ export default function AdminApplicationsClient({
   applications: initial,
   statusFilter,
   basePath = '/admin/applications',
-  funders = [],
-  isSuperAdmin = false,
 }: {
-  applications: Application[]
+  applications: SpendingPlan[]
   statusFilter?: string
   basePath?: string
-  funders?: Funder[]
-  isSuperAdmin?: boolean
 }) {
   const [expanded, setExpanded] = useState<string | null>(null)
   const [applications, setApplications] = useState(initial)
@@ -105,7 +75,7 @@ export default function AdminApplicationsClient({
     setUpdatingId(id)
     startTransition(async () => {
       const { error } = await supabase
-        .from('applications')
+        .from('spending_plans')
         .update({ status })
         .eq('id', id)
 
@@ -116,23 +86,14 @@ export default function AdminApplicationsClient({
     })
   }
 
-  async function updateFunder(id: string, funderId: number | null) {
-    startTransition(async () => {
-      const result = await assignFunderToApplication(id, funderId)
-      if (!result.error) {
-        setApplications(prev => prev.map(a => (a.id === id ? { ...a, funder_id: funderId } : a)))
-      }
-    })
-  }
-
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 font-manrope">
 
         {/* Page header */}
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Applications</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Spending Plans</h1>
           <p className="text-on-surface-variant text-sm">
-            {applications.length} {statusFilter ? `${statusFilter} ` : ''}application{applications.length !== 1 ? 's' : ''}
+            {applications.length} {statusFilter ? `${statusFilter} ` : ''}plan{applications.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -169,39 +130,23 @@ export default function AdminApplicationsClient({
             <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3 block">
               description
             </span>
-            <p className="text-on-surface-variant font-medium text-base">No applications found.</p>
+            <p className="text-on-surface-variant font-medium text-base">No plans found.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {applications.map(app => {
               const isOpen = expanded === app.id
-              const loanAmount = parseAmount(app.retail_price) - parseAmount(app.deposit_amount)
-              const monthly = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null
-              const assignedFunder = funders.find(f => f.id === app.funder_id)
+              const cashNeeded = Math.max(0, parseAmount(app.planned_cost) - parseAmount(app.saved_amount))
+              const monthly = app.tenure_months && cashNeeded > 0 ? cashNeeded / app.tenure_months : null
 
               const details = [
-                { label: 'Store',             value: app.store_name },
-                { label: 'Product',           value: app.product_name },
-                { label: 'Retail Price',      value: fmt(app.retail_price) },
-                { label: 'Deposit',           value: fmt(app.deposit_amount) },
-                { label: 'Loan Amount',       value: fmt(loanAmount) },
-                { label: 'Tenure',            value: app.tenure_months ? `${app.tenure_months} months` : null },
-                { label: 'Monthly Payment',   value: monthly ? fmt(monthly) : null },
-                { label: 'National ID',       value: app.national_id },
-                { label: 'Mobile',            value: app.mobile_number },
-                { label: 'Email',             value: app.email_address },
-                { label: 'Address',           value: app.physical_address },
-                { label: 'Civil Servant',     value: app.is_civil_servant ? 'Yes' : 'No' },
-                { label: 'Employer',          value: app.is_civil_servant ? (app.ministry || '') : app.employer_name },
-                ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
-                { label: 'Employer Phone',    value: app.employer_phone },
-                { label: 'Employer Contact',  value: app.employer_contact_person },
-                { label: 'Employer Email',    value: app.employer_email },
-                { label: 'Employer Address',  value: app.employer_address },
-                { label: 'Next of Kin',       value: app.kin_full_name },
-                { label: 'Relationship',      value: app.kin_relationship },
-                { label: 'NOK Mobile',        value: app.kin_mobile },
-                { label: 'NOK Address',       value: app.kin_address },
+                { label: 'Source',            value: app.store_name },
+                { label: 'Planned Item',      value: app.product_name },
+                { label: 'Planned Cost',      value: fmt(app.planned_cost) },
+                { label: 'Saved Amount',      value: fmt(app.saved_amount) },
+                { label: 'Cash Needed',       value: fmt(cashNeeded) },
+                { label: 'Plan Length',       value: app.tenure_months ? `${app.tenure_months} months` : null },
+                { label: 'Monthly Bill',      value: monthly ? fmt(monthly) : null },
               ].filter((r): r is { label: string; value: string } => Boolean(r.value))
 
               return (
@@ -209,44 +154,37 @@ export default function AdminApplicationsClient({
                   key={app.id}
                   className="rounded-2xl bg-surface border border-outline-variant overflow-hidden transition-colors"
                 >
-                  {/* ── Summary row ── */}
+                  {/* Summary row */}
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-5 sm:p-6">
 
                     {/* Status icon */}
                     <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
                       <span className={`material-symbols-outlined text-xl ${
-                        app.status === 'approved' ? 'text-status-success' :
-                        app.status === 'rejected' ? 'text-status-danger' :
+                        app.status === 'completed' ? 'text-status-success' :
+                        app.status === 'paused' ? 'text-status-danger' :
                         'text-on-surface-variant'
                       }`}>
                         {statusIcon(app.status)}
                       </span>
                     </div>
 
-                    {/* Customer name, reference, loan amount */}
+                    {/* Customer name, reference, and planned purchase */}
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-1">
                         <h3 className="font-bold text-lg text-primary leading-tight">
-                          {app.first_name} {app.last_name}
+                          {app.profiles?.full_name || 'Customer'}
                         </h3>
                         <span className={`inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase ${statusBadge(app.status)}`}>
                           {app.status}
                         </span>
-                        {/* Partner type badge */}
-                        {app.funder_id ? (
-                          <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-secondary/10 text-secondary">
-                            Funder: {assignedFunder?.name ?? 'Assigned'}
-                          </span>
-                        ) : (
-                          <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-primary/10 text-primary">
-                            Store
-                          </span>
-                        )}
+                        <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-primary/10 text-primary">
+                          Plan
+                        </span>
                       </div>
                       <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
                         <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
                         {app.product_name && <span>{app.product_name}</span>}
-                        {loanAmount > 0 && <span className="font-bold text-secondary">{fmt(loanAmount)}</span>}
+                        {cashNeeded > 0 && <span className="font-bold text-secondary">{fmt(cashNeeded)}</span>}
                         <span>{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                       </div>
                     </div>
@@ -254,7 +192,7 @@ export default function AdminApplicationsClient({
                     {/* Status select + expand toggle */}
                     <div className="flex items-center gap-3 shrink-0">
                       <select
-                        aria-label={`Change status for application ${app.reference}`}
+                        aria-label={`Change status for plan ${app.reference}`}
                         value={app.status}
                         disabled={updatingId === app.id || isPending}
                         onChange={e => updateStatus(app.id, e.target.value)}
@@ -281,7 +219,7 @@ export default function AdminApplicationsClient({
                     </div>
                   </div>
 
-                  {/* ── Expanded detail panel ── */}
+                  {/* Expanded detail panel */}
                   {isOpen && (
                     <div className="border-t border-outline-variant/50 bg-surface-container-low px-5 sm:px-6 py-5 space-y-5">
                       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -295,65 +233,15 @@ export default function AdminApplicationsClient({
                         ))}
                       </div>
 
-                      {/* Funder assignment (super-admin only) */}
-                      {isSuperAdmin && funders.length > 0 && (
-                        <div className="pt-3 border-t border-outline-variant/30">
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-2">Assign Funder</p>
-                          <div className="flex items-center gap-3">
-                            <select
-                              aria-label="Assign funder to application"
-                              value={app.funder_id ?? ''}
-                              disabled={isPending}
-                              onChange={e => updateFunder(app.id, e.target.value ? Number(e.target.value) : null)}
-                              className="rounded-xl border border-outline-variant bg-surface px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-secondary font-manrope"
-                            >
-                              <option value="">No funder assigned</option>
-                              {funders.map(f => (
-                                <option key={f.id} value={f.id}>
-                                  {f.name}{f.funder_type ? ` (${f.funder_type})` : ''}
-                                </option>
-                              ))}
-                            </select>
-                            {app.funder_id && (
-                              <span className="text-xs text-status-success font-bold flex items-center gap-1">
-                                <span className="material-symbols-outlined text-sm">check_circle</span>
-                                {assignedFunder?.name}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Documents */}
-                      {(app.id_copy_url || app.payslip_url) && (
+                      {/* Files */}
+                      {app.file_url && (
                         <div className="flex flex-wrap gap-3 pt-3 border-t border-outline-variant/30">
-                          <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 w-full">Documents</p>
-                          {app.id_copy_url && (
-                            <a href={app.id_copy_url} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-bold text-secondary hover:bg-surface-container transition-colors">
-                              <span className="material-symbols-outlined text-base">badge</span>
-                              ID Copy
-                            </a>
-                          )}
-                          {app.payslip_url && (
-                            <a href={app.payslip_url} target="_blank" rel="noopener noreferrer"
-                              className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-bold text-secondary hover:bg-surface-container transition-colors">
-                              <span className="material-symbols-outlined text-base">receipt_long</span>
-                              Payslip
-                            </a>
-                          )}
-                          {!app.id_copy_url && (
-                            <span className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant/50 text-sm text-on-surface-variant/50">
-                              <span className="material-symbols-outlined text-base">badge</span>
-                              ID Copy missing
-                            </span>
-                          )}
-                          {!app.payslip_url && (
-                            <span className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant/50 text-sm text-on-surface-variant/50">
-                              <span className="material-symbols-outlined text-base">receipt_long</span>
-                              Payslip missing
-                            </span>
-                          )}
+                          <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 w-full">Files</p>
+                          <a href={app.file_url} target="_blank" rel="noopener noreferrer"
+                            className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-variant bg-surface text-sm font-bold text-secondary hover:bg-surface-container transition-colors">
+                            <span className="material-symbols-outlined text-base">receipt_long</span>
+                            Attached Invoice / Receipt
+                          </a>
                         </div>
                       )}
                     </div>

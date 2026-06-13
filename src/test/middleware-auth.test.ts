@@ -176,8 +176,8 @@ describe('updateSession — super_admin role permissions', () => {
     expect(res.status).not.toBe(307)
   })
 
-  it('allows super_admin to visit /super-admin/stores', async () => {
-    const res = await updateSession(makeRequest('/super-admin/stores'))
+  it('allows super_admin to visit /super-admin/business-partners', async () => {
+    const res = await updateSession(makeRequest('/super-admin/business-partners'))
     expect(res.status).not.toBe(307)
   })
 })

@@ -1,9 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import SummaryPage from '../app/(application)/apply/summary/page';
+import SummaryPage from '../app/(application)/plan/summary/page';
 import { useApplicationStore } from '../lib/store';
 
 const push = jest.fn();
 const insert = jest.fn(() => Promise.resolve({ error: null }));
+const single = jest.fn(() => Promise.resolve({ data: { full_name: 'John Doe' } }));
+const eq = jest.fn(() => ({ single }));
+const select = jest.fn(() => ({ eq }));
 const getUser = jest.fn(() => Promise.resolve({ data: { user: { id: 'user-1', email: 'user@example.com' } } }));
 
 jest.mock('next/navigation', () => ({
@@ -13,12 +16,17 @@ jest.mock('next/navigation', () => ({
 jest.mock('../utils/supabase/client', () => ({
   createClient: () => ({
     auth: { getUser },
-    from: () => ({ insert }),
+    from: jest.fn((table) => {
+      if (table === 'profiles') {
+        return { select };
+      }
+      return { insert };
+    }),
   }),
 }));
 
 jest.mock('../utils/pdf-generator', () => ({
-  generateLoanPDF: jest.fn(() => Promise.resolve('data:application/pdf;base64,PDF')),
+  generatePlanPDF: jest.fn(() => Promise.resolve('data:application/pdf;base64,PDF')),
 }));
 
 describe('SummaryPage submission', () => {
@@ -31,58 +39,32 @@ describe('SummaryPage submission', () => {
 
     const state = useApplicationStore.getState();
     state.setSelectedStore(1, 'Test Store');
-    state.setLookup({ nationalId: '63-1234567K00', customerFound: true });
-    state.setBasicInfo({
-      firstName: 'John',
-      lastName: 'Doe',
-      dateOfBirth: '1990-01-01',
-      gender: 'Male',
-      photoUrl: '',
-    });
-    state.setContactDetails({
-      physicalAddress: '123 Main Street',
-      mobileNumber: '+263771234567',
-      emailAddress: 'john@example.com',
-    });
     state.setPurchaseDetails({
       productName: 'Laptop',
-      retailPrice: '1200',
-      depositAmount: '200',
+      plannedCost: '1200',
+      savedAmount: '200',
       tenureMonths: '10',
     });
-    state.setEmploymentDetails({
-      employerName: 'Employer Inc',
-      isCivilServant: false,
-      phoneNumber: '+263242123456',
-      contactPerson: 'Mary Manager',
-      emailAddress: 'hr@employer.test',
-      physicalAddress: '789 Work Avenue, Harare',
-    });
-    state.setNextOfKin({
-      fullName: 'Jane Doe',
-      relationship: 'Spouse',
-      mobileNumber: '+263772345678',
-      address: '456 Main Street',
-    });
-    state.setDocumentUploads({
-      idCopyUrl: 'https://example.com/id.png',
-      payslipUrl: 'https://example.com/payslip.pdf',
-    });
+    state.setFileUrl('https://example.com/receipt.png');
   });
 
-  it('inserts the full application payload including employer contact details', async () => {
+  it('inserts the simplified spending plan payload and redirects to success', async () => {
     render(<SummaryPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: /submit application/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save plan/i }));
 
     await waitFor(() => expect(insert).toHaveBeenCalledTimes(1));
 
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
-      employer_phone: '+263242123456',
-      employer_contact_person: 'Mary Manager',
-      employer_email: 'hr@employer.test',
-      employer_address: '789 Work Avenue, Harare',
+      store_id: 1,
+      store_name: 'Test Store',
+      product_name: 'Laptop',
+      planned_cost: 1200,
+      saved_amount: 200,
+      tenure_months: 10,
+      file_url: 'https://example.com/receipt.png',
+      status: 'active',
     }));
-    expect(push).toHaveBeenCalledWith('/success');
+    expect(push).toHaveBeenCalledWith('/plan/success');
   });
 });

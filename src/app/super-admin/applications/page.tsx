@@ -16,22 +16,15 @@ export default async function SuperAdminApplicationsPage({
   const params = await searchParams
 
   let query = supabase
-    .from('applications')
-    .select('*')
+    .from('spending_plans')
+    .select('*, profiles(full_name)')
     .order('created_at', { ascending: false })
 
   if (params.status) {
     query = query.eq('status', params.status)
   }
 
-  const [{ data: applications }, { data: funders }] = await Promise.all([
-    query,
-    supabase
-      .from('business_partners')
-      .select('id, name, funder_type')
-      .eq('partner_type', 'funder')
-      .order('name', { ascending: true }),
-  ])
+  const { data: applications } = await query
 
   return (
     <div className="w-full">
@@ -39,8 +32,6 @@ export default async function SuperAdminApplicationsPage({
         applications={applications ?? []}
         statusFilter={params.status}
         basePath="/super-admin/applications"
-        funders={funders ?? []}
-        isSuperAdmin
       />
     </div>
   )

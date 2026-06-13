@@ -30,7 +30,6 @@ export default async function MainLayout({
       session.user.email!,
     avatarUrl:
       profile?.avatar_url ||
-      profile?.photo_url ||
       session.user.user_metadata?.avatar_url ||
       session.user.user_metadata?.picture,
   } : null;

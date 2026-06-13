@@ -12,32 +12,25 @@ export async function createBusinessPartner(formData: FormData) {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'Unauthorized' }
 
-  const partnerType = (formData.get('partner_type') as string)?.trim() || 'store'
-
-  const { error } = await supabase.from('business_partners').insert({
+  const { error } = await supabase.from('stores').insert({
     name,
-    partner_type: partnerType,
     code:          (formData.get('code')          as string)?.trim() || null,
     location:      (formData.get('location')      as string)?.trim() || null,
     hours:         (formData.get('hours')         as string)?.trim() || null,
     logo_url:      (formData.get('logo_url')      as string)?.trim() || null,
-    funder_type:   (formData.get('funder_type')   as string)?.trim() || null,
-    contact_email: (formData.get('contact_email') as string)?.trim() || null,
   })
   if (error) return { error: error.message }
 
   revalidatePath('/super-admin/business-partners')
+  revalidatePath('/super-admin/stores')
   return { success: true }
 }
-
-// Keep old name as alias so any remaining callers still work
-export const createStore = createBusinessPartner
 
 export async function inviteAdmin(formData: FormData) {
   const email = formData.get('email') as string
   const storeId = Number(formData.get('storeId'))
 
-  if (!email?.trim() || !storeId) return { error: 'Email and store are required' }
+  if (!email?.trim() || !storeId) return { error: 'Email and source are required' }
 
   const supabaseAdmin = createAdminClient()
 
@@ -47,55 +40,18 @@ export async function inviteAdmin(formData: FormData) {
 
   if (error) return { error: error.message }
 
-  const supabase = await createClient()
-  const { error: partnerError } = await supabase
-    .from('business_partners')
-    .update({ admin_id: data.user.id })
-    .eq('id', storeId)
-
-  if (partnerError) return { error: partnerError.message }
-
+  // stores table no longer has admin_id, so we just invite the user with admin metadata.
   revalidatePath('/super-admin/business-partners')
+  revalidatePath('/super-admin/stores')
   return { success: true }
 }
 
 export async function updateApplicationStatus(id: string, status: string) {
   const supabase = await createClient()
   const { error } = await supabase
-    .from('applications')
+    .from('spending_plans')
     .update({ status })
     .eq('id', id)
-  if (error) return { error: error.message }
-  revalidatePath('/super-admin/applications')
-  revalidatePath('/admin/applications')
-  return { success: true }
-}
-
-export async function assignAdminToStore(userId: string, storeId: number) {
-  const supabase = await createClient()
-
-  const { error: partnerError } = await supabase
-    .from('business_partners')
-    .update({ admin_id: userId })
-    .eq('id', storeId)
-  if (partnerError) return { error: partnerError.message }
-
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({ role: 'admin' })
-    .eq('id', userId)
-  if (profileError) return { error: profileError.message }
-
-  revalidatePath('/super-admin/business-partners')
-  return { success: true }
-}
-
-export async function assignFunderToApplication(applicationId: string, funderId: number | null) {
-  const supabase = await createClient()
-  const { error } = await supabase
-    .from('applications')
-    .update({ funder_id: funderId })
-    .eq('id', applicationId)
   if (error) return { error: error.message }
   revalidatePath('/super-admin/applications')
   revalidatePath('/admin/applications')

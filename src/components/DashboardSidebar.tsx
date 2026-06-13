@@ -13,26 +13,12 @@ interface Props {
   profile?: UserProfile | null;
 }
 
-type Section = 'photo' | 'personal' | 'contact' | 'employment' | 'nok'
+type Section = 'personal'
 
 const navItems = [
   { name: "Dashboard",        href: "/dashboard",      icon: "dashboard",       tooltip: "View your account dashboard" },
-  { name: "New Application",  href: "/store-selection", icon: "add_circle",     tooltip: "Start a new loan application" },
-  { name: "My Applications",  href: "/applications",    icon: "pending_actions", tooltip: "View your submitted loan applications" },
-];
-
-const applicationProcessItems = [
-  { name: "Purchase",  href: "/apply/purchase-details",  icon: "receipt_long",  tooltip: "Enter product and purchase details" },
-  { name: "Documents", href: "/apply/document-uploads",  icon: "upload_file",   tooltip: "Upload ID and payslip documents" },
-  { name: "Summary",   href: "/apply/summary",           icon: "fact_check",    tooltip: "Review and submit your application" },
-];
-
-const profileItems: { name: string; section: Section; icon: string; tooltip: string }[] = [
-  { name: "Photo",        section: "photo",      icon: "photo_camera",    tooltip: "Update your profile photo" },
-  { name: "Personal Info",section: "personal",   icon: "person",          tooltip: "Update your personal information" },
-  { name: "Contact",      section: "contact",    icon: "contact_page",    tooltip: "Update your contact details" },
-  { name: "Employment",   section: "employment", icon: "business_center", tooltip: "Update employment information" },
-  { name: "Next of Kin",  section: "nok",        icon: "family_restroom", tooltip: "Update next of kin details" },
+  { name: "New Plan",         href: "/plan/store",     icon: "add_circle",     tooltip: "Create a new spending plan" },
+  { name: "Spending Plans",   href: "/applications",    icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
 ];
 
 export default function DashboardSidebar({ initialUser, profileComplete = true, profile }: Props) {
@@ -76,16 +62,6 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
         <nav className="flex-1 py-6 px-4 space-y-1">
           {navItems.map((item) => {
             const isActive = pathname === item.href;
-            const locked = !profileComplete && item.href !== "/dashboard";
-            if (locked) {
-              return (
-                <span key={item.name} title="Complete your profile to unlock"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-35 cursor-not-allowed select-none">
-                  <span className="material-symbols-outlined text-[20px] text-on-surface-variant">{item.icon}</span>
-                  <span className="text-sm text-on-surface-variant">{item.name}</span>
-                </span>
-              );
-            }
             return (
               <Link key={item.name} href={item.href} title={item.tooltip} aria-label={item.tooltip}
                 className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
@@ -101,61 +77,22 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
             );
           })}
 
-          {/* Application Process */}
-          <div className={`pt-5 pb-2 px-4 ${!profileComplete ? "opacity-35" : ""}`}>
-            <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Application Process</p>
+          <div className="pt-5 pb-2 px-4">
+            <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Settings</p>
           </div>
 
-          {applicationProcessItems.map((item) => {
-            const isActive = pathname === item.href;
-            if (!profileComplete) {
-              return (
-                <span key={item.name} title="Complete your profile to unlock"
-                  className="flex items-center gap-3 px-4 py-3 rounded-xl opacity-35 cursor-not-allowed select-none">
-                  <span className="material-symbols-outlined text-[20px] text-on-surface-variant">{item.icon}</span>
-                  <span className="text-sm text-on-surface-variant">{item.name}</span>
-                </span>
-              );
-            }
-            return (
-              <Link key={item.name} href={item.href} title={item.tooltip} aria-label={item.tooltip}
-                className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
-                  isActive
-                    ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
-                    : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-                }`}>
-                <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${isActive ? "icon-filled" : "group-hover:scale-110"}`}>
-                  {item.icon}
-                </span>
-                <span className="text-sm">{item.name}</span>
-              </Link>
-            );
-          })}
-
-          {/* Your Profile — opens edit modal instead of navigating */}
-          <div className={`pt-5 pb-2 px-4 ${!profileComplete ? "opacity-35" : ""}`}>
-            <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Your Profile</p>
-          </div>
-
-          {profileItems.map((item) => (
-            <button
-              key={item.name}
-              type="button"
-              onClick={() => setEditSection(item.section)}
-              title={!profileComplete ? "Complete your profile" : item.tooltip}
-              aria-label={item.tooltip}
-              className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-left ${
-                !profileComplete
-                  ? "opacity-35 hover:opacity-60"
-                  : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
-              }`}
-            >
-              <span className="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:scale-110">
-                {item.icon}
-              </span>
-              <span className="text-sm">{item.name}</span>
-            </button>
-          ))}
+          <button
+            type="button"
+            onClick={() => setEditSection("personal")}
+            title="Update your profile settings"
+            aria-label="Update your profile settings"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-left text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+          >
+            <span className="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:scale-110">
+              settings
+            </span>
+            <span className="text-sm">Profile Settings</span>
+          </button>
         </nav>
 
         {/* Sign out */}
@@ -169,7 +106,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
         </div>
       </aside>
 
-      {/* Profile edit modal — rendered outside aside so it overlays full screen */}
+      {/* Profile edit modal */}
       {editSection && (
         <ProfileEditModal
           section={editSection}

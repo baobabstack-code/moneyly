@@ -3,136 +3,180 @@
 import Link from "next/link";
 import { PWAInstallButton } from "@/components/pwa-install-button";
 
+const heroImage =
+  "https://images.unsplash.com/photo-1554224154-26032fced8bd?auto=format&fit=crop&w=1800&q=80";
+
 export default function LandingPageContent() {
   return (
     <main className="font-manrope min-h-screen bg-background">
-      <section className="relative overflow-hidden pt-24 pb-32 px-6 md:px-12 bg-background">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
-          <div className="z-10">
-            <span className="inline-block py-1.5 px-4 rounded-full bg-secondary/10 text-secondary font-bold text-[10px] uppercase tracking-[0.2em] mb-8 border border-secondary/20">
-              SMART FINANCE SOLUTIONS
-            </span>
-            <h1 className="font-h1 text-h1 text-primary mb-8 leading-tight">
-              Simple Loans for <span className="text-secondary underline decoration-secondary/30 underline-offset-8">Civil Servants</span> & Retail Shoppers
+      <section
+        className="relative min-h-[calc(100vh-4rem)] overflow-hidden bg-primary px-6 pb-16 pt-24 text-on-primary md:px-12"
+        style={{
+          backgroundImage: `linear-gradient(90deg, rgba(15,23,42,0.94), rgba(15,23,42,0.74), rgba(15,23,42,0.22)), url(${heroImage})`,
+          backgroundPosition: "center",
+          backgroundSize: "cover",
+        }}
+      >
+        <div className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-7xl flex-col justify-between">
+          <div className="max-w-3xl">
+            <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/70">Moneyly Personal Money Manager</p>
+            <h1 className="font-h1 text-h1 leading-tight text-white">
+              Know where your money is going before it goes.
             </h1>
-            <p className="font-body-lg text-body-lg text-on-surface-variant mb-12 max-w-xl leading-relaxed">
-              Buy what you need in-store today with our instant digital loan approvals. Tailored financial solutions for customers.
+            <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/78">
+              Track net worth, budgets, bills, savings goals, spending plans, insights, and cash-flow in one calm workspace built for everyday money decisions.
             </p>
-            <div className="flex flex-col sm:flex-row items-center gap-5">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/login"
-                className="w-full sm:w-auto bg-secondary text-on-secondary px-10 py-4.5 rounded-xl font-bold text-lg flex items-center justify-center gap-2 shadow-2xl shadow-secondary/30 hover:opacity-90 transition-all active:scale-95 group"
+                className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-6 py-4 text-sm font-black text-on-secondary shadow-xl shadow-black/20 transition-all hover:opacity-90 active:scale-95"
               >
-                Get Started
-                <span className="material-symbols-outlined group-hover:translate-x-1 transition-transform">arrow_forward</span>
+                Open Moneyly
+                <span className="material-symbols-outlined text-lg">arrow_forward</span>
+              </Link>
+              <Link
+                href="/store-selection"
+                className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur transition-all hover:bg-white/15 active:scale-95"
+              >
+                Plan a Purchase
+                <span className="material-symbols-outlined text-lg">playlist_add</span>
               </Link>
             </div>
-            <div className="mt-8 flex items-center gap-4">
+            <div className="mt-6 flex flex-wrap items-center gap-4">
               <PWAInstallButton />
-              <p className="text-[10px] uppercase font-bold text-on-surface-variant/60 tracking-widest hidden sm:block">
-                Native App Experience
-              </p>
+              <p className="text-xs font-bold uppercase tracking-widest text-white/60">Installable money workspace</p>
             </div>
           </div>
-          <div className="relative group">
-            <div className="absolute inset-0 bg-secondary/5 rounded-[48px] -rotate-3"></div>
-            <img className="relative z-10 rounded-[48px] shadow-2xl w-full h-[540px] object-cover" alt="Hero" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDAs1KQv_eTiUjzwPDJ7sM0YQayKnsePXpjIy2jejveEb1_feM_gOFeesNzKGFhiHspyFqffWmi4PCBnVIPyv0o19Q3tu9nc9Z-RqXs5Rxb1Fs4tDYPZSCwGA72niqQDCYn6Xv4UU_JZiZg2l79b-RF8uy1wYEgvMl5zDK_s6GZPZg82SS-aV0HnjY002MgN6k4NF2zp6dZjZkjiUDUN_QaqZCCr_8eq3-xGHjZoOnyHG6TZi86JFBK4TXU5GK-eHnWutPZ_xHp_GNR" />
+
+          <div className="mt-12 grid grid-cols-1 gap-3 md:grid-cols-3">
+            {[
+              { label: "Net worth and cash-flow", value: "Snapshot", icon: "account_balance_wallet" },
+              { label: "Bills and budgets", value: "Organized", icon: "receipt_long" },
+              { label: "Goals and planned purchases", value: "Tracked", icon: "savings" },
+            ].map((item) => (
+              <div key={item.label} className="rounded-lg border border-white/15 bg-white/10 p-4 text-white backdrop-blur-md">
+                <span className="material-symbols-outlined mb-3 text-2xl text-white/75">{item.icon}</span>
+                <p className="text-2xl font-black">{item.value}</p>
+                <p className="mt-1 text-sm text-white/68">{item.label}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      <section className="bg-surface-container py-32 px-6 md:px-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-96 h-96 bg-secondary/5 rounded-full blur-3xl -mr-48 -mt-48"></div>
-        <div className="max-w-7xl mx-auto relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="font-h2 text-h2 text-primary mb-6">Why Choose HTB GLOBAL?</h2>
-            <p className="font-body-md text-on-surface-variant max-w-2xl mx-auto leading-relaxed">
-              We&apos;ve redesigned the borrowing experience from the ground up to be faster, fairer, and more focused on your needs.
+      <section className="border-b border-outline-variant bg-surface px-6 py-16 md:px-12">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+          <div>
+            <p className="mb-3 text-xs font-bold uppercase tracking-widest text-secondary">Financial Control</p>
+            <h2 className="font-h2 text-h2 text-primary">A money dashboard that turns daily decisions into a clear plan.</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            {[
+              {
+                icon: "account_balance_wallet",
+                title: "Net worth snapshot",
+                text: "See how saved goal contributions and planned commitments affect your current money position.",
+              },
+              {
+                icon: "receipt_long",
+                title: "Bills and budgets",
+                text: "Convert recurring commitments and planned purchases into monthly bills you can actually scan.",
+              },
+              {
+                icon: "savings",
+                title: "Savings goals",
+                text: "Track deposits toward purchases and watch each goal move from idea to funded.",
+              },
+              {
+                icon: "tips_and_updates",
+                title: "Money insights",
+                text: "Spot budget load, cash still needed, file readiness, and plan status before they become surprises.",
+              },
+            ].map((item) => (
+              <div key={item.title} className="rounded-lg border border-outline-variant bg-background p-5">
+                <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-lg bg-secondary/10 text-secondary">
+                  <span className="material-symbols-outlined">{item.icon}</span>
+                </div>
+                <h3 className="text-lg font-black text-primary">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-background px-6 py-16 md:px-12">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="mb-3 text-xs font-bold uppercase tracking-widest text-secondary">How Moneyly Works</p>
+              <h2 className="font-h2 text-h2 text-primary">From spending plan to monthly cash-flow.</h2>
+            </div>
+            <Link href="/login" className="inline-flex items-center gap-2 text-sm font-black text-secondary">
+              Open account
+              <span className="material-symbols-outlined text-lg">arrow_forward</span>
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
+            {[
+              { step: "01", title: "Build your money profile", text: "Add the contact and income details Moneyly uses to organize your planning workspace." },
+              { step: "02", title: "Create spending plans", text: "Capture upcoming purchases with a budget, saved amount, target length, and supporting files." },
+              { step: "03", title: "Track bills and goals", text: "See monthly bill estimates, goal progress, cash still needed, and plan status in one view." },
+              { step: "04", title: "Read the signals", text: "Use insights to understand budget load, cash-flow pressure, and what needs attention next." },
+            ].map((item) => (
+              <div key={item.step} className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
+                <p className="text-xs font-black uppercase tracking-widest text-secondary">{item.step}</p>
+                <h3 className="mt-5 text-lg font-black text-primary">{item.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-on-surface-variant">{item.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-surface px-6 py-16 md:px-12">
+        <div className="mx-auto grid max-w-7xl grid-cols-1 gap-5 lg:grid-cols-3">
+          <div className="rounded-lg border border-outline-variant bg-primary p-6 text-on-primary">
+            <span className="material-symbols-outlined text-3xl text-on-primary/70">waterfall_chart</span>
+            <h3 className="mt-6 text-xl font-black">Cash-flow without the fog</h3>
+            <p className="mt-3 text-sm leading-relaxed text-on-primary/70">
+              Compare income, bills, planned purchases, and savings progress without digging through separate screens.
             </p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="bg-surface p-10 rounded-[32px] border border-outline-variant shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-              <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-300">
-                <span className="material-symbols-outlined text-4xl">bolt</span>
-              </div>
-              <h3 className="font-h3 text-h3 text-primary mb-4">Fast Approval</h3>
-              <p className="font-body-md text-on-surface-variant leading-relaxed">Our automated engine provides decisions in minutes, not days. Get funds exactly when you need them.</p>
-            </div>
-            <div className="bg-surface p-10 rounded-[32px] border border-outline-variant shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-              <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-300">
-                <span className="material-symbols-outlined text-4xl">percent</span>
-              </div>
-              <h3 className="font-h3 text-h3 text-primary mb-4">Low Interest Rates</h3>
-              <p className="font-body-md text-on-surface-variant leading-relaxed">Competitive rates with transparent institutional pricing. No hidden fees or early repayment penalties.</p>
-            </div>
-            <div className="bg-surface p-10 rounded-[32px] border border-outline-variant shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-500 group">
-              <div className="w-16 h-16 bg-secondary/10 rounded-2xl flex items-center justify-center text-secondary mb-8 group-hover:bg-secondary group-hover:text-on-secondary transition-all duration-300">
-                <span className="material-symbols-outlined text-4xl">verified_user</span>
-              </div>
-              <h3 className="font-h3 text-h3 text-primary mb-4">Secure Process</h3>
-              <p className="font-body-md text-on-surface-variant leading-relaxed">Bank-grade 256-bit encryption protecting your institutional data. We prioritize your financial security.</p>
-            </div>
+          <div className="rounded-lg border border-outline-variant bg-background p-6">
+            <span className="material-symbols-outlined text-3xl text-secondary">playlist_add_check</span>
+            <h3 className="mt-6 text-xl font-black text-primary">Spending plans with context</h3>
+            <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
+              The existing purchase flow becomes a practical planning tool for upcoming expenses and goal tracking.
+            </p>
+          </div>
+          <div className="rounded-lg border border-outline-variant bg-background p-6">
+            <span className="material-symbols-outlined text-3xl text-secondary">dashboard</span>
+            <h3 className="mt-6 text-xl font-black text-primary">A financial home screen</h3>
+            <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
+              Give each customer one place to check budgets, bills, goals, insights, and net worth signals.
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="py-32 px-6 md:px-12 bg-background relative">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-24">
-            <h2 className="font-h2 text-h2 text-primary mb-6">How It Works</h2>
-            <p className="font-body-md text-on-surface-variant max-w-xl mx-auto">Three simple steps to your institutional financial freedom.</p>
+      <section className="bg-background px-6 py-16 md:px-12">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-lg border border-outline-variant bg-surface p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Ready to organize your money?</p>
+            <h2 className="text-2xl font-black text-primary">Start with a profile, then build your first spending plan.</h2>
+            <p className="mt-2 max-w-2xl text-sm text-on-surface-variant">
+              Sign in to see the dashboard and turn upcoming purchases into budgets, bills, savings goals, and cash-flow insight.
+            </p>
           </div>
-          <div className="relative">
-            <div className="hidden md:block absolute top-16 left-0 w-full h-1 bg-outline-variant/30 z-0 rounded-full"></div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-16 relative z-10">
-              <div className="text-center group">
-                <div className="w-32 h-32 bg-surface border-8 border-secondary rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:shadow-secondary/20">
-                  <span className="text-4xl font-bold text-secondary">1</span>
-                </div>
-                <h4 className="font-h3 text-xl text-primary mb-3">Select Store</h4>
-                <p className="font-body-sm text-on-surface-variant px-6 leading-relaxed">Choose your preferred institutional branch or digital storefront to initiate the process.</p>
-              </div>
-              <div className="text-center group">
-                <div className="w-32 h-32 bg-surface border-8 border-outline-variant rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:border-secondary/50 group-hover:shadow-secondary/10">
-                  <span className="text-4xl font-bold text-on-surface-variant/40 group-hover:text-secondary/60">2</span>
-                </div>
-                <h4 className="font-h3 text-xl text-primary mb-3">Search ID</h4>
-                <p className="font-body-sm text-on-surface-variant px-6 leading-relaxed">Quickly verify your identity using our secure digital ID verification system.</p>
-              </div>
-              <div className="text-center group">
-                <div className="w-32 h-32 bg-surface border-8 border-outline-variant rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl transition-all duration-500 group-hover:scale-110 group-hover:border-secondary/50 group-hover:shadow-secondary/10">
-                  <span className="text-4xl font-bold text-on-surface-variant/40 group-hover:text-secondary/60">3</span>
-                </div>
-                <h4 className="font-h3 text-xl text-primary mb-3">Apply</h4>
-                <p className="font-body-sm text-on-surface-variant px-6 leading-relaxed">Review your personalized terms and sign digitally to receive your funds securely.</p>
-              </div>
-            </div>
-          </div>
-          <div className="mt-24 text-center">
-            <Link
-              href="/login"
-              className="inline-block bg-primary text-on-primary px-12 py-5 rounded-2xl font-bold hover:shadow-2xl hover:shadow-primary/30 hover:-translate-y-1 transition-all active:scale-95 shadow-xl text-lg"
-            >
-              Start Application Now
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-32 px-6 md:px-12">
-        <div className="max-w-6xl mx-auto bg-secondary text-on-secondary rounded-[64px] p-16 md:p-24 text-center relative overflow-hidden shadow-2xl border-4 border-surface shadow-secondary/20">
-          <div className="absolute top-0 right-0 w-[480px] h-[480px] bg-white/10 rounded-full -mr-48 -mt-48 blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 w-[480px] h-[480px] bg-white/10 rounded-full -ml-48 -mb-48 blur-3xl"></div>
-          <h2 className="font-h1 text-h1 text-on-secondary mb-8 leading-tight relative z-10">Ready to scale your dreams?</h2>
-          <p className="text-body-lg mb-12 max-w-2xl mx-auto opacity-80 relative z-10 leading-relaxed">Join thousands of others who have simplified their financial journey with our modern institutional loan solutions.</p>
-          <div className="flex flex-wrap justify-center gap-6 relative z-10">
-            <Link
-              href="/login"
-              className="inline-block bg-white text-secondary px-12 py-5 rounded-2xl font-bold hover:scale-105 transition-all shadow-xl active:scale-95 text-lg"
-            >
-              Apply for a Loan
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-6 py-4 text-sm font-black text-on-secondary transition-all hover:opacity-90 active:scale-95"
+          >
+            Open Moneyly
+            <span className="material-symbols-outlined text-lg">arrow_forward</span>
+          </Link>
         </div>
       </section>
     </main>

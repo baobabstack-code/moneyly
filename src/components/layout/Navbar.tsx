@@ -50,7 +50,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
     ? (profile?.full_name || user?.email || '')
     : (initialUser?.displayName || initialUser?.email || '');
   const avatarUrl = authChanged
-    ? (profile?.avatar_url || profile?.photo_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null)
+    ? (profile?.avatar_url || user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null)
     : (initialUser?.avatarUrl || null);
 
   return (
@@ -58,7 +58,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
       <div className="flex justify-between items-center h-16 px-4 sm:px-8 max-w-container-max mx-auto w-full">
         <div className="flex items-center gap-4 sm:gap-8">
           <Link href="/" className="text-xl font-black tracking-tighter text-primary">
-            HTB GLOBAL
+            Moneyly
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">
@@ -105,13 +105,13 @@ export default function Navbar({ initialUser }: NavbarProps) {
                 href="/login"
                 className="hidden sm:block text-on-surface-variant font-bold hover:text-primary transition-all text-sm px-4"
               >
-                Login
+                Sign In
               </Link>
               <Link
-                href="/store-selection"
+                href="/login"
                 className="bg-secondary text-on-secondary px-6 py-2 rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all text-sm"
               >
-                Apply Now
+                Get Started
               </Link>
             </>
           )}

@@ -5,17 +5,28 @@ import { startImpersonation } from '@/app/super-admin/impersonate/actions'
 
 type Customer = {
   id: string
-  first_name: string | null
-  last_name: string | null
-  email_address: string | null
-  mobile_number: string | null
-  national_id: string | null
-  is_profile_complete: boolean | null
+  full_name: string | null
+  avatar_url: string | null
+  username: string | null
+  monthly_income: string | null
   created_at: string
-  employer_name: string | null
-  ministry: string | null
-  is_civil_servant: boolean | null
-  physical_address: string | null
+  role: string
+}
+
+function parseAmount(n: string | number | null) {
+  return typeof n === 'number' ? n : parseFloat(n ?? '');
+}
+
+function currency(n: string | number | null) {
+  const v = parseAmount(n);
+  if (!Number.isFinite(v)) return "$0.00";
+
+  const amount = Math.abs(v).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return `${v < 0 ? '-' : ''}$${amount}`;
 }
 
 export default function CustomersClient({ customers, storeName, showImpersonate }: { customers: Customer[]; storeName?: string; showImpersonate?: boolean }) {
@@ -26,19 +37,20 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
   const handleImpersonate = (c: Customer) => {
     setImpersonatingId(c.id)
     startTransition(() => {
-      const name = [c.first_name, c.last_name].filter(Boolean).join(' ') || c.email_address || 'Customer'
+      const name = c.full_name || c.username || 'Customer'
       startImpersonation(c.id, name, '/super-admin/customers')
     })
   }
 
   const filtered = query.trim()
     ? customers.filter(c =>
-        c.national_id?.toLowerCase().includes(query.trim().toLowerCase())
+        (c.full_name || '').toLowerCase().includes(query.trim().toLowerCase()) ||
+        (c.username || '').toLowerCase().includes(query.trim().toLowerCase())
       )
     : customers
 
   return (
-    <div className="w-full space-y-8">
+    <div className="w-full space-y-8 font-manrope">
 
       {/* Page header */}
       <div>
@@ -48,16 +60,16 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
         </p>
       </div>
 
-      {/* National ID search */}
+      {/* Name/Username search */}
       <div className="relative max-w-sm">
         <span className="material-symbols-outlined absolute left-3.5 top-1/2 -translate-y-1/2 text-[20px] text-on-surface-variant/50 pointer-events-none">
-          badge
+          search
         </span>
         <input
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search by National ID…"
+          placeholder="Search by name or username…"
           className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-outline-variant bg-surface text-sm text-on-surface placeholder:text-on-surface-variant/40 focus:outline-none focus:ring-2 focus:ring-primary transition-all"
         />
         {query && (
@@ -75,7 +87,7 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
       {query.trim() && (
         <p className="text-sm text-on-surface-variant -mt-4">
           {filtered.length === 0
-            ? 'No customers match that National ID.'
+            ? 'No customers match that query.'
             : `${filtered.length} result${filtered.length !== 1 ? 's' : ''} for "${query.trim()}"`}
         </p>
       )}
@@ -86,7 +98,7 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
           <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3 block">group</span>
           <p className="text-on-surface-variant font-medium text-base">No customers yet.</p>
           <p className="text-on-surface-variant/60 text-sm mt-1">
-            Customers appear here once they submit an application.
+            Customers appear here once they create an account and profile.
           </p>
         </div>
       ) : (
@@ -99,42 +111,34 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
               {/* Top row */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
-                    <span className="material-symbols-outlined text-xl text-on-surface-variant">person</span>
+                  <div className="w-11 h-11 bg-surface-container rounded-xl flex items-center justify-center overflow-hidden shrink-0 border border-outline-variant">
+                    {c.avatar_url ? (
+                      <img src={c.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="material-symbols-outlined text-xl text-on-surface-variant">person</span>
+                    )}
                   </div>
                   <div>
                     <h3 className="font-bold text-lg text-primary leading-tight">
-                      {c.first_name} {c.last_name}
+                      {c.full_name || 'Anonymous User'}
                     </h3>
-                    {/* Highlight national ID when it matches search */}
                     <p className="text-xs text-on-surface-variant font-mono">
-                      {c.national_id
-                        ? query.trim() && c.national_id.toLowerCase().includes(query.trim().toLowerCase())
-                          ? <><span className="bg-secondary/20 text-secondary rounded px-0.5">{c.national_id}</span></>
-                          : c.national_id
-                        : '—'}
+                      {c.username ? `@${c.username}` : 'No username set'}
                     </p>
                   </div>
                 </div>
 
-                <span className={`self-start sm:self-auto inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase ${
-                  c.is_profile_complete
-                    ? 'bg-status-success-bg text-status-success'
-                    : 'bg-status-warning-bg text-status-warning'
-                }`}>
-                  {c.is_profile_complete ? 'Profile complete' : 'Incomplete profile'}
+                <span className="self-start sm:self-auto inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase bg-primary/10 text-primary">
+                  {c.role}
                 </span>
               </div>
 
               {/* Detail grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Email',    value: c.email_address },
-                  { label: 'Mobile',   value: c.mobile_number },
-                  { label: 'Address',  value: c.physical_address },
-                  { label: 'Employer', value: c.is_civil_servant ? (c.ministry || 'Civil Servant') : c.employer_name },
-                  { label: 'Joined',   value: new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
-                ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
+                  { label: 'Monthly Income', value: c.monthly_income ? currency(c.monthly_income) : 'Not specified' },
+                  { label: 'Joined', value: new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                ].map(r => (
                   <div key={r.label}>
                     <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
                     <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>

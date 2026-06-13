@@ -30,10 +30,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/dashboard')
   }
 
+  // stores table does not have admin_id anymore, query the first store for context
   const { data: store } = await supabase
-    .from('business_partners')
+    .from('stores')
     .select('id, name')
-    .eq('admin_id', viewUserId)
+    .limit(1)
     .single()
 
   const displayName = isImpersonating
@@ -46,12 +47,12 @@ export default async function AdminLayout({ children }: { children: React.ReactN
 
       {/* ── Sticky top bar ── */}
       <header className="sticky top-0 z-40 h-16 border-b border-outline-variant bg-surface/80 backdrop-blur-md px-6 flex items-center gap-3">
-        <span className="font-black text-lg text-primary tracking-tight">HTB</span>
+        <span className="font-black text-lg text-primary tracking-tight">Moneyly</span>
         <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
           Admin
         </span>
         {store && (
-          <span className="hidden sm:block text-on-surface-variant/60 text-sm">— {store.name}</span>
+          <span className="hidden sm:block text-on-surface-variant/60 text-sm">{store.name}</span>
         )}
       </header>
 

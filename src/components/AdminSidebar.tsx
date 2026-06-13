@@ -13,7 +13,7 @@ interface Props {
 
 const navItems = [
   { name: "Dashboard", href: "/admin", icon: "dashboard", exact: true },
-  { name: "Applications", href: "/admin/applications", icon: "pending_actions", exact: false },
+  { name: "Plans", href: "/admin/applications", icon: "pending_actions", exact: false },
   { name: "Customers", href: "/admin/customers", icon: "group", exact: false },
 ];
 
@@ -64,7 +64,7 @@ export default function AdminSidebar({ user, role, storeName }: Props) {
       {/* Nav */}
       <nav className="flex-1 py-6 px-4 space-y-1">
         <div className="pb-2 px-4">
-          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Store</p>
+          <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Source</p>
         </div>
 
         {navItems.map((item) => {

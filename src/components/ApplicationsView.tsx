@@ -1,86 +1,122 @@
 'use client'
 
 import Link from "next/link";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
-type Application = {
+type SpendingPlan = {
   id: string;
   status: string | null;
   reference: string | null;
   created_at: string;
   store_name: string | null;
   product_name: string | null;
-  retail_price: string | number | null;
-  deposit_amount: string | number | null;
+  planned_cost: string | number | null;
+  saved_amount: string | number | null;
   tenure_months: number | null;
-  national_id: string | null;
-  mobile_number: string | null;
-  email_address: string | null;
-  physical_address: string | null;
-  employer_name: string | null;
-  employer_no: string | null;
-  ministry: string | null;
-  is_civil_servant: boolean | null;
-  kin_full_name: string | null;
-  kin_relationship: string | null;
-  kin_mobile: string | null;
-  kin_address: string | null;
-  employer_phone: string | null;
-  employer_contact_person: string | null;
-  employer_email: string | null;
-  employer_address: string | null;
-  id_copy_url: string | null;
-  payslip_url: string | null;
+  file_url: string | null;
 };
-
-function fmt(n: string | number | null) {
-  const v = parseAmount(n);
-  return isNaN(v) ? "—" : `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
 
 function parseAmount(n: string | number | null) {
   return typeof n === 'number' ? n : parseFloat(n ?? '');
 }
 
+function currency(n: string | number | null) {
+  const v = parseAmount(n);
+  if (!Number.isFinite(v)) return "$0.00";
+
+  const amount = Math.abs(v).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+  return `${v < 0 ? '-' : ''}$${amount}`;
+}
+
+function plannedCost(plan: SpendingPlan) {
+  return Math.max(0, parseAmount(plan.planned_cost) || 0);
+}
+
+function savedTowardPlan(plan: SpendingPlan) {
+  return Math.max(0, parseAmount(plan.saved_amount) || 0);
+}
+
+function remainingPlanCost(plan: SpendingPlan) {
+  return Math.max(0, plannedCost(plan) - savedTowardPlan(plan));
+}
+
+function monthlyBill(plan: SpendingPlan) {
+  const remaining = remainingPlanCost(plan);
+  return plan.tenure_months && remaining > 0 ? remaining / plan.tenure_months : 0;
+}
+
+function percent(part: number, total: number) {
+  return total > 0 ? Math.min(100, Math.round((part / total) * 100)) : 0;
+}
+
 function getStatusStyles(status: string | null) {
   switch (status) {
-    case 'submitted':
-      return 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
-    case 'approved':
-      return 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300';
-    case 'rejected':
-      return 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300';
+    case 'completed':
+      return 'bg-status-success-bg text-status-success';
+    case 'paused':
+      return 'bg-status-danger-bg text-status-danger';
     default:
-      return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300';
+      return 'bg-status-info-bg text-status-info';
   }
 }
 
+function getStatusIcon(status: string | null) {
+  if (status === 'completed') return 'check_circle';
+  if (status === 'paused') return 'pause_circle';
+  return 'schedule';
+}
+
+function statusLabel(status: string | null) {
+  if (status === 'completed') return 'completed';
+  if (status === 'paused') return 'paused';
+  return 'active';
+}
+
 interface ApplicationsViewProps {
-  applications: Application[];
+  applications: SpendingPlan[];
   profileComplete: boolean;
 }
 
 export default function ApplicationsView({ applications, profileComplete }: ApplicationsViewProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
 
+  const summary = useMemo(() => {
+    const activePlans = applications.filter((plan) => plan.status !== 'paused');
+    const planned = activePlans.reduce((sum, plan) => sum + plannedCost(plan), 0);
+    const saved = activePlans.reduce((sum, plan) => sum + savedTowardPlan(plan), 0);
+    const monthly = activePlans.reduce((sum, plan) => sum + monthlyBill(plan), 0);
+    const progress = percent(saved, planned);
+
+    return { activePlans, planned, saved, monthly, progress };
+  }, [applications]);
+
   if (!profileComplete) {
     return (
       <div className="font-manrope pb-20 lg:pb-0">
-        <div className="w-full py-10 px-6 md:px-10 xl:px-12">
-          <div className="max-w-md bg-amber-500 text-white p-6 rounded-2xl shadow-xl shadow-amber-500/15">
-            <div className="flex items-center gap-3 mb-3">
-              <div className="w-11 h-11 rounded-xl bg-white/15 flex items-center justify-center">
+        <div className="w-full px-6 py-10 md:px-10 xl:px-12">
+          <div className="max-w-xl rounded-lg border border-outline-variant bg-surface p-6 shadow-sm">
+            <div className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-status-warning-bg text-status-warning">
                 <span className="material-symbols-outlined text-2xl">person_add</span>
               </div>
-              <h2 className="text-xl font-bold">Complete Your Profile</h2>
+              <div>
+                <h2 className="text-xl font-black text-primary">Complete your money profile</h2>
+                <p className="mt-2 text-sm text-on-surface-variant">
+                  Add your profile details before creating spending plans, savings goals, and cash-flow forecasts.
+                </p>
+                <Link
+                  href="/profile-setup"
+                  className="mt-5 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
+                >
+                  <span className="material-symbols-outlined text-lg">verified_user</span>
+                  Set Up Profile
+                </Link>
+              </div>
             </div>
-            <p className="text-white/80 mb-5 text-sm">Set up your profile to view applications.</p>
-            <Link
-              href="/profile-setup"
-              className="inline-flex bg-white text-amber-500 px-5 py-2.5 rounded-xl font-bold text-sm"
-            >
-              Set Up Profile
-            </Link>
           </div>
         </div>
       </div>
@@ -89,113 +125,163 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
 
   return (
     <div className="font-manrope pb-20 lg:pb-0">
-      <section className="w-full py-10 px-6 md:px-10 xl:px-12">
-        <div className="flex items-center justify-between mb-12">
+      <section className="w-full px-6 py-8 md:px-10 xl:px-12">
+        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-2">My Applications</h1>
-            <p className="text-on-surface-variant">View your loan application history.</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Spending Plans</p>
+            <h1 className="text-3xl font-black text-primary sm:text-4xl">Planned Purchases</h1>
+            <p className="mt-2 max-w-2xl text-on-surface-variant">
+              Turn upcoming purchases into budgets, savings goals, monthly bills, and cash-flow signals.
+            </p>
           </div>
           <Link
-            href="/store-selection"
-            className="hidden sm:flex items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all"
+            href="/plan/store"
+            className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
           >
-            <span className="material-symbols-outlined">add</span>
-            New Application
+            <span className="material-symbols-outlined text-lg">add</span>
+            New Plan
           </Link>
+        </div>
+
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          {[
+            { label: 'Budgeted Spend', value: currency(summary.planned), icon: 'account_balance_wallet' },
+            { label: 'Saved Toward Goals', value: currency(summary.saved), icon: 'savings' },
+            { label: 'Monthly Bills', value: currency(summary.monthly), icon: 'receipt_long' },
+            { label: 'Goal Progress', value: `${summary.progress}%`, icon: 'trending_up' },
+          ].map((item) => (
+            <div key={item.label} className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">{item.label}</p>
+                <span className="material-symbols-outlined text-xl text-secondary">{item.icon}</span>
+              </div>
+              <p className="text-2xl font-black text-primary">{item.value}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mb-6 rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-black text-primary">Cash-Flow Readiness</h2>
+              <p className="text-sm text-on-surface-variant">Your planned purchase data is reused here as a money-manager forecast.</p>
+            </div>
+            <span className="material-symbols-outlined text-2xl text-secondary">waterfall_chart</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-surface-container-highest">
+            <div className="h-full rounded-full bg-secondary" style={{ width: `${summary.progress}%` }} />
+          </div>
+          <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-on-surface-variant sm:grid-cols-3">
+            <span><strong className="block text-on-surface">{summary.activePlans.length}</strong>active plans</span>
+            <span><strong className="block text-on-surface">{currency(Math.max(0, summary.planned - summary.saved))}</strong>cash still needed</span>
+          </div>
         </div>
 
         <div className="space-y-4">
           {applications.length === 0 ? (
-            <div className="max-w-md text-center py-10 px-6 bg-surface rounded-2xl border border-outline-variant">
-              <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3">description</span>
-              <p className="text-on-surface-variant font-medium text-base mb-2">No applications yet.</p>
-              <p className="text-on-surface-variant/60 text-sm mb-6">Start your first loan application today.</p>
+            <div className="max-w-xl rounded-lg border border-dashed border-outline bg-surface p-8 text-center">
+              <span className="material-symbols-outlined mb-3 text-5xl text-on-surface-variant/30">playlist_add</span>
+              <p className="text-lg font-black text-primary">No spending plans yet.</p>
+              <p className="mx-auto mt-2 max-w-md text-sm text-on-surface-variant">
+                Add a planned purchase and Moneyly will track its budget, saved amount, monthly bill, and goal progress.
+              </p>
               <Link
-                href="/store-selection"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-secondary text-on-secondary rounded-xl font-bold text-sm"
+                href="/plan/store"
+                className="mt-6 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
               >
-                Apply Now
+                <span className="material-symbols-outlined text-lg">add</span>
+                Create Plan
               </Link>
             </div>
           ) : (
-            applications.map((app) => {
-              const isOpen = expanded === app.id;
-              const loanAmount = (parseAmount(app.retail_price) || 0) - (parseAmount(app.deposit_amount) || 0);
-              const monthlyInstallment = app.tenure_months && loanAmount > 0 ? loanAmount / app.tenure_months : null;
+            applications.map((plan) => {
+              const isOpen = expanded === plan.id;
+              const cost = plannedCost(plan);
+              const saved = savedTowardPlan(plan);
+              const remaining = remainingPlanCost(plan);
+              const monthly = monthlyBill(plan);
+              const progress = percent(saved, cost);
+              const hasDoc = Boolean(plan.file_url);
 
               return (
                 <div
-                  key={app.id}
-                  className="rounded-2xl bg-surface border border-outline-variant overflow-hidden transition-colors"
+                  key={plan.id}
+                  className="overflow-hidden rounded-lg border border-outline-variant bg-surface shadow-sm"
                 >
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 p-5 sm:p-6">
-                    <div className="w-12 h-12 bg-surface-container rounded-xl flex items-center justify-center shrink-0">
-                      <span className={`material-symbols-outlined text-xl ${app.status === 'approved' ? 'text-green-600' : app.status === 'rejected' ? 'text-red-500' : 'text-on-surface-variant'}`}>
-                        {app.status === 'submitted' ? 'hourglass_empty' :
-                         app.status === 'approved' ? 'check_circle' :
-                         app.status === 'rejected' ? 'cancel' : 'pending'}
+                  <div className="grid gap-4 p-5 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container">
+                      <span className={`material-symbols-outlined text-xl ${plan.status === 'completed' ? 'text-status-success' : plan.status === 'paused' ? 'text-status-danger' : 'text-on-surface-variant'}`}>
+                        {getStatusIcon(plan.status)}
                       </span>
                     </div>
 
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-2">
-                        <h3 className="font-bold text-lg text-primary leading-tight">{app.product_name}</h3>
-                        <span className={`inline-block px-3 py-0.5 text-xs font-bold rounded-full uppercase ${getStatusStyles(app.status)}`}>
-                          {app.status}
+                    <div className="min-w-0">
+                      <div className="mb-3 flex flex-wrap items-center gap-2">
+                        <h3 className="font-black text-primary">{plan.product_name || 'Planned purchase'}</h3>
+                        <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${getStatusStyles(plan.status)}`}>
+                          {statusLabel(plan.status)}
+                        </span>
+                        <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${hasDoc ? 'bg-status-success-bg text-status-success' : 'bg-status-warning-bg text-status-warning'}`}>
+                          {hasDoc ? 'File attached' : 'No file'}
                         </span>
                       </div>
-                      <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
-                        <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
-                        <span>Submitted: <span className="font-medium text-on-surface">{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span></span>
-                        {app.store_name && <span>Store: <span className="font-medium text-on-surface">{app.store_name}</span></span>}
-                        <span>Loan: <span className="font-bold text-secondary">{fmt(loanAmount)}</span></span>
+                      <div className="grid grid-cols-2 gap-3 text-sm text-on-surface-variant md:grid-cols-5">
+                        <span><strong className="block text-on-surface">{currency(cost)}</strong>Budget</span>
+                        <span><strong className="block text-on-surface">{currency(saved)}</strong>Saved</span>
+                        <span><strong className="block text-on-surface">{currency(remaining)}</strong>Cash needed</span>
+                        <span><strong className="block text-on-surface">{currency(monthly)}</strong>Monthly bill</span>
+                        <span><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-3 shrink-0">
-                      <button
-                        type="button"
-                        onClick={() => setExpanded(isOpen ? null : app.id)}
-                        className="flex items-center gap-1 px-4 py-2 rounded-xl border border-outline-variant text-sm font-bold text-on-surface hover:bg-surface-container transition-all"
-                      >
-                        {isOpen ? 'Hide' : 'View'}
-                        <span className="material-symbols-outlined text-sm">{isOpen ? 'expand_less' : 'expand_more'}</span>
-                      </button>
-                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setExpanded(isOpen ? null : plan.id)}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-bold text-on-surface transition-all hover:bg-surface-container"
+                    >
+                      {isOpen ? 'Hide' : 'View'}
+                      <span className="material-symbols-outlined text-lg">{isOpen ? 'expand_less' : 'expand_more'}</span>
+                    </button>
                   </div>
 
                   {isOpen && (
-                    <div className="border-t border-outline-variant/50 bg-surface-container-low px-5 sm:px-6 py-5">
-                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    <div className="border-t border-outline-variant bg-surface-container-low px-5 py-5">
+                      <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
+                        <div className="rounded-lg bg-surface p-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Budget</p>
+                          <p className="mt-3 text-sm text-on-surface-variant">
+                            Planned cost {currency(cost)} with {currency(saved)} already saved.
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-surface p-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Bill Forecast</p>
+                          <p className="mt-3 text-sm text-on-surface-variant">
+                            {currency(monthly)} per month over {plan.tenure_months || 0} months for cash-flow planning.
+                          </p>
+                        </div>
+                        <div className="rounded-lg bg-surface p-4">
+                          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Savings Goal</p>
+                          <p className="mt-3 text-sm text-on-surface-variant">
+                            {progress}% complete with {currency(remaining)} still needed.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="mb-5 h-2 overflow-hidden rounded-full bg-surface-container-highest">
+                        <div className="h-full rounded-full bg-secondary" style={{ width: `${progress}%` }} />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                         {[
-                          { label: 'Store', value: app.store_name },
-                          { label: 'Product', value: app.product_name },
-                          { label: 'Retail Price', value: fmt(app.retail_price) },
-                          { label: 'Deposit', value: fmt(app.deposit_amount) },
-                          { label: 'Loan Amount', value: fmt(loanAmount) },
-                          { label: 'Tenure', value: app.tenure_months ? `${app.tenure_months} months` : null },
-                          { label: 'Monthly Instalment', value: monthlyInstallment ? fmt(monthlyInstallment) : null },
-                          { label: 'National ID', value: app.national_id },
-                          { label: 'Mobile', value: app.mobile_number },
-                          { label: 'Email', value: app.email_address },
-                          { label: 'Address', value: app.physical_address },
-                          { label: 'Employer', value: app.is_civil_servant ? `${app.ministry || ''}` : app.employer_name },
-                          { label: 'Civil Servant', value: app.is_civil_servant ? 'Yes' : 'No' },
-                          ...(app.is_civil_servant && app.employer_no ? [{ label: 'EC Number', value: app.employer_no }] : []),
-                          { label: 'Next of Kin', value: app.kin_full_name },
-                          { label: 'Relationship', value: app.kin_relationship },
-                          { label: 'NOK Mobile', value: app.kin_mobile },
-                          { label: 'NOK Address', value: app.kin_address },
-                          { label: 'Employer Phone', value: app.employer_phone },
-                          { label: 'Employer Contact', value: app.employer_contact_person },
-                          { label: 'Employer Email', value: app.employer_email },
-                          { label: 'Employer Address', value: app.employer_address },
-                          { label: 'ID Copy', value: app.id_copy_url ? 'Uploaded' : 'Not uploaded' },
-                          { label: 'Payslip', value: app.payslip_url ? 'Uploaded' : 'Not uploaded' },
-                        ].filter((r): r is { label: string; value: string } => Boolean(r.value)).map(r => (
-                          <div key={r.label}>
-                            <p className="text-[10px] uppercase tracking-wider font-bold text-on-surface-variant/50 mb-0.5">{r.label}</p>
-                            <p className="text-sm font-medium text-on-surface wrap-break-word">{r.value}</p>
+                          { label: 'Reference', value: plan.reference },
+                          { label: 'Store / Source', value: plan.store_name },
+                          { label: 'Created', value: new Date(plan.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
+                          { label: 'Plan Length', value: plan.tenure_months ? `${plan.tenure_months} months` : null },
+                          { label: 'Receipt / Document', value: plan.file_url ? <a href={plan.file_url} target="_blank" rel="noreferrer" className="text-secondary hover:underline">View Attached Document</a> : 'None' },
+                        ].filter((row) => Boolean(row.value)).map((row) => (
+                          <div key={row.label}>
+                            <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">{row.label}</p>
+                            <div className="mt-1 text-sm font-bold text-on-surface wrap-break-word">{row.value}</div>
                           </div>
                         ))}
                       </div>
@@ -206,18 +292,6 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
             })
           )}
         </div>
-
-        {applications.length > 0 && (
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/store-selection"
-              className="flex sm:hidden items-center gap-2 px-6 py-3 bg-secondary text-on-secondary rounded-xl font-bold w-full justify-center"
-            >
-              <span className="material-symbols-outlined">add</span>
-              New Application
-            </Link>
-          </div>
-        )}
       </section>
     </div>
   );

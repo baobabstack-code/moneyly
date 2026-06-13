@@ -5,16 +5,15 @@ import { useRouter } from "next/navigation";
 
 export default function PurchaseDetailsPage() {
   const router = useRouter();
-  const { purchaseDetails, setPurchaseDetails, selectedStoreName, lookup } = useApplicationStore();
+  const { purchaseDetails, setPurchaseDetails, selectedStoreName } = useApplicationStore();
 
-  const retailPrice = parseFloat(purchaseDetails.retailPrice) || 0;
-  const depositAmount = parseFloat(purchaseDetails.depositAmount) || 0;
-  const balanceAmount = Math.max(0, retailPrice - depositAmount);
+  const plannedCost = parseFloat(purchaseDetails.plannedCost) || 0;
+  const savedAmount = parseFloat(purchaseDetails.savedAmount) || 0;
+  const balanceAmount = Math.max(0, plannedCost - savedAmount);
   const tenure = parseInt(purchaseDetails.tenureMonths) || 0;
   const installmentAmount = tenure > 0 ? balanceAmount / tenure : 0;
 
-  // Profile is always complete by this point (enforced by layout)
-  const handleNext = () => router.push("/apply/document-uploads");
+  const handleNext = () => router.push("/plan/documents");
 
   return (
     <div className="w-full">
@@ -22,10 +21,10 @@ export default function PurchaseDetailsPage() {
       <div className="mb-stack-lg">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 3 of 8</span>
-            <h1 className="font-h1 text-primary mb-2">Purchase Details</h1>
+            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 2 of 4</span>
+            <h1 className="font-h1 text-primary mb-2">Planned Purchase</h1>
             <p className="font-body-md text-on-surface-variant max-w-xl">
-              Enter the details of the items being purchased on loan.
+              Enter the item, budget, saved amount, and monthly planning window.
             </p>
           </div>
           {selectedStoreName && (
@@ -36,29 +35,22 @@ export default function PurchaseDetailsPage() {
           )}
         </div>
         <div className="mt-6 relative w-full h-2 bg-outline-variant rounded-full overflow-hidden shadow-inner">
-          <div className="absolute left-0 top-0 h-full bg-secondary w-[28%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
+          <div className="absolute left-0 top-0 h-full bg-secondary w-[50%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
         </div>
       </div>
 
-      {lookup.nationalId && (
-        <div className="mb-6 flex items-center gap-3 bg-surface border border-outline-variant px-4 py-3 rounded-xl">
-          <span className="material-symbols-outlined text-secondary">badge</span>
-          <span className="text-on-surface-variant text-sm">Your ID: <span className="font-mono font-bold text-on-surface">{lookup.nationalId}</span></span>
-        </div>
-      )}
-
       <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-6 md:p-8 space-y-6">
-        <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Item Information</h2>
+        <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Plan Information</h2>
 
         {/* Product Name */}
         <div>
           <label className="block font-label-md text-label-md mb-2 text-on-surface">
-            Product Name <span className="text-red-500">*</span>
+            Item or Goal Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
-            placeholder="e.g. Samsung 65-inch Smart TV"
+            placeholder="e.g. New laptop, school fees, family trip"
             value={purchaseDetails.productName}
             onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
           />
@@ -68,7 +60,7 @@ export default function PurchaseDetailsPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Retail Price <span className="text-red-500">*</span>
+              Planned Cost <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
@@ -78,14 +70,14 @@ export default function PurchaseDetailsPage() {
                 step="0.01"
                 className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
                 placeholder="0.00"
-                value={purchaseDetails.retailPrice}
-                onChange={(e) => setPurchaseDetails({ retailPrice: e.target.value })}
+                value={purchaseDetails.plannedCost}
+                onChange={(e) => setPurchaseDetails({ plannedCost: e.target.value })}
               />
             </div>
           </div>
           <div>
             <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Deposit Amount <span className="text-red-500">*</span>
+              Saved Amount <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
@@ -95,8 +87,8 @@ export default function PurchaseDetailsPage() {
                 step="0.01"
                 className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
                 placeholder="0.00"
-                value={purchaseDetails.depositAmount}
-                onChange={(e) => setPurchaseDetails({ depositAmount: e.target.value })}
+                value={purchaseDetails.savedAmount}
+                onChange={(e) => setPurchaseDetails({ savedAmount: e.target.value })}
               />
             </div>
           </div>
@@ -107,16 +99,16 @@ export default function PurchaseDetailsPage() {
           {/* Tenure dropdown */}
           <div>
             <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Tenure <span className="text-red-500">*</span>
+              Plan Length <span className="text-red-500">*</span>
             </label>
             <select
-              title="Tenure in months"
+              title="Plan length in months"
               className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
               value={purchaseDetails.tenureMonths}
               onChange={(e) => setPurchaseDetails({ tenureMonths: e.target.value })}
             >
               <option value="">Select months</option>
-              {[3, 6, 9, 12].map((m) => (
+              {[3, 6, 9, 12, 18, 24].map((m) => (
                 <option key={m} value={m}>{m} months</option>
               ))}
             </select>
@@ -124,31 +116,31 @@ export default function PurchaseDetailsPage() {
 
           {/* Balance — read only */}
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">Balance Amount</label>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">Cash Needed</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
               <input
                 type="text"
                 readOnly
-                title="Balance Amount"
+                title="Cash needed"
                 placeholder="0.00"
                 className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-surface outline-none cursor-default select-none"
                 value={balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               />
             </div>
-            {retailPrice > 0 && depositAmount > retailPrice && (
-              <p className="text-red-500 text-xs mt-1">Deposit exceeds retail price</p>
+            {plannedCost > 0 && savedAmount > plannedCost && (
+              <p className="text-red-500 text-xs mt-1">Saved amount exceeds planned cost</p>
             )}
           </div>
         </div>
 
-        {/* Monthly Installment — big hero display */}
+        {/* Monthly bill */}
         <div className="bg-secondary/5 rounded-2xl border-2 border-dashed border-secondary/20 p-6 flex flex-col items-center justify-center text-center group relative">
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Monthly Installment</span>
+            <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Monthly Commitment</span>
             <span className="material-symbols-outlined text-[16px] text-secondary/40 cursor-help">help</span>
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl">
-              Balance divided by tenure months. This is your estimated monthly repayment.
+              Cash needed divided by plan length. This is your estimated monthly budget line.
             </div>
           </div>
           <p className="font-h1 text-secondary text-3xl">
@@ -162,11 +154,11 @@ export default function PurchaseDetailsPage() {
         </div>
       </div>
 
-      {/* Navigation - Hidden on mobile, handled by layout */}
+      {/* Navigation */}
       <div className="mt-8 hidden lg:flex justify-between items-center">
         <button
           type="button"
-          onClick={() => router.push("/apply/lookup")}
+          onClick={() => router.push("/plan/store")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-medium text-sm"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -175,7 +167,7 @@ export default function PurchaseDetailsPage() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!purchaseDetails.productName || !purchaseDetails.retailPrice || !purchaseDetails.tenureMonths}
+          disabled={!purchaseDetails.productName || !purchaseDetails.plannedCost || !purchaseDetails.tenureMonths}
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Continue

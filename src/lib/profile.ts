@@ -11,57 +11,22 @@ export interface UserProfile {
   avatar_url: string | null;
   username: string | null;
   
-  // BASIC INFO
+  // PERSONAL FINANCE DETAILS
   first_name: string | null;
   last_name: string | null;
-  national_id: string | null;
-  date_of_birth: string | null;
-  gender: string | null;
-  photo_url: string | null;
-  
-  // CONTACT
-  physical_address: string | null;
-  mobile_number: string | null;
-  email_address: string | null;
-  
-  // NEXT OF KIN
-  nok_full_name: string | null;
-  nok_address: string | null;
-  nok_mobile_number: string | null;
-  nok_relationship: string | null;
-  
-  // EMPLOYMENT
-  employer_name: string | null;
-  employer_no: string | null;
-  ministry: string | null;
-  is_civil_servant: boolean;
   monthly_income: string | null;
-  employment_phone: string | null;
-  employer_contact_person?: string | null;
-  employer_email?: string | null;
-  employer_address?: string | null;
   
-  // STATUS
-  is_profile_complete: boolean;
+  // ROLE
+  role: string;
 }
 
 /**
  * Checks if profile has minimum required fields completed.
- * New users will see the profile completion card until they fill in basics.
+ * For a personal finance manager, only a name is required.
  */
 export function isProfileComplete(profile: UserProfile | null): boolean {
   if (!profile) return false;
-  
-  const hasName = profile.first_name || profile.full_name;
-  const hasBasic = profile.national_id && profile.date_of_birth && profile.gender;
-  const hasContact = profile.physical_address && profile.mobile_number && profile.email_address;
-  const hasNextOfKin = profile.nok_full_name && profile.nok_address && profile.nok_mobile_number && profile.nok_relationship;
-  const hasEmployment =
-    profile.employment_phone &&
-    profile.employer_contact_person &&
-    profile.employer_address &&
-    (profile.is_civil_servant ? profile.employer_no && profile.ministry : profile.employer_name);
-  return !!(hasName && hasBasic && hasContact && hasNextOfKin && hasEmployment && profile.is_profile_complete);
+  return !!(profile.first_name || profile.full_name);
 }
 
 /**

@@ -1,7 +1,7 @@
 {
-  "name": "HTB Global Loan Application",
-  "short_name": "HTB Global",
-  "description": "Modern loan application by HTB Global.",
+  "name": "Moneyly Personal Money Manager",
+  "short_name": "Moneyly",
+  "description": "Personal money manager for budgets, bills, goals, spending plans, and cash-flow.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -42,9 +42,9 @@ export function PWAInstallButton() {
       // Manual instruction for iOS or unsupported browsers
       const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
       if (isIOS) {
-        alert("To install HTB GLOBAL on your iPhone: \n\n1. Tap the Share button (bottom center) \n2. Scroll down and tap 'Add to Home Screen' \n3. Tap 'Add' to confirm.");
+        alert("To install Moneyly on your iPhone: \n\n1. Tap the Share button (bottom center) \n2. Scroll down and tap 'Add to Home Screen' \n3. Tap 'Add' to confirm.");
       } else {
-        alert("To install HTB GLOBAL: \n\n1. Open your browser menu (⋮ or ≡) \n2. Select 'Install App' or 'Add to Home Screen'.");
+        alert("To install Moneyly: \n\n1. Open your browser menu (menu icon) \n2. Select 'Install App' or 'Add to Home Screen'.");
       }
     }
   };
@@ -64,7 +64,7 @@ export function PWAInstallButton() {
         <span className="text-sm uppercase tracking-[0.1em] mb-1">
           {installPrompt ? "Install App" : "Download App"}
         </span>
-        <span className="text-[10px] text-on-surface-variant font-medium">Native Institutional Experience</span>
+        <span className="text-[10px] text-on-surface-variant font-medium">Native money workspace</span>
       </div>
     </button>
   );

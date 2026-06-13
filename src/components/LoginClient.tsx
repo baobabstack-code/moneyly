@@ -74,10 +74,10 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
             <div className="w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center font-black text-2xl shadow-xl shadow-primary/20 mb-4 transform transition-transform hover:scale-110 duration-300">
-              H
+              M
             </div>
-            <h1 className="text-2xl font-black text-primary tracking-tighter mb-1 text-center">HTB GLOBAL</h1>
-            <p className="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center opacity-60">Institutional Lending</p>
+            <h1 className="text-2xl font-black text-primary tracking-tighter mb-1 text-center">Moneyly</h1>
+            <p className="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center opacity-60">Personal Money Manager</p>
           </div>
 
           <div className="space-y-6">
@@ -87,8 +87,8 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
               </h2>
               <p className="text-sm text-on-surface-variant/70 leading-relaxed">
                 {isSignUp 
-                  ? 'Join the premier institutional lending network today.' 
-                  : 'Sign in to manage your loan applications and access your account.'}
+                  ? 'Create your workspace for budgets, bills, goals, and cash-flow.' 
+                  : 'Sign in to manage your spending plans and money dashboard.'}
               </p>
             </div>
 
