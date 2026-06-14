@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 
-export type UserRole = 'customer' | 'admin' | 'super_admin'
+export type UserRole = 'customer' | 'super_admin'
 
 export async function getMyRole(): Promise<UserRole> {
   const supabase = await createClient()

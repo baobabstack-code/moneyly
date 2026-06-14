@@ -59,7 +59,7 @@ function fmt(n: number | null): string | null {
 export default function AdminApplicationsClient({
   applications: initial,
   statusFilter,
-  basePath = '/admin/applications',
+  basePath = '/super-admin/applications',
 }: {
   applications: SpendingPlan[]
   statusFilter?: string

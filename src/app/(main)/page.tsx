@@ -7,7 +7,7 @@ export default async function Page() {
   const { data: { session } } = await supabase.auth.getSession()
 
   if (session?.user) {
-    // Route admin/super_admin to their dashboards instead of the customer one
+    // Route super_admin to their dashboard instead of the customer one
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')

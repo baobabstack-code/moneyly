@@ -18,9 +18,7 @@
  *
  * 3. ROLE-BASED ROUTE PROTECTION
  *    After confirming a session exists, the user's role is checked for
- *    restricted paths:
  *      - /super-admin/*  → super_admin only
- *      - /admin/*        → admin or super_admin only
  *    Anyone else attempting to visit these paths is redirected to /dashboard.
  *
  * The matcher below runs this proxy on every URL except Next.js internals

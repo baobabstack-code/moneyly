@@ -42,13 +42,6 @@ describe('getMyRole', () => {
     expect(await getMyRole()).toBe('customer')
   })
 
-  it('returns "admin" for a user whose profile has role=admin', async () => {
-    mockCreateClient.mockResolvedValue(
-      buildClient({ id: 'u2' }, { role: 'admin' })
-    )
-    expect(await getMyRole()).toBe('admin')
-  })
-
   it('returns "super_admin" for a user whose profile has role=super_admin', async () => {
     mockCreateClient.mockResolvedValue(
       buildClient({ id: 'u3' }, { role: 'super_admin' })

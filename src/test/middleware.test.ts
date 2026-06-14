@@ -83,9 +83,9 @@ describe('updateSession — ?next= param in redirect', () => {
     expect(redirectParams(res).get('next')).toBe('/apply/employment-details')
   })
 
-  it('includes ?next= for admin paths', async () => {
-    const res = await updateSession(req('/admin/applications'))
-    expect(redirectParams(res).get('next')).toBe('/admin/applications')
+  it('includes ?next= for super admin paths', async () => {
+    const res = await updateSession(req('/super-admin/applications'))
+    expect(redirectParams(res).get('next')).toBe('/super-admin/applications')
   })
 
   it('redirects to /login (correct pathname)', async () => {

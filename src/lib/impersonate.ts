@@ -3,7 +3,7 @@ export const IMPERSONATE_COOKIE = 'moneyly_impersonate'
 export interface ImpersonationData {
   targetUserId: string
   targetName: string
-  targetRole: 'customer' | 'admin'
+  targetRole: 'customer'
   returnPath: string
   startedAt: number
 }

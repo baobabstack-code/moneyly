@@ -11,6 +11,5 @@ export async function updateApplicationStatus(id: string, status: string) {
     .eq('id', id)
   if (error) return { error: error.message }
   revalidatePath('/super-admin/applications')
-  revalidatePath('/admin/applications')
   return { success: true }
 }
