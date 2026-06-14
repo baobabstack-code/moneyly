@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 
 export default function PurchaseDetailsPage() {
   const router = useRouter();
-  const { purchaseDetails, setPurchaseDetails } = useApplicationStore();
+  const { purchaseDetails, setPurchaseDetails, currency } = useApplicationStore();
+
+  const currencySymbol = (() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[currency] || '$';
+  })();
 
   const plannedCost = parseFloat(purchaseDetails.plannedCost) || 0;
   const savedAmount = parseFloat(purchaseDetails.savedAmount) || 0;
@@ -72,7 +77,7 @@ export default function PurchaseDetailsPage() {
               Planned Cost <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
               <input
                 type="number"
                 min="0"
@@ -89,7 +94,7 @@ export default function PurchaseDetailsPage() {
               Saved Amount <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
               <input
                 type="number"
                 min="0"
@@ -127,7 +132,7 @@ export default function PurchaseDetailsPage() {
           <div>
             <label className="block font-label-md text-label-md mb-2 text-on-surface">Cash Needed</label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
               <input
                 type="text"
                 readOnly
@@ -154,7 +159,7 @@ export default function PurchaseDetailsPage() {
           </div>
           <p className="font-h1 text-secondary text-3xl">
             {installmentAmount > 0
-              ? `$${installmentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              ? `${currencySymbol}${installmentAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
               : "—"}
           </p>
           <p className="text-[10px] text-on-surface-variant/60 mt-1">

@@ -16,20 +16,10 @@ type SpendingPlan = {
   file_url: string | null;
 };
 
+import { useApplicationStore } from "@/lib/store";
+
 function parseAmount(n: string | number | null) {
   return typeof n === 'number' ? n : parseFloat(n ?? '');
-}
-
-function currency(n: string | number | null) {
-  const v = parseAmount(n);
-  if (!Number.isFinite(v)) return "$0.00";
-
-  const amount = Math.abs(v).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  return `${v < 0 ? '-' : ''}$${amount}`;
 }
 
 function plannedCost(plan: SpendingPlan) {
@@ -83,6 +73,24 @@ interface ApplicationsViewProps {
 
 export default function ApplicationsView({ applications, profileComplete }: ApplicationsViewProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
+  const currencyCode = useApplicationStore(state => state.currency);
+
+  const currencySymbol = useMemo(() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[currencyCode] || '$';
+  }, [currencyCode]);
+
+  const formatCurrency = (n: string | number | null) => {
+    const v = parseAmount(n);
+    if (!Number.isFinite(v)) return `${currencySymbol}0.00`;
+
+    const amount = Math.abs(v).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    return `${v < 0 ? '-' : ''}${currencySymbol}${amount}`;
+  };
 
   const summary = useMemo(() => {
     const activePlans = applications.filter((plan) => plan.status !== 'paused');
@@ -145,9 +153,9 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           {[
-            { label: 'Budgeted Spend', value: currency(summary.planned), icon: 'account_balance_wallet' },
-            { label: 'Saved Toward Goals', value: currency(summary.saved), icon: 'savings' },
-            { label: 'Monthly Bills', value: currency(summary.monthly), icon: 'receipt_long' },
+            { label: 'Budgeted Spend', value: formatCurrency(summary.planned), icon: 'account_balance_wallet' },
+            { label: 'Saved Toward Goals', value: formatCurrency(summary.saved), icon: 'savings' },
+            { label: 'Monthly Bills', value: formatCurrency(summary.monthly), icon: 'receipt_long' },
             { label: 'Goal Progress', value: `${summary.progress}%`, icon: 'trending_up' },
           ].map((item) => (
             <div key={item.label} className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
@@ -173,7 +181,7 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
           </div>
           <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-on-surface-variant sm:grid-cols-3">
             <span><strong className="block text-on-surface">{summary.activePlans.length}</strong>active plans</span>
-            <span><strong className="block text-on-surface">{currency(Math.max(0, summary.planned - summary.saved))}</strong>cash still needed</span>
+            <span><strong className="block text-on-surface">{formatCurrency(Math.max(0, summary.planned - summary.saved))}</strong>cash still needed</span>
           </div>
         </div>
 
@@ -226,10 +234,10 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-3 text-sm text-on-surface-variant md:grid-cols-5">
-                        <span><strong className="block text-on-surface">{currency(cost)}</strong>Budget</span>
-                        <span><strong className="block text-on-surface">{currency(saved)}</strong>Saved</span>
-                        <span><strong className="block text-on-surface">{currency(remaining)}</strong>Cash needed</span>
-                        <span><strong className="block text-on-surface">{currency(monthly)}</strong>Monthly bill</span>
+                        <span><strong className="block text-on-surface">{formatCurrency(cost)}</strong>Budget</span>
+                        <span><strong className="block text-on-surface">{formatCurrency(saved)}</strong>Saved</span>
+                        <span><strong className="block text-on-surface">{formatCurrency(remaining)}</strong>Cash needed</span>
+                        <span><strong className="block text-on-surface">{formatCurrency(monthly)}</strong>Monthly bill</span>
                         <span><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
                       </div>
                     </div>
@@ -250,19 +258,19 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
                         <div className="rounded-lg bg-surface p-4">
                           <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Budget</p>
                           <p className="mt-3 text-sm text-on-surface-variant">
-                            Planned cost {currency(cost)} with {currency(saved)} already saved.
+                            Planned cost {formatCurrency(cost)} with {formatCurrency(saved)} already saved.
                           </p>
                         </div>
                         <div className="rounded-lg bg-surface p-4">
                           <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Bill Forecast</p>
                           <p className="mt-3 text-sm text-on-surface-variant">
-                            {currency(monthly)} per month over {plan.tenure_months || 0} months for cash-flow planning.
+                            {formatCurrency(monthly)} per month over {plan.tenure_months || 0} months for cash-flow planning.
                           </p>
                         </div>
                         <div className="rounded-lg bg-surface p-4">
                           <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Savings Goal</p>
                           <p className="mt-3 text-sm text-on-surface-variant">
-                            {progress}% complete with {currency(remaining)} still needed.
+                            {progress}% complete with {formatCurrency(remaining)} still needed.
                           </p>
                         </div>
                       </div>

@@ -9,8 +9,13 @@ import { createClient } from "@/utils/supabase/client";
 export default function SummaryPage() {
   const router = useRouter();
 
-  const { purchaseDetails, fileUrl, setLastReference } = useApplicationStore();
+  const { purchaseDetails, fileUrl, setLastReference, currency } = useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const currencySymbol = (() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[currency] || '$';
+  })();
 
   const plannedCost = parseFloat(purchaseDetails.plannedCost) || 0;
   const savedAmount = parseFloat(purchaseDetails.savedAmount) || 0;
@@ -109,11 +114,11 @@ export default function SummaryPage() {
       title: "Spending Plan Details",
       data: [
         { label: "Planned Item", value: purchaseDetails.productName },
-        { label: "Planned Cost", value: `$${plannedCost.toFixed(2)}` },
-        { label: "Saved Amount", value: `$${savedAmount.toFixed(2)}` },
-        { label: "Cash Needed", value: `$${balanceAmount.toFixed(2)}` },
+        { label: "Planned Cost", value: `${currencySymbol}${plannedCost.toFixed(2)}` },
+        { label: "Saved Amount", value: `${currencySymbol}${savedAmount.toFixed(2)}` },
+        { label: "Cash Needed", value: `${currencySymbol}${balanceAmount.toFixed(2)}` },
         { label: "Plan Length", value: `${tenureMonths} months` },
-        { label: "Estimated Monthly Commitment", value: `$${monthlyCommitment.toFixed(2)}` },
+        { label: "Estimated Monthly Commitment", value: `${currencySymbol}${monthlyCommitment.toFixed(2)}` },
       ],
     },
     ...(fileUrl ? [{
