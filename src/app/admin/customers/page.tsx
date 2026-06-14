@@ -27,7 +27,7 @@ export default async function AdminCustomersPage() {
     .order('created_at', { ascending: false })
 
   const { data: apps } = await appQuery
-  const uniqueUserIds = [...new Set((apps ?? []).map(a => a.user_id).filter(Boolean))]
+  const uniqueUserIds = [...new Set((apps ?? []).map((a: any) => a.user_id).filter(Boolean))]
 
   const { data: customers } = uniqueUserIds.length > 0
     ? await supabase

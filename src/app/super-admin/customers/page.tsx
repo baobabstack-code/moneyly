@@ -14,7 +14,7 @@ export default async function SuperAdminCustomersPage() {
     .from('spending_plans')
     .select('user_id')
 
-  const uniqueUserIds = [...new Set((apps ?? []).map(a => a.user_id).filter(Boolean))]
+  const uniqueUserIds = [...new Set((apps ?? []).map((a: any) => a.user_id).filter(Boolean))]
 
   const { data: customers } = uniqueUserIds.length > 0
     ? await supabase
