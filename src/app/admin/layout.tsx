@@ -30,13 +30,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
     redirect('/dashboard')
   }
 
-  // stores table does not have admin_id anymore, query the first store for context
-  const { data: store } = await supabase
-    .from('stores')
-    .select('id, name')
-    .limit(1)
-    .single()
-
   const displayName = isImpersonating
     ? impersonation!.targetName
     : (profile?.first_name || profile?.full_name?.split(' ')[0] || user.email || '')
@@ -51,9 +44,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold uppercase tracking-widest">
           Admin
         </span>
-        {store && (
-          <span className="hidden sm:block text-on-surface-variant/60 text-sm">{store.name}</span>
-        )}
       </header>
 
       {/* ── Body: sidebar + page content ── */}
@@ -61,7 +51,6 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <AdminSidebar
           user={{ email: isImpersonating ? (impersonation!.targetName) : (user.email ?? ''), displayName }}
           role={isImpersonating ? 'admin' : (profile?.role as 'admin' | 'super_admin')}
-          storeName={store?.name}
         />
         <main className="flex-1 min-w-0 px-6 py-8 md:px-10 pb-24 lg:pb-8">{children}</main>
       </div>

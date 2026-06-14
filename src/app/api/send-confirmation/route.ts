@@ -45,7 +45,7 @@ export async function POST(req: Request) {
     const base64Data = pdfBase64.split(',')[1] || pdfBase64;
 
     const { data, error } = await resend.emails.send({
-      from: 'Moneyly <notifications@htbglobal.app>', // Change to your verified domain
+      from: 'Moneyly <notifications@moneyly.app>', // Change to your verified domain
       to: email,
       subject: `Spending Plan Saved: ${reference}`,
       html: `

@@ -67,10 +67,10 @@ describe('updateSession — ?next= param in redirect', () => {
 
   afterEach(() => jest.clearAllMocks())
 
-  it('includes ?next=/store-selection when redirecting from /store-selection', async () => {
-    const res = await updateSession(req('/store-selection'))
+  it('includes ?next=/plan/details when redirecting from /plan/details', async () => {
+    const res = await updateSession(req('/plan/details'))
     expect(res.status).toBe(307)
-    expect(redirectParams(res).get('next')).toBe('/store-selection')
+    expect(redirectParams(res).get('next')).toBe('/plan/details')
   })
 
   it('includes ?next=/dashboard when redirecting from /dashboard', async () => {
@@ -89,7 +89,7 @@ describe('updateSession — ?next= param in redirect', () => {
   })
 
   it('redirects to /login (correct pathname)', async () => {
-    const res = await updateSession(req('/store-selection'))
+    const res = await updateSession(req('/plan/details'))
     const loc = new URL(redirectLocation(res)!, 'http://localhost:3000')
     expect(loc.pathname).toBe('/login')
   })
@@ -126,8 +126,8 @@ describe('updateSession — authenticated user has no ?next= redirect', () => {
 
   afterEach(() => jest.clearAllMocks())
 
-  it('passes /store-selection through without redirect', async () => {
-    const res = await updateSession(req('/store-selection'))
+  it('passes /plan/details through without redirect', async () => {
+    const res = await updateSession(req('/plan/details'))
     expect(res.status).not.toBe(307)
     expect(redirectLocation(res)).toBeNull()
   })

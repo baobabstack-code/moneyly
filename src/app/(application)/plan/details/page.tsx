@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 
 export default function PurchaseDetailsPage() {
   const router = useRouter();
-  const { purchaseDetails, setPurchaseDetails, selectedStoreName } = useApplicationStore();
+  const { purchaseDetails, setPurchaseDetails } = useApplicationStore();
 
   const plannedCost = parseFloat(purchaseDetails.plannedCost) || 0;
   const savedAmount = parseFloat(purchaseDetails.savedAmount) || 0;
@@ -21,21 +21,15 @@ export default function PurchaseDetailsPage() {
       <div className="mb-stack-lg">
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
-            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 2 of 4</span>
+            <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 1 of 3</span>
             <h1 className="font-h1 text-primary mb-2">Planned Purchase</h1>
             <p className="font-body-md text-on-surface-variant max-w-xl">
-              Enter the item, budget, saved amount, and monthly planning window.
+              Enter the item details, budget, saved amount, and planning length.
             </p>
           </div>
-          {selectedStoreName && (
-            <div className="flex items-center gap-2 shrink-0 bg-secondary/10 border border-secondary/20 px-4 py-2 rounded-xl">
-              <span className="material-symbols-outlined text-secondary text-sm">store</span>
-              <span className="text-secondary font-bold text-sm">{selectedStoreName}</span>
-            </div>
-          )}
         </div>
         <div className="mt-6 relative w-full h-2 bg-outline-variant rounded-full overflow-hidden shadow-inner">
-          <div className="absolute left-0 top-0 h-full bg-secondary w-[50%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
+          <div className="absolute left-0 top-0 h-full bg-secondary w-[33%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
         </div>
       </div>
 
@@ -43,17 +37,32 @@ export default function PurchaseDetailsPage() {
         <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Plan Information</h2>
 
         {/* Product Name */}
-        <div>
-          <label className="block font-label-md text-label-md mb-2 text-on-surface">
-            Item or Goal Name <span className="text-red-500">*</span>
-          </label>
-          <input
-            type="text"
-            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
-            placeholder="e.g. New laptop, school fees, family trip"
-            value={purchaseDetails.productName}
-            onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
-          />
+        {/* Item & Store Name */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Item or Goal Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="e.g. New laptop, school fees, family trip"
+              value={purchaseDetails.productName}
+              onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+              Store / Source <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+              placeholder="e.g. Amazon, Bank, Supermarket"
+              value={purchaseDetails.storeName || ""}
+              onChange={(e) => setPurchaseDetails({ storeName: e.target.value })}
+            />
+          </div>
         </div>
 
         {/* Pricing */}
@@ -158,7 +167,7 @@ export default function PurchaseDetailsPage() {
       <div className="mt-8 hidden lg:flex justify-between items-center">
         <button
           type="button"
-          onClick={() => router.push("/plan/store")}
+          onClick={() => router.push("/dashboard")}
           className="flex items-center gap-2 px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-all font-medium text-sm"
         >
           <span className="material-symbols-outlined text-sm">arrow_back</span>
@@ -167,7 +176,7 @@ export default function PurchaseDetailsPage() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!purchaseDetails.productName || !purchaseDetails.plannedCost || !purchaseDetails.tenureMonths}
+          disabled={!purchaseDetails.productName || !purchaseDetails.storeName || !purchaseDetails.plannedCost || !purchaseDetails.tenureMonths}
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Continue

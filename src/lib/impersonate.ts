@@ -1,4 +1,4 @@
-export const IMPERSONATE_COOKIE = 'htb_impersonate'
+export const IMPERSONATE_COOKIE = 'moneyly_impersonate'
 
 export interface ImpersonationData {
   targetUserId: string

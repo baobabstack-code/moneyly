@@ -13,6 +13,7 @@ type PlanPdfData = {
     plannedCost?: string;
     savedAmount?: string;
     tenureMonths?: string;
+    storeName?: string;
   };
   selectedStoreName?: string;
   lastReference?: string;
@@ -67,7 +68,7 @@ export async function generatePlanPDF(data: PlanPdfData) {
       ['Customer Name', data.customerName || 'N/A'],
     ]},
     { title: 'Source Details', rows: [
-      ['Source / Store', data.selectedStoreName || 'N/A'],
+      ['Source / Store', data.purchaseDetails?.storeName || data.selectedStoreName || 'N/A'],
     ]},
     { title: 'Spending Plan Details', rows: [
       ['Planned Item', data.purchaseDetails?.productName || 'N/A'],

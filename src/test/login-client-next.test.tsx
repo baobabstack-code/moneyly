@@ -99,10 +99,10 @@ describe('LoginClient — email sign-in respects next prop', () => {
     })
   })
 
-  it('redirects to /store-selection after successful sign-in', async () => {
-    render(<LoginClient next="/store-selection" />)
+  it('redirects to /plan/details after successful sign-in', async () => {
+    render(<LoginClient next="/plan/details" />)
     await submitEmailLogin()
-    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/store-selection'))
+    await waitFor(() => expect(mockPush).toHaveBeenCalledWith('/plan/details'))
   })
 
   it('redirects to a deep apply path after successful sign-in', async () => {
@@ -128,7 +128,7 @@ describe('LoginClient — email sign-in respects next prop', () => {
       error: authError,
     })
 
-    render(<LoginClient next="/store-selection" />)
+    render(<LoginClient next="/plan/details" />)
     await submitEmailLogin()
 
     await waitFor(() =>
@@ -144,7 +144,7 @@ describe('LoginClient — email sign-in respects next prop', () => {
       error: null,
     })
 
-    render(<LoginClient next="/store-selection" />)
+    render(<LoginClient next="/plan/details" />)
     await submitEmailLogin()
 
     // Give the async handler time to settle
@@ -161,8 +161,8 @@ describe('LoginClient — Google OAuth encodes next in redirectTo', () => {
     mockSignInWithOAuth.mockResolvedValue({ error: null })
   })
 
-  it('includes encoded /store-selection as the next param in the OAuth redirect', async () => {
-    render(<LoginClient next="/store-selection" />)
+  it('includes encoded /plan/details as the next param in the OAuth redirect', async () => {
+    render(<LoginClient next="/plan/details" />)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /continue with google/i }))
@@ -173,7 +173,7 @@ describe('LoginClient — Google OAuth encodes next in redirectTo', () => {
     const [call] = mockSignInWithOAuth.mock.calls
     const redirectTo: string = call[0].options.redirectTo
     expect(redirectTo).toContain('/auth/callback')
-    expect(redirectTo).toContain(encodeURIComponent('/store-selection'))
+    expect(redirectTo).toContain(encodeURIComponent('/plan/details'))
   })
 
   it('defaults OAuth redirectTo to /dashboard when no next prop is supplied', async () => {
@@ -191,7 +191,7 @@ describe('LoginClient — Google OAuth encodes next in redirectTo', () => {
   })
 
   it('uses the correct OAuth provider (google)', async () => {
-    render(<LoginClient next="/store-selection" />)
+    render(<LoginClient next="/plan/details" />)
 
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /continue with google/i }))
@@ -222,8 +222,8 @@ describe('LoginClient — sign-up email link encodes next', () => {
     })
   }
 
-  it('includes encoded /store-selection in the email verification link', async () => {
-    render(<LoginClient next="/store-selection" />)
+  it('includes encoded /plan/details in the email verification link', async () => {
+    render(<LoginClient next="/plan/details" />)
     await switchToSignUp()
     await fillAndSubmitSignUp()
 
@@ -232,11 +232,11 @@ describe('LoginClient — sign-up email link encodes next', () => {
     const [call] = mockSignUp.mock.calls
     const emailRedirectTo: string = call[0].options.emailRedirectTo
     expect(emailRedirectTo).toContain('/auth/callback')
-    expect(emailRedirectTo).toContain(encodeURIComponent('/store-selection'))
+    expect(emailRedirectTo).toContain(encodeURIComponent('/plan/details'))
   })
 
   it('shows a verification-sent message after sign-up and does not navigate', async () => {
-    render(<LoginClient next="/store-selection" />)
+    render(<LoginClient next="/plan/details" />)
     await switchToSignUp()
     await fillAndSubmitSignUp()
 

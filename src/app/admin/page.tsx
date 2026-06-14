@@ -15,30 +15,9 @@ export default async function AdminDashboardPage() {
   const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value)
   const viewUserId = impersonation?.targetUserId ?? user.id
 
-  // Query stores instead of business_partners; since admin_id is dropped, grab the first store for dashboard context
-  const { data: store } = await supabase
-    .from('stores')
-    .select('id, name')
-    .limit(1)
-    .single()
-
-  if (!store) {
-    return (
-      <div className="w-full">
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-3">Admin Dashboard</h1>
-        <p className="text-on-surface-variant">
-          No plan source is available in the database.{' '}
-          <Link href="/super-admin/stores" className="text-secondary font-bold hover:underline">
-            Manage stores
-          </Link>
-        </p>
-      </div>
-    )
-  }
-
   const [{ count: total }, { count: pending }] = await Promise.all([
-    supabase.from('spending_plans').select('id', { count: 'exact', head: true }).eq('store_id', store.id),
-    supabase.from('spending_plans').select('id', { count: 'exact', head: true }).eq('store_id', store.id).eq('status', 'active'),
+    supabase.from('spending_plans').select('id', { count: 'exact', head: true }),
+    supabase.from('spending_plans').select('id', { count: 'exact', head: true }).eq('status', 'active'),
   ])
 
   return (
@@ -46,8 +25,8 @@ export default async function AdminDashboardPage() {
 
       {/* Page heading */}
       <div>
-        <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">{store.name}</h1>
-        <p className="text-on-surface-variant text-sm">Plan source dashboard</p>
+        <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Admin Dashboard</h1>
+        <p className="text-on-surface-variant text-sm">Personal finance plans overview</p>
       </div>
 
       {/* Stat cards */}

@@ -25,12 +25,12 @@ describe('generatePlanPDF', () => {
   it('includes spending plan details in the generated table data', async () => {
     const pdf = await generatePlanPDF({
       customerName: 'John Doe',
-      selectedStoreName: 'TV Sales & Home',
       purchaseDetails: {
         productName: 'Smart TV',
         plannedCost: '500.00',
         savedAmount: '200.00',
         tenureMonths: '6',
+        storeName: 'TV Sales & Home',
       },
     });
 

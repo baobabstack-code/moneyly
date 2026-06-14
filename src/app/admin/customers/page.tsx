@@ -21,32 +21,10 @@ export default async function AdminCustomersPage() {
     .eq('id', viewUserId)
     .single()
 
-  let storeId: number | null = null
-  let storeName: string | undefined
-
-  const effectiveRole = impersonation ? 'admin' : profile?.role
-  if (effectiveRole === 'admin') {
-    const { data: store } = await supabase
-      .from('stores')
-      .select('id, name')
-      .limit(1)
-      .single()
-
-    if (!store) {
-      return <p className="text-on-surface-variant">No store assigned to your account.</p>
-    }
-    storeId = store.id
-    storeName = store.name
-  }
-
   let appQuery = supabase
     .from('spending_plans')
     .select('user_id')
     .order('created_at', { ascending: false })
-
-  if (storeId !== null) {
-    appQuery = appQuery.eq('store_id', storeId)
-  }
 
   const { data: apps } = await appQuery
   const uniqueUserIds = [...new Set((apps ?? []).map(a => a.user_id).filter(Boolean))]
@@ -58,5 +36,5 @@ export default async function AdminCustomersPage() {
         .in('id', uniqueUserIds)
     : { data: [] }
 
-  return <CustomersClient customers={customers ?? []} storeName={storeName} />
+  return <CustomersClient customers={customers ?? []} />
 }

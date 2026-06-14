@@ -14,11 +14,6 @@ export interface ApplicationState {
   /** Last saved spending plan reference number */
   lastReference: string;
   setLastReference: (ref: string) => void;
-  
-  /** Purchase Source (Store/Category) */
-  selectedStoreId: number | null;
-  selectedStoreName: string;
-  setSelectedStore: (id: number, name: string) => void;
 
   /** Planned Purchase Details */
   purchaseDetails: {
@@ -26,6 +21,7 @@ export interface ApplicationState {
     plannedCost: string;
     savedAmount: string;
     tenureMonths: string;
+    storeName: string;
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
 
@@ -40,13 +36,12 @@ export interface ApplicationState {
 const initialState = {
   notifications: [],
   lastReference: '',
-  selectedStoreId: null,
-  selectedStoreName: "",
   purchaseDetails: {
     productName: "",
     plannedCost: "",
     savedAmount: "",
     tenureMonths: "",
+    storeName: "",
   },
   fileUrl: "",
 };
@@ -64,8 +59,6 @@ export const useApplicationStore = create<ApplicationState>()(
         })),
       clearNotifications: () => set({ notifications: [] }),
       setLastReference: (ref) => set({ lastReference: ref }),
-      setSelectedStore: (id, name) =>
-        set({ selectedStoreId: id, selectedStoreName: name }),
       setPurchaseDetails: (details) =>
         set((state) => ({
           purchaseDetails: { ...state.purchaseDetails, ...details },

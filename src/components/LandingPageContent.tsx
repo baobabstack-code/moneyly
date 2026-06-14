@@ -35,7 +35,7 @@ export default function LandingPageContent() {
                 <span className="material-symbols-outlined text-lg">arrow_forward</span>
               </Link>
               <Link
-                href="/store-selection"
+                href="/plan/details"
                 className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/25 bg-white/10 px-6 py-4 text-sm font-black text-white backdrop-blur transition-all hover:bg-white/15 active:scale-95"
               >
                 Plan a Purchase

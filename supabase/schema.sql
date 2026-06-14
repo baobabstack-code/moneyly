@@ -1,5 +1,5 @@
 -- ============================================================
--- HTB GLOBAL — Complete Database Schema
+-- Moneyly — Complete Database Schema
 -- Run this in a fresh Supabase project SQL Editor
 -- ============================================================
 

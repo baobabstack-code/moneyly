@@ -1,5 +1,5 @@
 -- ============================================================
--- HTB Global: Complete User Profile Table
+-- Moneyly: Complete User Profile Table
 -- Run this in the Supabase SQL Editor
 -- ============================================================
 

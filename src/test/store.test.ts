@@ -7,31 +7,22 @@ describe('useApplicationStore', () => {
 
   it('has correct initial state', () => {
     const state = useApplicationStore.getState();
-    expect(state.selectedStoreId).toBeNull();
-    expect(state.selectedStoreName).toBe('');
     expect(state.purchaseDetails.productName).toBe('');
     expect(state.purchaseDetails.plannedCost).toBe('');
     expect(state.purchaseDetails.savedAmount).toBe('');
     expect(state.purchaseDetails.tenureMonths).toBe('');
+    expect(state.purchaseDetails.storeName).toBe('');
     expect(state.fileUrl).toBe('');
   });
 
-  it('setSelectedStore updates store id and name', () => {
-    const { setSelectedStore } = useApplicationStore.getState();
-    setSelectedStore(1, 'Test Store');
-    
-    const state = useApplicationStore.getState();
-    expect(state.selectedStoreId).toBe(1);
-    expect(state.selectedStoreName).toBe('Test Store');
-  });
-
-  it('setPurchaseDetails updates purchase details', () => {
+  it('setPurchaseDetails updates purchase details and storeName', () => {
     const { setPurchaseDetails } = useApplicationStore.getState();
-    setPurchaseDetails({ productName: 'Smart TV', plannedCost: '800.00' });
+    setPurchaseDetails({ productName: 'Smart TV', plannedCost: '800.00', storeName: 'Test Store' });
     
     const state = useApplicationStore.getState();
     expect(state.purchaseDetails.productName).toBe('Smart TV');
     expect(state.purchaseDetails.plannedCost).toBe('800.00');
+    expect(state.purchaseDetails.storeName).toBe('Test Store');
   });
 
   it('setFileUrl updates document file url', () => {
@@ -43,17 +34,16 @@ describe('useApplicationStore', () => {
   });
 
   it('resetStore resets all state', () => {
-    const { setSelectedStore, setPurchaseDetails, setFileUrl, resetStore } = useApplicationStore.getState();
+    const { setPurchaseDetails, setFileUrl, resetStore } = useApplicationStore.getState();
     
-    setSelectedStore(1, 'Test Store');
-    setPurchaseDetails({ productName: 'Laptop' });
+    setPurchaseDetails({ productName: 'Laptop', storeName: 'Test Store' });
     setFileUrl('https://example.com/file.pdf');
     
     resetStore();
     
     const state = useApplicationStore.getState();
-    expect(state.selectedStoreId).toBeNull();
     expect(state.purchaseDetails.productName).toBe('');
+    expect(state.purchaseDetails.storeName).toBe('');
     expect(state.fileUrl).toBe('');
   });
 

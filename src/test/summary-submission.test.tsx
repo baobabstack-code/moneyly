@@ -38,12 +38,12 @@ describe('SummaryPage submission', () => {
     useApplicationStore.getState().resetStore();
 
     const state = useApplicationStore.getState();
-    state.setSelectedStore(1, 'Test Store');
     state.setPurchaseDetails({
       productName: 'Laptop',
       plannedCost: '1200',
       savedAmount: '200',
       tenureMonths: '10',
+      storeName: 'Test Store',
     });
     state.setFileUrl('https://example.com/receipt.png');
   });
@@ -56,7 +56,6 @@ describe('SummaryPage submission', () => {
     await waitFor(() => expect(insert).toHaveBeenCalledTimes(1));
 
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
-      store_id: 1,
       store_name: 'Test Store',
       product_name: 'Laptop',
       planned_cost: 1200,

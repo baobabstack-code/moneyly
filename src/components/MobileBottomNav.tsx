@@ -13,7 +13,7 @@ import { usePathname } from "next/navigation";
 
 const navItems = [
   { name: "Home", href: "/dashboard", icon: "dashboard" },
-  { name: "Plan", href: "/store-selection", icon: "add_circle" },
+  { name: "Plan", href: "/plan/details", icon: "add_circle" },
   { name: "Plans", href: "/applications", icon: "pending_actions" },
 ];
 

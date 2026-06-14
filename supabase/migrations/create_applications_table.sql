@@ -1,5 +1,5 @@
 -- ============================================================
--- HTB Global: Loan Applications Table
+-- Moneyly: Spending Plans Table
 -- Run this once in the Supabase SQL Editor
 -- ============================================================
 

@@ -33,19 +33,7 @@ export default async function AdminApplicationsPage({
     .select('*')
     .order('created_at', { ascending: false })
 
-  const effectiveRole = impersonation ? 'admin' : profile?.role
-  if (effectiveRole === 'admin') {
-    const { data: store } = await supabase
-      .from('stores')
-      .select('id')
-      .limit(1)
-      .single()
 
-    if (!store) {
-      return <p className="text-on-surface-variant">No store available.</p>
-    }
-    query = query.eq('store_id', store.id)
-  }
 
   if (statusFilter) {
     query = query.eq('status', statusFilter)

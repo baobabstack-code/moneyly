@@ -31,7 +31,6 @@ export default function ApplicationLayoutShell({
   const avatarUrl = profile.avatar_url || user.user_metadata?.avatar_url || user.user_metadata?.picture;
 
   const steps = [
-    { name: "Source", href: "/plan/store", icon: "storefront" },
     { name: "Details", href: "/plan/details", icon: "receipt_long" },
     { name: "Files", href: "/plan/documents", icon: "upload_file" },
     { name: "Summary", href: "/plan/summary", icon: "fact_check" },
@@ -43,7 +42,7 @@ export default function ApplicationLayoutShell({
 
   const primaryNavItems = [
     { name: "Dashboard", href: "/dashboard", icon: "dashboard", tooltip: "View your account dashboard" },
-    { name: "New Plan", href: "/plan/store", icon: "add_circle", tooltip: "Create a new spending plan" },
+    { name: "New Plan", href: "/plan/details", icon: "add_circle", tooltip: "Create a new spending plan" },
     { name: "Spending Plans", href: "/applications", icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
   ];
 
@@ -57,7 +56,7 @@ export default function ApplicationLayoutShell({
     if (currentStepIndex > 0) {
       router.push(steps[currentStepIndex - 1].href);
     } else {
-      router.push("/plan/store");
+      router.push("/dashboard");
     }
   };
 
@@ -176,7 +175,7 @@ export default function ApplicationLayoutShell({
 
           <nav className="flex-1 py-6 px-4 space-y-1">
             {primaryNavItems.map((item) => {
-              const isActive = pathname === item.href || (item.href === "/plan/store" && pathname.startsWith("/plan"));
+              const isActive = pathname === item.href || (item.href === "/plan/details" && pathname.startsWith("/plan"));
               return (
                 <Link
                   key={item.name}
@@ -290,7 +289,7 @@ export default function ApplicationLayoutShell({
             <span className="material-symbols-outlined">home</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Home</span>
           </Link>
-          <Link href="/plan/store" className="flex flex-col items-center gap-1 text-secondary">
+          <Link href="/plan/details" className="flex flex-col items-center gap-1 text-secondary">
             <span className="material-symbols-outlined filled">add_circle</span>
             <span className="text-[10px] font-bold uppercase tracking-tighter">Plan</span>
           </Link>

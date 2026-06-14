@@ -9,7 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 export default function SummaryPage() {
   const router = useRouter();
 
-  const { purchaseDetails, selectedStoreName, selectedStoreId, fileUrl, setLastReference } = useApplicationStore();
+  const { purchaseDetails, fileUrl, setLastReference } = useApplicationStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const plannedCost = parseFloat(purchaseDetails.plannedCost) || 0;
@@ -38,8 +38,7 @@ export default function SummaryPage() {
         user_id:          user?.id ?? null,
         reference,
         status:           'active',
-        store_id:         selectedStoreId,
-        store_name:       selectedStoreName,
+        store_name:       purchaseDetails.storeName,
         product_name:     purchaseDetails.productName,
         planned_cost:     plannedCost,
         saved_amount:     savedAmount,
@@ -55,7 +54,6 @@ export default function SummaryPage() {
       // Generate PDF with simplified personal finance details
       const planData = {
         purchaseDetails,
-        selectedStoreName,
         lastReference: reference,
         fileUrl,
         customerName: profile?.full_name || user?.email || 'Valued Member',
@@ -102,9 +100,9 @@ export default function SummaryPage() {
 
   const sections = [
     {
-      title: "Plan Source",
+      title: "Store / Source",
       data: [
-        { label: "Category / Store", value: selectedStoreName },
+        { label: "Store or Vendor", value: purchaseDetails.storeName },
       ]
     },
     {
@@ -133,7 +131,7 @@ export default function SummaryPage() {
         <div className="flex items-end justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <span className="text-secondary font-bold text-[10px] uppercase tracking-widest block">Step 4 of 4</span>
+              <span className="text-secondary font-bold text-[10px] uppercase tracking-widest block">Step 3 of 3</span>
               <div className="group relative">
                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 cursor-help">help</span>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl text-center font-body-md normal-case tracking-normal">

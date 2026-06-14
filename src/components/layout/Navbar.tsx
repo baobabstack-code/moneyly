@@ -57,8 +57,11 @@ export default function Navbar({ initialUser }: NavbarProps) {
     <nav className="sticky top-0 w-full border-b bg-surface/80 backdrop-blur-md border-outline-variant z-50 font-manrope">
       <div className="flex justify-between items-center h-16 px-4 sm:px-8 max-w-container-max mx-auto w-full">
         <div className="flex items-center gap-4 sm:gap-8">
-          <Link href="/" className="text-xl font-black tracking-tighter text-primary">
-            Moneyly
+          <Link href="/" className="flex items-center gap-2">
+            <img src="/logo.svg" alt="Moneyly Logo" className="w-8 h-8" />
+            <span className="text-xl font-black tracking-tighter text-primary">
+              Moneyly
+            </span>
           </Link>
         </div>
         <div className="flex items-center gap-2 sm:gap-4">

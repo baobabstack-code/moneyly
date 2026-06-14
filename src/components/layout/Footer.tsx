@@ -5,7 +5,7 @@ export default function Footer() {
         <div className="flex flex-col items-center md:items-start gap-3">
           <span className="font-h3 text-primary tracking-tight">Moneyly</span>
           <p className="text-on-surface-variant text-center md:text-left leading-relaxed max-w-xs">
-            © 2026 DIGITAL ETHER. Moneyly is a personal money manager for budgets, bills, goals, and cash-flow.
+            © 2026 Vertex Software Labs trading as Baobab Stack. Moneyly is a personal money manager for budgets, bills, goals, and cash-flow.
           </p>
         </div>
         {/* <div className="flex flex-wrap justify-center gap-x-8 gap-y-4">

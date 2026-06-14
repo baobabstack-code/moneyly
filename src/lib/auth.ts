@@ -14,14 +14,4 @@ export async function getMyRole(): Promise<UserRole> {
   return (data?.role as UserRole) ?? 'customer'
 }
 
-export async function getMyStore() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return null
-  const { data } = await supabase
-    .from('stores')
-    .select('id, name')
-    .limit(1)
-    .single()
-  return data
-}
+

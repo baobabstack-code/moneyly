@@ -56,7 +56,7 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
       <div>
         <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Customers</h1>
         <p className="text-on-surface-variant text-sm">
-          {storeName ? `${customers.length} customer${customers.length !== 1 ? 's' : ''} for ${storeName}` : `${customers.length} customer${customers.length !== 1 ? 's' : ''} across all stores`}
+          {storeName ? `${customers.length} customer${customers.length !== 1 ? 's' : ''} for ${storeName}` : `${customers.length} customer${customers.length !== 1 ? 's' : ''}`}
         </p>
       </div>
 

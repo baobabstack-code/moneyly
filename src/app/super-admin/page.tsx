@@ -8,8 +8,8 @@ export default async function SuperAdminOverviewPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: stores }, { count: totalApps }, { count: pendingApps }] = await Promise.all([
-    supabase.from('stores').select('id, name, code, location, created_at').order('id', { ascending: true }),
+  const [{ count: totalUsers }, { count: totalApps }, { count: pendingApps }] = await Promise.all([
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
     supabase.from('spending_plans').select('id', { count: 'exact', head: true }),
     supabase.from('spending_plans').select('id', { count: 'exact', head: true }).eq('status', 'active'),
   ])
@@ -27,10 +27,10 @@ export default async function SuperAdminOverviewPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
         <div className="bg-surface border border-outline-variant rounded-2xl p-6 shadow-sm">
           <div className="w-10 h-10 bg-primary/10 text-primary rounded-xl flex items-center justify-center mb-4">
-            <span className="material-symbols-outlined">store</span>
+            <span className="material-symbols-outlined">group</span>
           </div>
-          <p className="text-on-surface-variant text-sm mb-1">Sources</p>
-          <p className="text-4xl font-bold text-primary">{stores?.length ?? 0}</p>
+          <p className="text-on-surface-variant text-sm mb-1">Total Users</p>
+          <p className="text-4xl font-bold text-primary">{totalUsers ?? 0}</p>
         </div>
         <div className="bg-secondary text-on-secondary rounded-2xl p-6 shadow-xl shadow-secondary/15 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10" />

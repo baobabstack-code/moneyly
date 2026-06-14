@@ -1,5 +1,5 @@
 -- ============================================================
--- HTB Global: Multi-Tenant Auth — Stores, Roles, RLS
+-- Moneyly: Multi-Tenant Auth — Stores, Roles, RLS
 -- Run in Supabase SQL Editor
 -- ============================================================
 

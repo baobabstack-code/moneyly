@@ -73,9 +73,7 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
         <div className="p-6 xs:p-8 md:p-10 flex flex-col min-h-full">
           {/* Logo Section */}
           <div className="flex flex-col items-center mb-8">
-            <div className="w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center font-black text-2xl shadow-xl shadow-primary/20 mb-4 transform transition-transform hover:scale-110 duration-300">
-              M
-            </div>
+            <img src="/logo.svg" alt="Moneyly Logo" className="w-16 h-16 mb-4 transform transition-transform hover:scale-110 duration-300" />
             <h1 className="text-2xl font-black text-primary tracking-tighter mb-1 text-center">Moneyly</h1>
             <p className="text-on-surface-variant text-xs font-bold uppercase tracking-widest text-center opacity-60">Personal Money Manager</p>
           </div>
