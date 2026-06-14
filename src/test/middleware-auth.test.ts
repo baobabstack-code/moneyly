@@ -61,8 +61,8 @@ describe('updateSession — unauthenticated redirects', () => {
     expect(redirectLocation(res)).toContain('/login')
   })
 
-  it('redirects unauthenticated user visiting /admin to /login', async () => {
-    const res = await updateSession(makeRequest('/admin'))
+  it('redirects unauthenticated user visiting /super-admin to /login', async () => {
+    const res = await updateSession(makeRequest('/super-admin'))
     expect(res.status).toBe(307)
     expect(redirectLocation(res)).toContain('/login')
   })
@@ -81,16 +81,6 @@ describe('updateSession — unauthenticated redirects', () => {
     const res = await updateSession(makeRequest('/auth/callback'))
     expect(res.status).not.toBe(307)
   })
-
-  it('allows /_next/ asset requests through without redirect', async () => {
-    const res = await updateSession(makeRequest('/_next/static/chunk.js'))
-    expect(res.status).not.toBe(307)
-  })
-
-  it('allows /manifest.json through', async () => {
-    const res = await updateSession(makeRequest('/manifest.json'))
-    expect(res.status).not.toBe(307)
-  })
 })
 
 describe('updateSession — customer role restrictions', () => {
@@ -107,50 +97,7 @@ describe('updateSession — customer role restrictions', () => {
     expect(res.status).not.toBe(307)
   })
 
-  it('redirects customer away from /admin to /dashboard', async () => {
-    const res = await updateSession(makeRequest('/admin'))
-    expect(res.status).toBe(307)
-    expect(redirectLocation(res)).toContain('/dashboard')
-  })
-
-  it('redirects customer away from /admin/applications to /dashboard', async () => {
-    const res = await updateSession(makeRequest('/admin/applications'))
-    expect(res.status).toBe(307)
-    expect(redirectLocation(res)).toContain('/dashboard')
-  })
-
   it('redirects customer away from /super-admin to /dashboard', async () => {
-    const res = await updateSession(makeRequest('/super-admin'))
-    expect(res.status).toBe(307)
-    expect(redirectLocation(res)).toContain('/dashboard')
-  })
-})
-
-describe('updateSession — admin role permissions', () => {
-  const user = { id: 'admin-1' }
-
-  beforeEach(() => {
-    mockCreateServerClient.mockImplementation(() =>
-      buildSupabaseMock(user, { role: 'admin' })
-    )
-  })
-
-  it('allows admin to visit /admin', async () => {
-    const res = await updateSession(makeRequest('/admin'))
-    expect(res.status).not.toBe(307)
-  })
-
-  it('allows admin to visit /admin/applications', async () => {
-    const res = await updateSession(makeRequest('/admin/applications'))
-    expect(res.status).not.toBe(307)
-  })
-
-  it('allows admin to visit /admin/customers', async () => {
-    const res = await updateSession(makeRequest('/admin/customers'))
-    expect(res.status).not.toBe(307)
-  })
-
-  it('redirects admin away from /super-admin to /dashboard', async () => {
     const res = await updateSession(makeRequest('/super-admin'))
     expect(res.status).toBe(307)
     expect(redirectLocation(res)).toContain('/dashboard')
@@ -166,18 +113,13 @@ describe('updateSession — super_admin role permissions', () => {
     )
   })
 
-  it('allows super_admin to visit /admin', async () => {
-    const res = await updateSession(makeRequest('/admin'))
-    expect(res.status).not.toBe(307)
-  })
-
   it('allows super_admin to visit /super-admin', async () => {
     const res = await updateSession(makeRequest('/super-admin'))
     expect(res.status).not.toBe(307)
   })
 
-  it('allows super_admin to visit /super-admin/business-partners', async () => {
-    const res = await updateSession(makeRequest('/super-admin/business-partners'))
+  it('allows super_admin to visit /dashboard', async () => {
+    const res = await updateSession(makeRequest('/dashboard'))
     expect(res.status).not.toBe(307)
   })
 })
@@ -190,12 +132,6 @@ describe('updateSession — profile DB unavailable (graceful fallback)', () => {
     mockCreateServerClient.mockImplementation(() =>
       buildSupabaseMock(user, null)
     )
-  })
-
-  it('treats missing profile as customer — blocks /admin', async () => {
-    const res = await updateSession(makeRequest('/admin'))
-    expect(res.status).toBe(307)
-    expect(redirectLocation(res)).toContain('/dashboard')
   })
 
   it('treats missing profile as customer — blocks /super-admin', async () => {

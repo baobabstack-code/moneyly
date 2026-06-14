@@ -77,7 +77,7 @@ export async function updateSession(request: NextRequest) {
   const impersonateCookie = request.cookies.get(IMPERSONATE_COOKIE)?.value
   const isImpersonating = Boolean(impersonateCookie)
 
-  if (user && !isImpersonating && (pathname.startsWith('/admin') || pathname.startsWith('/super-admin'))) {
+  if (user && !isImpersonating && pathname.startsWith('/super-admin')) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
@@ -86,11 +86,7 @@ export async function updateSession(request: NextRequest) {
 
     const role = profile?.role ?? 'customer'
 
-    if (pathname.startsWith('/super-admin') && role !== 'super_admin') {
-      return NextResponse.redirect(new URL('/dashboard', request.url))
-    }
-
-    if (pathname.startsWith('/admin') && role !== 'admin' && role !== 'super_admin') {
+    if (role !== 'super_admin') {
       return NextResponse.redirect(new URL('/dashboard', request.url))
     }
   }

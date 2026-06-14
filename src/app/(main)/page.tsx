@@ -15,7 +15,6 @@ export default async function Page() {
       .single()
 
     if (profile?.role === 'super_admin') redirect('/super-admin')
-    if (profile?.role === 'admin') redirect('/admin')
     redirect('/dashboard')
   }
 

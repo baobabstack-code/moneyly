@@ -25,9 +25,8 @@ export default async function ApplicationLayout({
 
   const profile = data as UserProfile | null;
 
-  // Admins and super_admins skip profile completion — send them to their dashboard
+  // Super admins skip profile completion — send them to their dashboard
   const role = (profile as any)?.role ?? 'customer'
-  if (role === 'admin') redirect('/admin')
   if (role === 'super_admin') redirect('/super-admin')
 
   if (!profile || !isProfileComplete(profile)) {

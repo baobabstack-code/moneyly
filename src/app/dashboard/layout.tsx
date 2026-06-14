@@ -32,7 +32,6 @@ export default async function DashboardLayout({ children }: { children: React.Re
   // When not impersonating, admins/super_admins redirect to their own views
   if (!isImpersonating) {
     const role = (profile as any)?.role ?? 'customer'
-    if (role === 'admin') redirect('/admin')
     if (role === 'super_admin') redirect('/super-admin')
   }
 

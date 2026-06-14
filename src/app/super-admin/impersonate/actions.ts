@@ -5,8 +5,10 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { IMPERSONATE_COOKIE } from '@/lib/impersonate'
 
-export async function startImpersonation(targetUserId: string, targetName: string, returnPath: string, targetRole: 'customer' | 'admin' = 'customer') {
+export async function startImpersonation(targetUserId: string, targetName: string, returnPath: string) {
   const supabase = await createClient()
+  if (!supabase) redirect('/login')
+
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
@@ -22,7 +24,7 @@ export async function startImpersonation(targetUserId: string, targetName: strin
   store.set(IMPERSONATE_COOKIE, JSON.stringify({
     targetUserId,
     targetName,
-    targetRole,
+    targetRole: 'customer',
     returnPath,
     startedAt: Date.now(),
   }), {
@@ -32,7 +34,7 @@ export async function startImpersonation(targetUserId: string, targetName: strin
     path: '/',
   })
 
-  redirect(targetRole === 'admin' ? '/admin' : '/dashboard')
+  redirect('/dashboard')
 }
 
 export async function stopImpersonation(returnPath: string) {

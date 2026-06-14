@@ -1,6 +1,6 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import AdminApplicationsClient from '@/app/admin/applications/AdminApplicationsClient'
+import AdminApplicationsClient from './AdminApplicationsClient'
 
 export const dynamic = 'force-dynamic'
 

@@ -2,10 +2,12 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import SuperAdminSidebar from '@/components/SuperAdminSidebar'
 import ImpersonationBanner from '@/components/ImpersonationBanner'
-import { SuperAdminMobileNav } from '@/components/AdminMobileNav'
+import { SuperAdminMobileNav } from '@/components/SuperAdminMobileNav'
 
 export default async function SuperAdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
+  if (!supabase) redirect('/login')
+  
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

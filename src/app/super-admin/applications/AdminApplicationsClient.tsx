@@ -74,13 +74,15 @@ export default function AdminApplicationsClient({
   async function updateStatus(id: string, status: string) {
     setUpdatingId(id)
     startTransition(async () => {
-      const { error } = await supabase
-        .from('spending_plans')
-        .update({ status })
-        .eq('id', id)
+      if (supabase) {
+        const { error } = await supabase
+          .from('spending_plans')
+          .update({ status })
+          .eq('id', id)
 
-      if (!error) {
-        setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)))
+        if (!error) {
+          setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)))
+        }
       }
       setUpdatingId(null)
     })

@@ -29,7 +29,6 @@ export default async function DashboardPage() {
       .single()
 
     if (roleRow?.role === 'super_admin') redirect('/super-admin')
-    if (roleRow?.role === 'admin') redirect('/admin')
   }
 
   // Fetch impersonated (or real) user's profile and spending plans
