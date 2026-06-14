@@ -223,4 +223,36 @@
   .pb-safe {
     padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
+
+  .shadow-glow {
+    box-shadow: 0 0 15px var(--color-secondary-glow);
+  }
+}
+
+/* Accent Color Custom Themes */
+[data-accent="green"] {
+  --color-secondary: #10b981;
+  --color-secondary-container: #059669;
+  --color-secondary-glow: rgba(16, 185, 129, 0.4);
+}
+[data-accent="purple"] {
+  --color-secondary: #a855f7;
+  --color-secondary-container: #7e22ce;
+  --color-secondary-glow: rgba(168, 85, 247, 0.4);
+}
+[data-accent="blue"] {
+  --color-secondary: #3b82f6;
+  --color-secondary-container: #1d4ed8;
+  --color-secondary-glow: rgba(59, 130, 246, 0.4);
+}
+[data-accent="orange"] {
+  --color-secondary: #f97316;
+  --color-secondary-container: #c2410c;
+  --color-secondary-glow: rgba(249, 115, 22, 0.4);
+}
+:root {
+  --color-secondary-glow: rgba(0, 81, 213, 0.25);
+}
+.dark {
+  --color-secondary-glow: rgba(59, 130, 246, 0.3);
 }

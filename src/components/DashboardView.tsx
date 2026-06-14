@@ -1,8 +1,10 @@
 'use client';
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { UserProfile } from "@/lib/profile";
+import { useApplicationStore, Transaction } from "@/lib/store";
+import OnboardingModal from "./OnboardingModal";
 
 type SpendingPlan = {
   id: string;
@@ -17,155 +19,150 @@ type SpendingPlan = {
   file_url: string | null;
 };
 
-type MetricCardProps = {
-  icon: string;
-  label: string;
-  value: string;
-  detail: string;
-  tone: string;
-};
-
-function parseAmount(n: string | number | null) {
-  return typeof n === 'number' ? n : parseFloat(n ?? '');
-}
-
-function currency(n: string | number | null) {
-  const v = parseAmount(n);
-  if (!Number.isFinite(v)) return "$0.00";
-
-  const amount = Math.abs(v).toLocaleString(undefined, {
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-
-  return `${v < 0 ? '-' : ''}$${amount}`;
-}
-
-function plannedCost(plan: SpendingPlan) {
-  return Math.max(0, parseAmount(plan.planned_cost) || 0);
-}
-
-function savedTowardPlan(plan: SpendingPlan) {
-  return Math.max(0, parseAmount(plan.saved_amount) || 0);
-}
-
-function remainingPlanCost(plan: SpendingPlan) {
-  return Math.max(0, plannedCost(plan) - savedTowardPlan(plan));
-}
-
-function monthlyBill(plan: SpendingPlan) {
-  const remaining = remainingPlanCost(plan);
-  return plan.tenure_months && remaining > 0 ? remaining / plan.tenure_months : 0;
-}
-
-function percent(part: number, total: number) {
-  return total > 0 ? Math.min(100, Math.round((part / total) * 100)) : 0;
-}
-
-function statusBadge(status: string | null) {
-  const map: Record<string, string> = {
-    completed: 'bg-status-success-bg text-status-success',
-    paused: 'bg-status-danger-bg text-status-danger',
-  };
-  return map[status ?? ''] ?? 'bg-status-info-bg text-status-info';
-}
-
-function statusIcon(status: string | null) {
-  if (status === 'completed') return 'check_circle';
-  if (status === 'paused') return 'pause_circle';
-  return 'schedule';
-}
-
-function statusLabel(status: string | null) {
-  if (status === 'completed') return 'completed';
-  if (status === 'paused') return 'paused';
-  return 'active';
-}
-
-function MetricCard({ icon, label, value, detail, tone }: MetricCardProps) {
-  return (
-    <div className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">{label}</p>
-          <p className="mt-3 text-2xl font-black text-primary">{value}</p>
-          <p className="mt-1 text-sm text-on-surface-variant">{detail}</p>
-        </div>
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-lg ${tone}`}>
-          <span className="material-symbols-outlined">{icon}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 interface Props {
   email: string;
   displayName: string;
   profile: UserProfile | null;
-  applications: SpendingPlan[]; // maps to the backend query result
+  applications: SpendingPlan[];
   profileComplete: boolean;
 }
 
 export default function DashboardView({ email, displayName, profile, applications }: Props) {
-  const [expanded, setExpanded] = useState<string | null>(null);
-  const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
+  const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze'>('expenses');
+  const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
+  const [hoveredBar, setHoveredBar] = useState<number | null>(null);
 
+  // Zustand Store Hooks
+  const setTransactions = useApplicationStore(state => state.setTransactions);
+  const setCategories = useApplicationStore(state => state.setCategories);
+  const updateProfilePreferences = useApplicationStore(state => state.updateProfilePreferences);
+  const transactions = useApplicationStore(state => state.transactions);
+  const categories = useApplicationStore(state => state.categories);
+  const accentColor = useApplicationStore(state => state.accentColor);
+  const currencyCode = useApplicationStore(state => state.currency);
+  const onboarded = useApplicationStore(state => state.onboarded);
+  const startingBalance = useApplicationStore(state => state.startingBalance);
+  const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
+  const addNotification = useApplicationStore(state => state.addNotification);
+
+  // Sync Supabase categories and transactions on mount
+  useEffect(() => {
+    if (profile) {
+      updateProfilePreferences({
+        starting_balance: parseFloat((profile as any).starting_balance) || 0,
+        currency: (profile as any).currency || 'USD',
+        accent_color: (profile as any).accent_color || 'green',
+        onboarded: !!(profile as any).onboarded
+      });
+    }
+
+    const loadData = async () => {
+      if (typeof window !== "undefined" && navigator.onLine) {
+        const { createClient } = await import("@/utils/supabase/client");
+        const supabase = createClient();
+        
+        const { data: cats } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
+        if (cats) setCategories(cats);
+
+        const { data: txs } = await supabase.from('transactions').select('*').order('date', { ascending: false });
+        if (txs) setTransactions(txs);
+
+        await syncOfflineData();
+      }
+    };
+    
+    loadData();
+
+    const handleOnline = () => {
+      syncOfflineData();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [profile]);
+
+  const currencySymbol = useMemo(() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[currencyCode] || '$';
+  }, [currencyCode]);
+
+  const formatCurrency = (n: number) => {
+    const v = Math.abs(n).toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    return `${n < 0 ? '-' : ''}${currencySymbol}${v}`;
+  };
+
+  // Compute stats based on transactions list
+  const stats = useMemo(() => {
+    const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+    const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const currentBalance = startingBalance + totalIncome - totalExpenses;
+    
+    // Group expenses by category
+    const expenseGroup: Record<string, { amount: number; emoji: string; name: string }> = {};
+    transactions.filter(t => t.type === 'expense').forEach(t => {
+      const catName = t.category_name || 'Other';
+      if (!expenseGroup[catName]) {
+        expenseGroup[catName] = { amount: 0, emoji: t.category_emoji || '🛍️', name: catName };
+      }
+      expenseGroup[catName].amount += t.amount;
+    });
+
+    const expensesByCategory = Object.values(expenseGroup).sort((a, b) => b.amount - a.amount);
+
+    return {
+      totalExpenses,
+      totalIncome,
+      currentBalance,
+      expensesByCategory
+    };
+  }, [transactions, startingBalance]);
+
+  // Compute spending plans metrics
   const money = useMemo(() => {
     const activePlans = applications.filter((plan) => plan.status !== 'paused');
-    const pausedPlans = applications.filter((plan) => plan.status === 'paused');
     const completedPlans = applications.filter((plan) => plan.status === 'completed');
-    const plannedSpend = activePlans.reduce((sum, plan) => sum + plannedCost(plan), 0);
-    const savedForGoals = activePlans.reduce((sum, plan) => sum + savedTowardPlan(plan), 0);
-    const remainingToFund = activePlans.reduce((sum, plan) => sum + remainingPlanCost(plan), 0);
-    const monthlyBills = activePlans.reduce((sum, plan) => sum + monthlyBill(plan), 0);
-    const documentsReady = activePlans.filter((plan) => plan.file_url).length;
-    const averagePlanLength = activePlans.length
-      ? Math.round(activePlans.reduce((sum, plan) => sum + (plan.tenure_months || 0), 0) / activePlans.length)
-      : 0;
-    const monthlyIncome = parseAmount(profile?.monthly_income ?? null);
-    const hasIncome = Number.isFinite(monthlyIncome) && monthlyIncome > 0;
-    const cashFlow = hasIncome ? monthlyIncome - monthlyBills : -monthlyBills;
-    const budgetLoad = hasIncome ? percent(monthlyBills, monthlyIncome) : percent(savedForGoals, plannedSpend);
-    const savingsProgress = percent(savedForGoals, plannedSpend);
+    
+    const plannedSpend = activePlans.reduce((sum, plan) => {
+      const val = typeof plan.planned_cost === 'number' ? plan.planned_cost : parseFloat(plan.planned_cost || '0');
+      return sum + (val || 0);
+    }, 0);
 
-    const insights = [
-      hasIncome
-        ? `Planned monthly commitments use ${budgetLoad}% of your monthly income.`
-        : 'Add your monthly income in profile settings to turn this into a real cash-flow forecast.',
-      activePlans.length
-        ? `${activePlans.length} active spending plan${activePlans.length === 1 ? '' : 's'} shape your current budget.`
-        : 'Create a spending plan to start tracking budgets, bills, and goals.',
-      completedPlans.length > 0
-        ? `You have successfully completed ${completedPlans.length} plan${completedPlans.length === 1 ? '' : 's'}!`
-        : 'Complete your savings targets to mark plans as finished.',
-      savingsProgress >= 50
-        ? 'Your saved goal contributions cover at least half of planned costs.'
-        : 'Small recurring deposits will improve your net worth snapshot over time.',
-    ];
+    const savedForGoals = activePlans.reduce((sum, plan) => {
+      const val = typeof plan.saved_amount === 'number' ? plan.saved_amount : parseFloat(plan.saved_amount || '0');
+      return sum + (val || 0);
+    }, 0);
+
+    const remainingToFund = Math.max(0, plannedSpend - savedForGoals);
+    const savingsProgress = plannedSpend > 0 ? Math.min(100, Math.round((savedForGoals / plannedSpend) * 100)) : 0;
 
     return {
       activePlans,
-      pausedPlans,
       completedPlans,
       plannedSpend,
       savedForGoals,
       remainingToFund,
-      monthlyBills,
-      documentsReady,
-      averagePlanLength,
-      monthlyIncome,
-      hasIncome,
-      cashFlow,
-      budgetLoad,
       savingsProgress,
-      insights,
     };
-  }, [applications, profile?.monthly_income]);
+  }, [applications]);
+
+  const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
   return (
-    <div className="font-manrope pb-20 lg:pb-0">
+    <div 
+      className="font-manrope pb-20 lg:pb-0 min-h-screen bg-slate-950/20"
+      data-accent={accentColor}
+    >
       <section className="w-full px-6 py-8 md:px-10 xl:px-12">
+        {/* Onboarding Trigger Check */}
+        {!onboarded && profile?.id && (
+          <OnboardingModal user_id={profile.id} />
+        )}
+
+        {/* Welcome Header */}
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Money Manager</p>
@@ -173,232 +170,422 @@ export default function DashboardView({ email, displayName, profile, application
               Welcome back, {firstName}
             </h1>
             <p className="mt-2 max-w-2xl text-on-surface-variant">
-              Track net worth, budgets, commitments, savings goals, spending plans, insights, and cash-flow from one place.
+              Track your net worth, transaction history, categories, accents, and offline syncing.
             </p>
           </div>
 
-          <div className="rounded-lg border border-outline-variant bg-surface px-4 py-3 text-sm shadow-sm">
-            <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Account</p>
-            <p className="mt-1 max-w-[260px] truncate font-bold text-on-surface">{email}</p>
+          <div className="rounded-2xl border border-outline-variant bg-surface px-4 py-3 text-sm shadow-sm flex items-center gap-3">
+            <span className="material-symbols-outlined text-secondary">wifi</span>
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Status</p>
+              <p className="font-bold text-on-surface">Offline Sync Capable</p>
+            </div>
           </div>
         </div>
 
-        <div className="space-y-8">
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <MetricCard
-              icon="account_balance_wallet"
-              label="Net Worth"
-              value={currency(money.savedForGoals)}
-              detail="Tracked from saved goal contributions"
-              tone="bg-status-success-bg text-status-success"
-            />
-            <MetricCard
-              icon="waterfall_chart"
-              label="Cash-Flow"
-              value={currency(money.cashFlow)}
-              detail={money.hasIncome ? "After planned monthly commitments" : "Planned outgoing until income is added"}
-              tone="bg-secondary/10 text-secondary"
-            />
-            <MetricCard
-              icon="receipt_long"
-              label="Commitments"
-              value={currency(money.monthlyBills)}
-              detail={`${money.activePlans.length} recurring planned item${money.activePlans.length === 1 ? '' : 's'}`}
-              tone="bg-status-warning-bg text-status-warning"
-            />
-            <MetricCard
-              icon="savings"
-              label="Savings Goals"
-              value={`${money.savingsProgress}%`}
-              detail={`${currency(money.savedForGoals)} saved toward ${currency(money.plannedSpend)}`}
-              tone="bg-status-info-bg text-status-info"
-            />
-          </div>
-
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,0.65fr)]">
-            <div className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
-              <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-primary">Budget Snapshot</h2>
-                  <p className="text-sm text-on-surface-variant">A simple view of planned purchases, goal savings, monthly commitments, and cash needed.</p>
-                </div>
-                <Link
-                  href="/plan/store"
-                  className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary transition-all hover:opacity-90 active:scale-95"
-                >
-                  <span className="material-symbols-outlined text-lg">add</span>
-                  New Plan
-                </Link>
+        {/* Dashboard Stat Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+          {/* Net Worth */}
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Net Worth Balance</p>
+                <h3 className="mt-3 text-2xl font-black text-primary">{formatCurrency(stats.currentBalance)}</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Includes starting holding</p>
               </div>
-
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
-                <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Budgets</p>
-                  <p className="mt-3 text-3xl font-black text-primary">{currency(money.plannedSpend)}</p>
-                  <p className="text-sm text-on-surface-variant">planned across spending plans</p>
-                </div>
-                <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Cash Needed</p>
-                  <p className="mt-3 text-3xl font-black text-primary">{currency(money.remainingToFund)}</p>
-                  <p className="text-sm text-on-surface-variant">left after goal deposits</p>
-                </div>
-                <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Plan Length</p>
-                  <p className="mt-3 text-3xl font-black text-primary">{money.averagePlanLength || 0}</p>
-                  <p className="text-sm text-on-surface-variant">average months</p>
-                </div>
-                <div className="rounded-lg bg-surface-container-low p-4">
-                  <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Docs Ready</p>
-                  <p className="mt-3 text-3xl font-black text-primary">{money.documentsReady}/{money.activePlans.length || 0}</p>
-                  <p className="text-sm text-on-surface-variant">supporting documents attached</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-outline-variant bg-primary p-5 text-on-primary shadow-sm">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-black">Cash-Flow</h2>
-                  <p className="text-sm text-on-primary/70">Forecast from profile income and planned commitments.</p>
-                </div>
-                <span className="material-symbols-outlined text-3xl text-on-primary/70">monitoring</span>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <div className="mb-2 flex items-center justify-between text-xs font-bold uppercase tracking-widest text-on-primary/70">
-                    <span>Budget Load</span>
-                    <span>{money.budgetLoad}%</span>
-                  </div>
-                  <div className="h-2 overflow-hidden rounded-full bg-white/15">
-                    <div className="h-full rounded-full bg-white" style={{ width: `${money.budgetLoad}%` }} />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3">
-                  <div className="rounded-lg bg-white/10 p-3">
-                    <p className="text-xs text-on-primary/70">Income tracked</p>
-                    <p className="mt-1 font-black">{money.hasIncome ? currency(money.monthlyIncome) : 'Add in settings'}</p>
-                  </div>
-                  <div className="rounded-lg bg-white/10 p-3">
-                    <p className="text-xs text-on-primary/70">Monthly commit</p>
-                    <p className="mt-1 font-black">{currency(money.monthlyBills)}</p>
-                  </div>
-                </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <span className="material-symbols-outlined text-2xl">account_balance_wallet</span>
               </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)]">
-            <div className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
-              <div className="mb-5 flex items-center justify-between gap-4">
-                <div>
-                  <h2 className="text-xl font-black text-primary">Insights</h2>
-                  <p className="text-sm text-on-surface-variant">Signals from your active plans.</p>
-                </div>
-                <span className="material-symbols-outlined text-2xl text-secondary">tips_and_updates</span>
+          {/* Income */}
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Total Income</p>
+                <h3 className="mt-3 text-2xl font-black text-emerald-500">{formatCurrency(stats.totalIncome)}</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Logged salaries & windfalls</p>
               </div>
-              <div className="space-y-3">
-                {money.insights.map((insight) => (
-                  <div key={insight} className="rounded-lg bg-surface-container-low p-4">
-                    <p className="text-sm font-bold leading-relaxed text-on-surface">{insight}</p>
-                  </div>
-                ))}
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-500">
+                <span className="material-symbols-outlined text-2xl">trending_up</span>
               </div>
             </div>
+          </div>
 
-            <div className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
-              <div className="mb-5 flex items-center justify-between">
-                <div>
-                  <h2 className="text-xl font-black text-primary">Spending Plans</h2>
-                  <p className="text-sm text-on-surface-variant">List of your active planned purchases and savings goals.</p>
-                </div>
-                <Link href="/applications" className="hidden text-sm font-bold text-secondary sm:inline-flex">
-                  View all
-                </Link>
+          {/* Expenses */}
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Total Expenses</p>
+                <h3 className="mt-3 text-2xl font-black text-rose-500">{formatCurrency(stats.totalExpenses)}</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">Food, bills, transport, shopping</p>
               </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-500/10 text-rose-500">
+                <span className="material-symbols-outlined text-2xl">trending_down</span>
+              </div>
+            </div>
+          </div>
 
-              <div className="space-y-3">
-                {applications.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-outline p-8 text-center">
-                    <span className="material-symbols-outlined mb-3 text-5xl text-on-surface-variant/30">playlist_add</span>
-                    <p className="font-bold text-on-surface">No spending plans yet.</p>
-                    <p className="mt-1 text-sm text-on-surface-variant">Add a planned purchase to start shaping budgets, goals, and cash-flow.</p>
-                    <Link
-                      href="/plan/store"
-                      className="mt-5 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
-                    >
-                      <span className="material-symbols-outlined text-lg">add</span>
-                      Create Plan
-                    </Link>
+          {/* Active Goals */}
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Savings Goal Progress</p>
+                <h3 className="mt-3 text-2xl font-black text-secondary">{money.savingsProgress}%</h3>
+                <p className="mt-1 text-xs text-on-surface-variant">{formatCurrency(money.savedForGoals)} of {formatCurrency(money.plannedSpend)}</p>
+              </div>
+              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <span className="material-symbols-outlined text-2xl">savings</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Filters */}
+        <div className="mb-6 flex gap-2 border-b border-outline-variant/30 pb-3 overflow-x-auto scrollbar-hide">
+          {(['expenses', 'balance', 'control', 'analyze'] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
+                activeTab === tab
+                  ? 'bg-secondary text-on-secondary shadow-md shadow-secondary/25'
+                  : 'text-on-surface-variant hover:text-primary bg-surface/50 border border-outline-variant/40'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Active Tab View */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
+          
+          {/* Main Sub-view content */}
+          <div className="lg:col-span-2 space-y-6">
+
+            {activeTab === 'expenses' && (
+              <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-black text-primary">Recent Transactions</h2>
+                    <p className="text-xs text-on-surface-variant">Log changes in real-time or offline</p>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {transactions.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
+                      <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">receipt_long</span>
+                      <p className="font-bold text-on-surface text-sm">No transactions logged</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">Tap Add in the nav bar below to log your first transaction.</p>
+                    </div>
+                  ) : (
+                    transactions.slice(0, 10).map((t) => (
+                      <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/45 p-4 border border-outline-variant/20 hover:border-outline-variant/60 transition-all">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
+                            {t.category_emoji || '🛒'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
+                            <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">{t.category_name || 'Expense'}</p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
+                            {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                          </p>
+                          <p className="text-[10px] text-on-surface-variant mt-0.5">
+                            {new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                          </p>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'balance' && (
+              <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                <div>
+                  <h2 className="text-xl font-black text-primary">Financial Net Worth</h2>
+                  <p className="text-xs text-on-surface-variant">Summary of current cash-flow balances and holdings</p>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                  <div className="rounded-2xl bg-surface-container-low p-4 border border-outline-variant/20">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Starting Balance</p>
+                    <p className="mt-2 text-xl font-black text-primary">{formatCurrency(startingBalance)}</p>
+                  </div>
+                  <div className="rounded-2xl bg-surface-container-low p-4 border border-outline-variant/20">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Cash Inflows</p>
+                    <p className="mt-2 text-xl font-black text-emerald-500">+{formatCurrency(stats.totalIncome)}</p>
+                  </div>
+                  <div className="rounded-2xl bg-surface-container-low p-4 border border-outline-variant/20">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Cash Outflows</p>
+                    <p className="mt-2 text-xl font-black text-rose-500">-{formatCurrency(stats.totalExpenses)}</p>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl bg-surface-container-low p-5 border border-outline-variant/35 flex items-center justify-between">
+                  <div>
+                    <h4 className="font-black text-primary text-sm">Offline Synchronization log</h4>
+                    <p className="text-xs text-on-surface-variant mt-1">Pending mutations queued: {useApplicationStore.getState().pendingMutations.length}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!navigator.onLine) {
+                        addNotification("You are currently offline. Connect to internet to sync.", "error");
+                        return;
+                      }
+                      await syncOfflineData();
+                    }}
+                    className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
+                  >
+                    Sync Now
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'control' && (
+              <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm">
+                <div className="mb-5 flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-black text-primary">Spending Plans</h2>
+                    <p className="text-xs text-on-surface-variant font-medium">Control goals, commitments and purchases</p>
+                  </div>
+                  <Link 
+                    href="/plan/details"
+                    className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
+                  >
+                    Add Plan
+                  </Link>
+                </div>
+
+                <div className="space-y-3">
+                  {applications.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
+                      <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">playlist_add</span>
+                      <p className="font-bold text-on-surface text-sm">No spending plans yet</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">Create plans to forecast budgets and savings goals.</p>
+                    </div>
+                  ) : (
+                    applications.map((plan) => {
+                      const cost = typeof plan.planned_cost === 'number' ? plan.planned_cost : parseFloat(plan.planned_cost || '0') || 0;
+                      const saved = typeof plan.saved_amount === 'number' ? plan.saved_amount : parseFloat(plan.saved_amount || '0') || 0;
+                      const progress = cost > 0 ? Math.min(100, Math.round((saved / cost) * 100)) : 0;
+                      const isExpanded = expandedPlan === plan.id;
+
+                      return (
+                        <div key={plan.id} className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-low/30">
+                          <div className="flex items-center justify-between p-4">
+                            <div>
+                              <p className="font-black text-primary text-sm">{plan.product_name || 'Planned Purchase'}</p>
+                              <p className="text-[10px] text-on-surface-variant mt-0.5">Budget: {formatCurrency(cost)} | Saved: {formatCurrency(saved)}</p>
+                            </div>
+                            <button
+                              onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}
+                              className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
+                            >
+                              {isExpanded ? 'Hide' : 'Details'}
+                            </button>
+                          </div>
+
+                          {isExpanded && (
+                            <div className="border-t border-outline-variant/35 bg-surface-container-low/60 p-4 space-y-3 animate-in fade-in duration-200">
+                              <div>
+                                <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
+                                  <span>Goal Progress</span>
+                                  <span>{progress}%</span>
+                                </div>
+                                <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                                  <div className="h-full bg-secondary rounded-full" style={{ width: `${progress}%` }} />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 text-xs text-on-surface-variant">
+                                <div>Store: <strong className="text-primary">{plan.store_name || 'N/A'}</strong></div>
+                                <div>Tenure: <strong className="text-primary">{plan.tenure_months ? `${plan.tenure_months} months` : 'N/A'}</strong></div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+            )}
+
+            {activeTab === 'analyze' && (
+              <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                <div>
+                  <h2 className="text-xl font-black text-primary">Interactive Expenses Distribution</h2>
+                  <p className="text-xs text-on-surface-variant">Hover over bars to inspect detailed spending totals</p>
+                </div>
+
+                {stats.expensesByCategory.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
+                    <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">bar_chart</span>
+                    <p className="font-bold text-on-surface text-sm">No expense history</p>
+                    <p className="mt-1 text-xs text-on-surface-variant font-medium">Log expenses to populate analytics visualization.</p>
                   </div>
                 ) : (
-                  applications.slice(0, 6).map((plan) => {
-                    const isOpen = expanded === plan.id;
-                    const cost = plannedCost(plan);
-                    const saved = savedTowardPlan(plan);
-                    const remaining = remainingPlanCost(plan);
-                    const bill = monthlyBill(plan);
-                    const progress = percent(saved, cost);
+                  <div className="space-y-6">
+                    {/* SVG Bar Chart */}
+                    <div className="relative h-64 w-full bg-slate-950/15 rounded-2xl p-4 border border-outline-variant/30 flex flex-col justify-end">
+                      <svg className="w-full h-48" viewBox="0 0 400 200" preserveAspectRatio="none">
+                        {(() => {
+                          const data = stats.expensesByCategory.slice(0, 5);
+                          const maxAmount = Math.max(...data.map(d => d.amount), 1);
+                          const barWidth = 50;
+                          const gap = 20;
+                          const totalWidth = data.length * barWidth + (data.length - 1) * gap;
+                          const startX = (400 - totalWidth) / 2;
 
-                    return (
-                      <div key={plan.id} className="overflow-hidden rounded-lg border border-outline-variant bg-surface">
-                        <div className="grid gap-4 p-4 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-surface-container text-on-surface-variant">
-                            <span className="material-symbols-outlined text-xl">{statusIcon(plan.status)}</span>
-                          </div>
-                          <div className="min-w-0">
-                            <div className="mb-2 flex flex-wrap items-center gap-2">
-                              <p className="truncate font-black text-primary">{plan.product_name || 'Planned purchase'}</p>
-                              <span className={`rounded-full px-2.5 py-1 text-[10px] font-black uppercase ${statusBadge(plan.status)}`}>
-                                {statusLabel(plan.status)}
-                              </span>
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 text-sm text-on-surface-variant sm:grid-cols-4">
-                              <span><strong className="block text-on-surface">{currency(cost)}</strong>Budget</span>
-                              <span><strong className="block text-on-surface">{currency(saved)}</strong>Saved</span>
-                              <span><strong className="block text-on-surface">{currency(bill)}</strong>Monthly commit</span>
-                              <span><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
-                            </div>
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => setExpanded(isOpen ? null : plan.id)}
-                            className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-bold text-on-surface transition-colors hover:bg-surface-container"
-                          >
-                            {isOpen ? 'Hide' : 'Details'}
-                            <span className="material-symbols-outlined text-lg">{isOpen ? 'expand_less' : 'expand_more'}</span>
-                          </button>
-                        </div>
+                          return data.map((d, index) => {
+                            const barHeight = (d.amount / maxAmount) * 150;
+                            const x = startX + index * (barWidth + gap);
+                            const y = 170 - barHeight;
 
-                        {isOpen && (
-                          <div className="border-t border-outline-variant bg-surface-container-low p-4">
-                            <div className="mb-4 h-2 overflow-hidden rounded-full bg-surface-container-highest">
-                              <div className="h-full rounded-full bg-secondary" style={{ width: `${progress}%` }} />
-                            </div>
-                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
-                              {[
-                                { label: 'Category / Store', value: plan.store_name || 'Personal plan' },
-                                { label: 'Budget', value: currency(cost) },
-                                { label: 'Saved', value: currency(saved) },
-                                { label: 'Cash Needed', value: currency(remaining) },
-                                { label: 'Monthly Commit', value: currency(bill) },
-                                { label: 'Plan Length', value: plan.tenure_months ? `${plan.tenure_months} months` : null },
-                                { label: 'Created', value: new Date(plan.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
-                                { label: 'Reference', value: plan.reference },
-                                { label: 'Receipt / Invoice', value: plan.file_url ? 'Attached' : 'None' },
-                              ].filter((row) => Boolean(row.value)).map((row) => (
-                                <div key={row.label}>
-                                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">{row.label}</p>
-                                  <p className="mt-1 text-sm font-bold text-on-surface wrap-break-word">{row.value}</p>
-                                </div>
-                              ))}
-                            </div>
+                            return (
+                              <g 
+                                key={index}
+                                onMouseEnter={() => setHoveredBar(index)}
+                                onMouseLeave={() => setHoveredBar(null)}
+                                className="cursor-pointer"
+                              >
+                                {/* Glow Filter */}
+                                <rect
+                                  x={x}
+                                  y={y}
+                                  width={barWidth}
+                                  height={barHeight}
+                                  rx={8}
+                                  fill="var(--color-secondary)"
+                                  opacity={hoveredBar === index ? 0.35 : 0.1}
+                                  className="transition-all duration-300"
+                                />
+                                {/* Solid Bar */}
+                                <rect
+                                  x={x}
+                                  y={y}
+                                  width={barWidth}
+                                  height={barHeight}
+                                  rx={8}
+                                  fill="var(--color-secondary)"
+                                  opacity={hoveredBar === index ? 1 : 0.85}
+                                  className="transition-all duration-300"
+                                />
+                                {/* Value Label inside chart when hovered */}
+                                {hoveredBar === index && (
+                                  <text
+                                    x={x + barWidth / 2}
+                                    y={y - 10}
+                                    textAnchor="middle"
+                                    fill="var(--color-on-surface)"
+                                    fontSize="10"
+                                    fontWeight="bold"
+                                  >
+                                    {formatCurrency(d.amount)}
+                                  </text>
+                                )}
+                              </g>
+                            );
+                          });
+                        })()}
+                      </svg>
+                      
+                      {/* Bar Labels (Emojis) */}
+                      <div className="flex justify-center gap-[20px] mt-2">
+                        {stats.expensesByCategory.slice(0, 5).map((d, index) => (
+                          <div key={index} className="w-[50px] text-center flex flex-col items-center">
+                            <span className="text-lg">{d.emoji}</span>
+                            <span className="text-[9px] text-on-surface-variant truncate w-full font-bold uppercase mt-0.5">{d.name}</span>
                           </div>
-                        )}
+                        ))}
                       </div>
-                    );
-                  })
+                    </div>
+
+                    {/* Breakdown List */}
+                    <div className="space-y-2.5">
+                      {stats.expensesByCategory.map((cat, idx) => (
+                        <div key={idx} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3.5 border border-outline-variant/20">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">{cat.emoji}</span>
+                            <span className="text-xs font-bold text-primary">{cat.name}</span>
+                          </div>
+                          <span className="text-xs font-black text-rose-500">{formatCurrency(cat.amount)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
+            )}
+          </div>
+
+          {/* Right sidebar: Savings goal Circular Progress Gauge & Info */}
+          <div className="space-y-6">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm text-center flex flex-col items-center">
+              <h3 className="text-lg font-black text-primary self-start">Savings Gauge</h3>
+              <p className="text-xs text-on-surface-variant self-start mt-0.5">Budget goal coverage overview</p>
+
+              {/* Circular Gauge */}
+              <div className="relative my-8 flex items-center justify-center">
+                <svg className="h-44 w-44 transform -rotate-90">
+                  <circle
+                    cx="88"
+                    cy="88"
+                    r="76"
+                    stroke="var(--color-surface-container-highest)"
+                    strokeWidth="10"
+                    fill="transparent"
+                  />
+                  <circle
+                    cx="88"
+                    cy="88"
+                    r="76"
+                    stroke="var(--color-secondary)"
+                    strokeWidth="10"
+                    fill="transparent"
+                    strokeDasharray={2 * Math.PI * 76}
+                    strokeDashoffset={2 * Math.PI * 76 * (1 - money.savingsProgress / 100)}
+                    strokeLinecap="round"
+                    className="transition-all duration-500"
+                    style={{ filter: "drop-shadow(0 0 6px var(--color-secondary-glow))" }}
+                  />
+                </svg>
+                <div className="absolute flex flex-col items-center">
+                  <span className="text-3xl font-black text-primary">{money.savingsProgress}%</span>
+                  <span className="text-[10px] text-on-surface-variant uppercase font-bold tracking-widest mt-1">Saved</span>
+                </div>
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-3 border-t border-outline-variant/30 pt-4 text-xs font-bold text-on-surface-variant">
+                <div className="text-left border-r border-outline-variant/30 pr-2">
+                  <p className="text-[10px] uppercase opacity-75 font-semibold">Total Planned</p>
+                  <p className="text-sm font-black text-primary mt-1">{formatCurrency(money.plannedSpend)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-[10px] uppercase opacity-75 font-semibold">Total Saved</p>
+                  <p className="text-sm font-black text-emerald-500 mt-1">{formatCurrency(money.savedForGoals)}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Help Card */}
+            <div className="rounded-3xl border border-outline-variant bg-gradient-to-br from-secondary/5 to-secondary/15 p-6 space-y-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+                <span className="material-symbols-outlined text-xl">tips_and_updates</span>
+              </div>
+              <h4 className="font-black text-primary text-sm">Need help budgeting?</h4>
+              <p className="text-xs text-on-surface-variant leading-relaxed">
+                Moneyly synchronizes details directly to cookies and Supabase, maintaining full functionality even when offline. Track balances, update goals, and switch accents at any time.
+              </p>
             </div>
           </div>
         </div>

@@ -17,7 +17,8 @@ type Section = 'personal'
 
 const navItems = [
   { name: "Dashboard",        href: "/dashboard",      icon: "dashboard",       tooltip: "View your account dashboard" },
-  { name: "New Plan",         href: "/plan/store",     icon: "add_circle",     tooltip: "Create a new spending plan" },
+  { name: "History",          href: "/dashboard/history", icon: "history",       tooltip: "View transaction history" },
+  { name: "New Plan",         href: "/plan/details",   icon: "add_circle",     tooltip: "Create a new spending plan" },
   { name: "Spending Plans",   href: "/applications",    icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
 ];
 

@@ -135,7 +135,7 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
             </p>
           </div>
           <Link
-            href="/plan/store"
+            href="/plan/details"
             className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined text-lg">add</span>
@@ -186,7 +186,7 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
                 Add a planned purchase and Moneyly will track its budget, saved amount, monthly bill, and goal progress.
               </p>
               <Link
-                href="/plan/store"
+                href="/plan/details"
                 className="mt-6 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
               >
                 <span className="material-symbols-outlined text-lg">add</span>

@@ -64,4 +64,68 @@ describe('useApplicationStore', () => {
     const state = useApplicationStore.getState();
     expect(state.lastReference).toBe('PLN-1234');
   });
+
+  it('updates profile preferences correctly', async () => {
+    const { updateProfilePreferences } = useApplicationStore.getState();
+    await updateProfilePreferences({
+      starting_balance: 5000,
+      currency: 'EUR',
+      accent_color: 'purple',
+      onboarded: true
+    });
+
+    const state = useApplicationStore.getState();
+    expect(state.startingBalance).toBe(5000);
+    expect(state.currency).toBe('EUR');
+    expect(state.accentColor).toBe('purple');
+    expect(state.onboarded).toBe(true);
+  });
+
+  it('manages transactions locally', async () => {
+    const { addTransactionLocal, updateTransactionLocal, deleteTransactionLocal } = useApplicationStore.getState();
+    
+    // Add transaction
+    await addTransactionLocal({
+      id: 'tx-1',
+      user_id: 'user-123',
+      amount: 150.50,
+      type: 'expense',
+      category_name: 'Food & Dining',
+      note: 'Dinner',
+      date: '2026-06-14T12:00:00Z'
+    }, true); // skipSync = true to avoid remote call
+
+    let state = useApplicationStore.getState();
+    expect(state.transactions).toHaveLength(1);
+    expect(state.transactions[0].amount).toBe(150.50);
+    expect(state.transactions[0].note).toBe('Dinner');
+
+    // Update transaction
+    await updateTransactionLocal('tx-1', { amount: 120.00, note: 'Dinner discount' }, true);
+    state = useApplicationStore.getState();
+    expect(state.transactions[0].amount).toBe(120.00);
+    expect(state.transactions[0].note).toBe('Dinner discount');
+
+    // Delete transaction
+    await deleteTransactionLocal('tx-1', true);
+    state = useApplicationStore.getState();
+    expect(state.transactions).toHaveLength(0);
+  });
+
+  it('manages categories locally', async () => {
+    const { addCategoryLocal } = useApplicationStore.getState();
+    await addCategoryLocal({
+      id: 101,
+      user_id: 'user-123',
+      name: 'Coffee',
+      emoji: '☕',
+      color: '#ff0000',
+      type: 'expense'
+    }, true);
+
+    const state = useApplicationStore.getState();
+    expect(state.categories).toHaveLength(1);
+    expect(state.categories[0].name).toBe('Coffee');
+    expect(state.categories[0].emoji).toBe('☕');
+  });
 });
