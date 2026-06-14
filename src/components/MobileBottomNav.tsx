@@ -20,11 +20,14 @@ export default function MobileBottomNav() {
 
   useEffect(() => {
     const supabase = createClient();
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        setUserId(session.user.id);
-      }
-    });
+    if (supabase) {
+      supabase.auth.getSession().then((res: any) => {
+        const session = res?.data?.session;
+        if (session?.user) {
+          setUserId(session.user.id);
+        }
+      });
+    }
   }, []);
 
   const navItems = [
