@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { saveProfile, type UserProfile } from '@/lib/profile'
+import { useApplicationStore } from '@/lib/store'
 
 interface Props {
   section: 'personal'
@@ -11,6 +12,11 @@ interface Props {
 }
 
 export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
+  const currencyCode = useApplicationStore(state => state.currency);
+  const currencySymbol = (() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[currencyCode] || '$';
+  })();
   const [saving, setSaving] = useState(false)
 
   const [form, setForm] = useState({
@@ -101,7 +107,7 @@ export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
               Monthly Income <span className="text-on-surface-variant/50 font-normal ml-1 text-xs">(optional)</span>
             </label>
             <div className="relative">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">$</span>
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
               <input
                 id="monthly_income"
                 type="number"
