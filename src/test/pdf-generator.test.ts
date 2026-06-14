@@ -30,7 +30,6 @@ describe('generatePlanPDF', () => {
         plannedCost: '500.00',
         savedAmount: '200.00',
         tenureMonths: '6',
-        storeName: 'TV Sales & Home',
       },
     });
 

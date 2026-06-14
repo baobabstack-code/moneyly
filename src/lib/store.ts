@@ -50,7 +50,6 @@ export interface ApplicationState {
     plannedCost: string;
     savedAmount: string;
     tenureMonths: string;
-    storeName: string;
   };
   setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
 
@@ -94,7 +93,6 @@ const initialState = {
     plannedCost: "",
     savedAmount: "",
     tenureMonths: "",
-    storeName: "",
   },
   fileUrl: "",
   accentColor: "green" as const,

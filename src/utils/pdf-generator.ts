@@ -13,12 +13,11 @@ type PlanPdfData = {
     plannedCost?: string;
     savedAmount?: string;
     tenureMonths?: string;
-    storeName?: string;
   };
-  selectedStoreName?: string;
   lastReference?: string;
   fileUrl?: string | null;
   customerName?: string;
+  currency?: string;
 };
 
 type JsPdfWithAutoTable = jsPDF & {
@@ -62,21 +61,23 @@ export async function generatePlanPDF(data: PlanPdfData) {
   const tenureMonthsVal = parseInt(data.purchaseDetails?.tenureMonths || '12') || 12;
   const monthlyCommitVal = tenureMonthsVal > 0 ? cashNeededVal / tenureMonthsVal : 0;
 
+  const currencySymbol = (() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[data.currency || 'USD'] || '$';
+  })();
+
   // Sections
   const sections = [
     { title: 'User Details', rows: [
       ['Customer Name', data.customerName || 'N/A'],
     ]},
-    { title: 'Source Details', rows: [
-      ['Source / Store', data.purchaseDetails?.storeName || data.selectedStoreName || 'N/A'],
-    ]},
     { title: 'Spending Plan Details', rows: [
       ['Planned Item', data.purchaseDetails?.productName || 'N/A'],
-      ['Planned Cost', `$${plannedCostVal.toFixed(2)}`],
-      ['Saved Amount', `$${savedAmountVal.toFixed(2)}`],
-      ['Cash Needed', `$${cashNeededVal.toFixed(2)}`],
+      ['Planned Cost', `${currencySymbol}${plannedCostVal.toFixed(2)}`],
+      ['Saved Amount', `${currencySymbol}${savedAmountVal.toFixed(2)}`],
+      ['Cash Needed', `${currencySymbol}${cashNeededVal.toFixed(2)}`],
       ['Plan Length', `${tenureMonthsVal} months`],
-      ['Estimated Monthly Commitment', `$${monthlyCommitVal.toFixed(2)}`],
+      ['Estimated Monthly Commitment', `${currencySymbol}${monthlyCommitVal.toFixed(2)}`],
     ]},
     { title: 'Supporting Documents', rows: [
       ['Receipt / Invoice', data.fileUrl ? 'Attached' : 'None'],

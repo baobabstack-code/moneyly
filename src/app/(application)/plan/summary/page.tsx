@@ -43,7 +43,7 @@ export default function SummaryPage() {
         user_id:          user?.id ?? null,
         reference,
         status:           'active',
-        store_name:       purchaseDetails.storeName,
+        store_name:       null,
         product_name:     purchaseDetails.productName,
         planned_cost:     plannedCost,
         saved_amount:     savedAmount,
@@ -62,6 +62,7 @@ export default function SummaryPage() {
         lastReference: reference,
         fileUrl,
         customerName: profile?.full_name || user?.email || 'Valued Member',
+        currency,
       };
       
       const pdfDataUri = await generatePlanPDF(planData);
@@ -104,12 +105,6 @@ export default function SummaryPage() {
   };
 
   const sections = [
-    {
-      title: "Store / Source",
-      data: [
-        { label: "Store or Vendor", value: purchaseDetails.storeName },
-      ]
-    },
     {
       title: "Spending Plan Details",
       data: [

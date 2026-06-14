@@ -42,32 +42,17 @@ export default function PurchaseDetailsPage() {
         <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Plan Information</h2>
 
         {/* Product Name */}
-        {/* Item & Store Name */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Item or Goal Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
-              placeholder="e.g. New laptop, school fees, family trip"
-              value={purchaseDetails.productName}
-              onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
-            />
-          </div>
-          <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Store / Source <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
-              placeholder="e.g. Amazon, Bank, Supermarket"
-              value={purchaseDetails.storeName || ""}
-              onChange={(e) => setPurchaseDetails({ storeName: e.target.value })}
-            />
-          </div>
+        <div>
+          <label className="block font-label-md text-label-md mb-2 text-on-surface">
+            Item or Goal Name <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="text"
+            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+            placeholder="e.g. New laptop, school fees, family trip"
+            value={purchaseDetails.productName}
+            onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
+          />
         </div>
 
         {/* Pricing */}
@@ -181,7 +166,7 @@ export default function PurchaseDetailsPage() {
         <button
           type="button"
           onClick={handleNext}
-          disabled={!purchaseDetails.productName || !purchaseDetails.storeName || !purchaseDetails.plannedCost || !purchaseDetails.tenureMonths}
+          disabled={!purchaseDetails.productName || !purchaseDetails.plannedCost || !purchaseDetails.tenureMonths}
           className="flex items-center gap-2 px-8 py-3 bg-secondary text-on-secondary rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
         >
           Continue

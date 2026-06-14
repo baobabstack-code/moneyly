@@ -5,6 +5,7 @@ import { useMemo, useState, useEffect } from "react";
 import { UserProfile } from "@/lib/profile";
 import { useApplicationStore, Transaction } from "@/lib/store";
 import OnboardingModal from "./OnboardingModal";
+import QuickTransactionModal from "./QuickTransactionModal";
 
 type SpendingPlan = {
   id: string;
@@ -31,6 +32,7 @@ export default function DashboardView({ email, displayName, profile, application
   const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze'>('expenses');
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
+  const [txModalOpen, setTxModalOpen] = useState(false);
 
   // Zustand Store Hooks
   const setTransactions = useApplicationStore(state => state.setTransactions);
@@ -272,6 +274,15 @@ export default function DashboardView({ email, displayName, profile, application
                     <h2 className="text-xl font-black text-primary">Recent Transactions</h2>
                     <p className="text-xs text-on-surface-variant">Log changes in real-time or offline</p>
                   </div>
+                  {profile?.id && (
+                    <button
+                      onClick={() => setTxModalOpen(true)}
+                      className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5"
+                    >
+                      <span className="material-symbols-outlined text-sm font-black">add</span>
+                      Add Transaction
+                    </button>
+                  )}
                 </div>
 
                 <div className="space-y-3">
@@ -406,8 +417,7 @@ export default function DashboardView({ email, displayName, profile, application
                                   <div className="h-full bg-secondary rounded-full" style={{ width: `${progress}%` }} />
                                 </div>
                               </div>
-                              <div className="grid grid-cols-2 gap-2 text-xs text-on-surface-variant">
-                                <div>Store: <strong className="text-primary">{plan.store_name || 'N/A'}</strong></div>
+                              <div className="text-xs text-on-surface-variant">
                                 <div>Tenure: <strong className="text-primary">{plan.tenure_months ? `${plan.tenure_months} months` : 'N/A'}</strong></div>
                               </div>
                             </div>
@@ -590,6 +600,13 @@ export default function DashboardView({ email, displayName, profile, application
           </div>
         </div>
       </section>
+      {txModalOpen && profile?.id && (
+        <QuickTransactionModal
+          user_id={profile.id}
+          isOpen={txModalOpen}
+          onClose={() => setTxModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

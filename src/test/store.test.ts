@@ -11,18 +11,16 @@ describe('useApplicationStore', () => {
     expect(state.purchaseDetails.plannedCost).toBe('');
     expect(state.purchaseDetails.savedAmount).toBe('');
     expect(state.purchaseDetails.tenureMonths).toBe('');
-    expect(state.purchaseDetails.storeName).toBe('');
     expect(state.fileUrl).toBe('');
   });
 
-  it('setPurchaseDetails updates purchase details and storeName', () => {
+  it('setPurchaseDetails updates purchase details', () => {
     const { setPurchaseDetails } = useApplicationStore.getState();
-    setPurchaseDetails({ productName: 'Smart TV', plannedCost: '800.00', storeName: 'Test Store' });
+    setPurchaseDetails({ productName: 'Smart TV', plannedCost: '800.00' });
     
     const state = useApplicationStore.getState();
     expect(state.purchaseDetails.productName).toBe('Smart TV');
     expect(state.purchaseDetails.plannedCost).toBe('800.00');
-    expect(state.purchaseDetails.storeName).toBe('Test Store');
   });
 
   it('setFileUrl updates document file url', () => {
@@ -36,14 +34,13 @@ describe('useApplicationStore', () => {
   it('resetStore resets all state', () => {
     const { setPurchaseDetails, setFileUrl, resetStore } = useApplicationStore.getState();
     
-    setPurchaseDetails({ productName: 'Laptop', storeName: 'Test Store' });
+    setPurchaseDetails({ productName: 'Laptop' });
     setFileUrl('https://example.com/file.pdf');
     
     resetStore();
     
     const state = useApplicationStore.getState();
     expect(state.purchaseDetails.productName).toBe('');
-    expect(state.purchaseDetails.storeName).toBe('');
     expect(state.fileUrl).toBe('');
   });
 

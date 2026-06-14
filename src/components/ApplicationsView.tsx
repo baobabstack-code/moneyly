@@ -282,7 +282,6 @@ export default function ApplicationsView({ applications, profileComplete }: Appl
                       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
                         {[
                           { label: 'Reference', value: plan.reference },
-                          { label: 'Store / Source', value: plan.store_name },
                           { label: 'Created', value: new Date(plan.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
                           { label: 'Plan Length', value: plan.tenure_months ? `${plan.tenure_months} months` : null },
                           { label: 'Receipt / Document', value: plan.file_url ? <a href={plan.file_url} target="_blank" rel="noreferrer" className="text-secondary hover:underline">View Attached Document</a> : 'None' },

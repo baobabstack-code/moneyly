@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { createClient } from "@/utils/supabase/client";
 import ProfileEditModal from "@/components/ProfileEditModal";
 import type { UserProfile } from "@/lib/profile";
+import QuickTransactionModal from "@/components/QuickTransactionModal";
 
 interface Props {
   initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
@@ -26,6 +27,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
   const pathname = usePathname();
   const router = useRouter();
   const [editSection, setEditSection] = useState<Section | null>(null);
+  const [txModalOpen, setTxModalOpen] = useState(false);
 
   const initials = (initialUser?.displayName || initialUser?.email || "U")
     .split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
@@ -58,6 +60,20 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
             </div>
           </div>
         </div>
+
+        {/* Quick Add Button */}
+        {profile?.id && (
+          <div className="px-6 pt-4">
+            <button
+              type="button"
+              onClick={() => setTxModalOpen(true)}
+              className="w-full py-3 px-4 rounded-xl bg-secondary text-on-secondary font-bold text-sm shadow-md shadow-secondary/20 hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
+            >
+              <span className="material-symbols-outlined text-sm font-black">add</span>
+              Add Transaction
+            </button>
+          </div>
+        )}
 
         {/* Nav links */}
         <nav className="flex-1 py-6 px-4 space-y-1">
@@ -114,6 +130,14 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
           profile={profile ?? null}
           onClose={() => setEditSection(null)}
           onSaved={() => { setEditSection(null); router.refresh(); }}
+        />
+      )}
+
+      {txModalOpen && profile?.id && (
+        <QuickTransactionModal
+          user_id={profile.id}
+          isOpen={txModalOpen}
+          onClose={() => setTxModalOpen(false)}
         />
       )}
     </>

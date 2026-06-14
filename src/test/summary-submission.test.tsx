@@ -43,7 +43,6 @@ describe('SummaryPage submission', () => {
       plannedCost: '1200',
       savedAmount: '200',
       tenureMonths: '10',
-      storeName: 'Test Store',
     });
     state.setFileUrl('https://example.com/receipt.png');
   });
@@ -56,7 +55,7 @@ describe('SummaryPage submission', () => {
     await waitFor(() => expect(insert).toHaveBeenCalledTimes(1));
 
     expect(insert).toHaveBeenCalledWith(expect.objectContaining({
-      store_name: 'Test Store',
+      store_name: null,
       product_name: 'Laptop',
       planned_cost: 1200,
       saved_amount: 200,
