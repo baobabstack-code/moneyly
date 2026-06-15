@@ -125,4 +125,44 @@ describe('useFinanceStore', () => {
     expect(state.categories[0].name).toBe('Coffee');
     expect(state.categories[0].emoji).toBe('☕');
   });
+
+  it('triggers notifications and confetti on proper actions', async () => {
+    const { addTransactionLocal, updateTransactionLocal, deleteTransactionLocal, removeNotification } = useFinanceStore.getState();
+
+    // Verify initial trigger is 0
+    expect(useFinanceStore.getState().confettiTrigger).toBe(0);
+    
+    // Add transaction should trigger notification & confetti
+    await addTransactionLocal({
+      id: 'tx-test',
+      user_id: 'user-123',
+      amount: 100,
+      type: 'savings',
+      date: '2026-06-14T12:00:00Z'
+    }, true);
+
+    let state = useFinanceStore.getState();
+    expect(state.notifications).toHaveLength(1);
+    expect(state.notifications[0].message).toContain('SAVINGS: logged 100');
+    expect(state.confettiTrigger).toBe(1);
+
+    // Update transaction should trigger notification
+    await updateTransactionLocal('tx-test', { amount: 120 }, true);
+    state = useFinanceStore.getState();
+    expect(state.notifications).toHaveLength(2);
+    expect(state.notifications[1].message).toBe('Transaction updated.');
+
+    // Remove notification
+    const notificationId = state.notifications[0].id;
+    removeNotification(notificationId);
+    state = useFinanceStore.getState();
+    expect(state.notifications).toHaveLength(1);
+    expect(state.notifications[0].message).toBe('Transaction updated.');
+
+    // Delete transaction should trigger notification
+    await deleteTransactionLocal('tx-test', true);
+    state = useFinanceStore.getState();
+    expect(state.notifications).toHaveLength(2);
+    expect(state.notifications[1].message).toBe('Transaction deleted.');
+  });
 });

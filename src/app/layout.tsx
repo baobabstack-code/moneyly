@@ -3,6 +3,8 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { ThemeProvider } from "@/components/theme-provider";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import ToastContainer from "@/components/ToastContainer";
+import Confetti from "@/components/Confetti";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -49,6 +51,8 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           <ServiceWorkerRegister />
+          <ToastContainer />
+          <Confetti />
           {children}
         </ThemeProvider>
       </body>

@@ -47,6 +47,7 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
   const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
   const addCategoryLocal = useFinanceStore(state => state.addCategoryLocal);
   const addNotification = useFinanceStore(state => state.addNotification);
+  const triggerConfetti = useFinanceStore(state => state.triggerConfetti);
 
   const handleAddCustomCategory = () => {
     if (!customName.trim()) return;
@@ -87,6 +88,7 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
     }
 
     addNotification('Welcome to Moneyly! Onboarding completed successfully.', 'success');
+    triggerConfetti();
   };
 
   return (

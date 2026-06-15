@@ -54,7 +54,11 @@ export interface FinanceState {
   /** System notifications for user feedback */
   notifications: Array<{ id: string; message: string; type: 'success' | 'info' | 'error'; timestamp: number }>;
   addNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
+  removeNotification: (id: string) => void;
   clearNotifications: () => void;
+
+  confettiTrigger: number;
+  triggerConfetti: () => void;
 
   /** Last saved spending plan reference number */
   lastReference: string;
@@ -116,6 +120,7 @@ export interface FinanceState {
 
 const initialState = {
   notifications: [],
+  confettiTrigger: 0,
   lastReference: '',
   purchaseDetails: {
     productName: "",
@@ -148,7 +153,12 @@ export const useFinanceStore = create<FinanceState>()(
             { id: Math.random().toString(36).substring(7), message, type, timestamp: Date.now() }
           ]
         })),
+      removeNotification: (id) =>
+        set((state) => ({
+          notifications: state.notifications.filter((n) => n.id !== id),
+        })),
       clearNotifications: () => set({ notifications: [] }),
+      triggerConfetti: () => set((state) => ({ confettiTrigger: state.confettiTrigger + 1 })),
       setLastReference: (ref) => set({ lastReference: ref }),
       setPurchaseDetails: (details) =>
         set((state) => ({
@@ -236,6 +246,12 @@ export const useFinanceStore = create<FinanceState>()(
           }
         }
 
+        get().addNotification(
+          `${newTx.type.toUpperCase()}: logged ${newTx.amount.toLocaleString(undefined, { minimumFractionDigits: 2 })} ${newTx.note ? `for "${newTx.note}"` : ''}`,
+          'success'
+        );
+        get().triggerConfetti();
+
         if (skipSync) return;
         
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -273,6 +289,10 @@ export const useFinanceStore = create<FinanceState>()(
             const newSaved = Math.max(0, plan.saved_amount - tx.amount);
             await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
           }
+        }
+
+        if (tx) {
+          get().addNotification(`Transaction deleted.`, 'info');
         }
 
         if (skipSync) return;
@@ -332,6 +352,8 @@ export const useFinanceStore = create<FinanceState>()(
             }
           }
         }
+
+        get().addNotification(`Transaction updated.`, 'success');
 
         if (skipSync) return;
         
@@ -423,6 +445,8 @@ export const useFinanceStore = create<FinanceState>()(
         set((state) => ({
           spendingPlans: [newPlan, ...state.spendingPlans],
         }));
+
+        get().triggerConfetti();
         
         if (skipSync) return;
         
@@ -478,9 +502,21 @@ export const useFinanceStore = create<FinanceState>()(
       },
 
       updateSpendingPlanLocal: async (id, updates, skipSync = false) => {
+        const oldPlan = get().spendingPlans.find(p => p.id === id);
+        
         set((state) => ({
           spendingPlans: state.spendingPlans.map(p => p.id === id ? { ...p, ...updates } : p)
         }));
+
+        const newPlan = { ...oldPlan, ...updates } as SpendingPlan;
+
+        if (oldPlan && 
+            ((updates.status === 'completed' && oldPlan.status !== 'completed') || 
+             (newPlan.saved_amount >= newPlan.planned_cost && oldPlan.saved_amount < oldPlan.planned_cost && newPlan.planned_cost > 0))
+        ) {
+          get().triggerConfetti();
+          get().addNotification(`Congratulations! Your spending plan "${newPlan.product_name}" is fully funded! 🎉`, "success");
+        }
 
         if (skipSync) return;
 
