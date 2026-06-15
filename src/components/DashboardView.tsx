@@ -39,6 +39,7 @@ export default function DashboardView({ email, displayName, profile, application
   const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
   const addNotification = useApplicationStore(state => state.addNotification);
   const updateCategoryLocal = useApplicationStore(state => state.updateCategoryLocal);
+  const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
 
   // Sync Supabase categories and transactions on mount
   useEffect(() => {
@@ -64,6 +65,9 @@ export default function DashboardView({ email, displayName, profile, application
 
         const { data: txs } = await supabase.from('transactions').select('*').order('date', { ascending: false });
         if (txs) setTransactions(txs);
+
+        const { data: plans } = await supabase.from('spending_plans').select('*').order('created_at', { ascending: false });
+        if (plans) setSpendingPlans(plans);
 
         await syncOfflineData();
       }
@@ -152,11 +156,14 @@ export default function DashboardView({ email, displayName, profile, application
   const totalSavings = money.savedForGoals + totalIndependentSavings;
 
   // Compute budgets and current spending
-  const budgetLimits = useApplicationStore(state => ({
-    daily: state.dailyBudget,
-    weekly: state.weeklyBudget,
-    monthly: state.monthlyBudget
-  }));
+  const dailyBudget = useApplicationStore(state => state.dailyBudget);
+  const weeklyBudget = useApplicationStore(state => state.weeklyBudget);
+  const monthlyBudget = useApplicationStore(state => state.monthlyBudget);
+  const budgetLimits = useMemo(() => ({
+    daily: dailyBudget,
+    weekly: weeklyBudget,
+    monthly: monthlyBudget
+  }), [dailyBudget, weeklyBudget, monthlyBudget]);
 
   const budgetSpending = useMemo(() => {
     const now = new Date();
