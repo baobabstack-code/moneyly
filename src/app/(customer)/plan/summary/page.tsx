@@ -28,13 +28,21 @@ export default function SummaryPage() {
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
-
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user?.id)
-        .single();
+      let user = null;
+      let profile = null;
+      
+      if (supabase) {
+        const { data } = await supabase.auth.getUser();
+        user = data.user;
+        if (user) {
+          const { data: prof } = await supabase
+            .from('profiles')
+            .select('full_name')
+            .eq('id', user.id)
+            .single();
+          profile = prof;
+        }
+      }
 
       const reference = `PLN-${Math.floor(Math.random() * 9000) + 1000}`;
 

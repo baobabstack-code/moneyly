@@ -26,6 +26,9 @@ export default function DocumentUploadsPage() {
 
     try {
       const supabase = createClient();
+      if (!supabase) {
+        throw new Error("Database connection is currently not available. File upload is disabled.");
+      }
       const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
       const filePath = `documents/${fileName}`;

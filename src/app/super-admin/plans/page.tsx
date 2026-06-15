@@ -10,6 +10,9 @@ export default async function SuperAdminPlansPage({
   searchParams: Promise<{ status?: string }>
 }) {
   const supabase = await createClient()
+  if (!supabase) {
+    redirect('/login')
+  }
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 

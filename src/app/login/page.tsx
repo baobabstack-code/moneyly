@@ -10,7 +10,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string }>
 }) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const session = supabase ? (await supabase.auth.getSession()).data.session : null;
   const { next } = await searchParams;
 
   if (session?.user) {

@@ -9,6 +9,9 @@ export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
   const supabase = await createClient()
+  if (!supabase) {
+    redirect('/login')
+  }
   const { data: { session } } = await supabase.auth.getSession()
 
   if (!session?.user) {

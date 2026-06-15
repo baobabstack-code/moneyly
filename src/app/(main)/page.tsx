@@ -4,9 +4,9 @@ import LandingPageContent from '@/components/LandingPageContent'
 
 export default async function Page() {
   const supabase = await createClient()
-  const { data: { session } } = await supabase.auth.getSession()
+  const session = supabase ? (await supabase.auth.getSession()).data.session : null
 
-  if (session?.user) {
+  if (session?.user && supabase) {
     // Route super_admin to their dashboard instead of the customer one
     const { data: profile } = await supabase
       .from('profiles')

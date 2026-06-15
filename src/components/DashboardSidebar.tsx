@@ -34,7 +34,9 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     router.push("/");
   };
 

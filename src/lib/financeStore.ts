@@ -183,6 +183,7 @@ export const useFinanceStore = create<FinanceState>()(
         
         const { createClient } = await import("@/utils/supabase/client");
         const supabase = createClient();
+        if (!supabase) return;
         
         const mutations = [...state.pendingMutations];
         const failedMutations: typeof mutations = [];
@@ -259,9 +260,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('transactions').insert(newTx);
-          if (!error) return;
-          console.error("Failed to insert transaction to DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('transactions').insert(newTx);
+            if (!error) return;
+            console.error("Failed to insert transaction to DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -304,9 +307,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('transactions').delete().eq('id', id);
-          if (!error) return;
-          console.error("Failed to delete transaction from DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('transactions').delete().eq('id', id);
+            if (!error) return;
+            console.error("Failed to delete transaction from DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -368,9 +373,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('transactions').update(updates).eq('id', id);
-          if (!error) return;
-          console.error("Failed to update transaction in DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('transactions').update(updates).eq('id', id);
+            if (!error) return;
+            console.error("Failed to update transaction in DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -399,9 +406,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('categories').insert(newCat);
-          if (!error) return;
-          console.error("Failed to insert category to DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('categories').insert(newCat);
+            if (!error) return;
+            console.error("Failed to insert category to DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -427,9 +436,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('categories').update(updates).eq('id', id);
-          if (!error) return;
-          console.error("Failed to update category in DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('categories').update(updates).eq('id', id);
+            if (!error) return;
+            console.error("Failed to update category in DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -461,9 +472,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('spending_plans').insert(newPlan);
-          if (!error) return;
-          console.error("Failed to insert plan to DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('spending_plans').insert(newPlan);
+            if (!error) return;
+            console.error("Failed to insert plan to DB, queueing offline mutation:", error);
+          }
         }
         
         set((state) => ({
@@ -491,9 +504,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('spending_plans').delete().eq('id', id);
-          if (!error) return;
-          console.error("Failed to delete spending plan from DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('spending_plans').delete().eq('id', id);
+            if (!error) return;
+            console.error("Failed to delete spending plan from DB, queueing offline mutation:", error);
+          }
         }
 
         set((state) => ({
@@ -531,9 +546,11 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { error } = await supabase.from('spending_plans').update(updates).eq('id', id);
-          if (!error) return;
-          console.error("Failed to update spending plan in DB, queueing offline mutation:", error);
+          if (supabase) {
+            const { error } = await supabase.from('spending_plans').update(updates).eq('id', id);
+            if (!error) return;
+            console.error("Failed to update spending plan in DB, queueing offline mutation:", error);
+          }
         }
 
         set((state) => ({
@@ -564,29 +581,33 @@ export const useFinanceStore = create<FinanceState>()(
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.id) {
-            const { error } = await supabase.from('profiles').update(updates).eq('id', session.user.id);
-            if (!error) synced = true;
+          if (supabase) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+              const { error } = await supabase.from('profiles').update(updates).eq('id', session.user.id);
+              if (!error) synced = true;
+            }
           }
         }
         
         if (!synced && typeof window !== "undefined" && process.env.NEXT_PUBLIC_SUPABASE_URL) {
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user?.id) {
-            set((state) => ({
-              pendingMutations: [
-                ...state.pendingMutations,
-                {
-                  id: Math.random().toString(36).substring(7),
-                  type: 'UPDATE_PROFILE',
-                  payload: { id: session.user.id, updates },
-                  timestamp: Date.now()
-                }
-              ]
-            }));
+          if (supabase) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+              set((state) => ({
+                pendingMutations: [
+                  ...state.pendingMutations,
+                  {
+                    id: Math.random().toString(36).substring(7),
+                    type: 'UPDATE_PROFILE',
+                    payload: { id: session.user.id, updates },
+                    timestamp: Date.now()
+                  }
+                ]
+              }));
+            }
           }
         }
       },

@@ -5,6 +5,9 @@ import { revalidatePath } from 'next/cache'
 
 export async function updatePlanStatus(id: string, status: string) {
   const supabase = await createClient()
+  if (!supabase) {
+    return { error: "Database connection not available" }
+  }
   const { error } = await supabase
     .from('spending_plans')
     .update({ status })

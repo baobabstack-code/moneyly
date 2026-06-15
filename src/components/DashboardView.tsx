@@ -84,6 +84,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       if (typeof window !== "undefined" && navigator.onLine) {
         const { createClient } = await import("@/utils/supabase/client");
         const supabase = createClient();
+        if (!supabase) return;
         
         const { data: cats } = await supabase.from('categories').select('*').order('created_at', { ascending: true });
         if (cats) setCategories(cats);

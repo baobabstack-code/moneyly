@@ -20,6 +20,11 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
     setLoading(true)
     setError(null)
     setSuccessMessage(null)
+    if (!supabase) {
+      setError("Database connection is currently not available. Please verify your environment variables.")
+      setLoading(false)
+      return
+    }
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
@@ -37,6 +42,12 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
     setLoading(true)
     setError(null)
     setSuccessMessage(null)
+
+    if (!supabase) {
+      setError("Database connection is currently not available. Please verify your environment variables.")
+      setLoading(false)
+      return
+    }
 
     try {
       if (isSignUp) {

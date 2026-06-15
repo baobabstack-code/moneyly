@@ -80,6 +80,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
       if (typeof window !== "undefined" && navigator.onLine) {
         const { createClient } = await import("@/utils/supabase/client");
         const supabase = createClient();
+        if (!supabase) return;
         const { data: plans } = await supabase.from('spending_plans').select('*').order('created_at', { ascending: false });
         if (plans) setSpendingPlans(plans);
       }

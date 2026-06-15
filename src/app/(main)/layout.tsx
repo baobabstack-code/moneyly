@@ -11,9 +11,9 @@ export default async function MainLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const session = supabase ? (await supabase.auth.getSession()).data.session : null;
 
-  const profileResult = session?.user
+  const profileResult = (session?.user && supabase)
     ? await supabase
         .from("profiles")
         .select("*")

@@ -45,6 +45,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
   }, [syncOfflineData]);
 
   useEffect(() => {
+    if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: any, session: any) => {
         const currentUser = session?.user ?? null;
@@ -60,10 +61,12 @@ export default function Navbar({ initialUser }: NavbarProps) {
     );
 
     return () => subscription.unsubscribe();
-  }, []);
+  }, [supabase]);
 
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
     // Redirect to /login rather than '/' — the landing page redirects
     // authenticated users back to /dashboard which creates a redirect loop.
     window.location.href = '/login';
