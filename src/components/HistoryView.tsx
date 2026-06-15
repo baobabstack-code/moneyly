@@ -149,7 +149,7 @@ export default function HistoryView() {
       className="font-manrope min-h-screen bg-slate-950/20 w-full"
       data-accent={accentColor}
     >
-      <div className="max-w-4xl mx-auto px-4 py-8 md:px-6">
+      <div className="w-full px-6 py-8 md:px-10 xl:px-12">
         {/* Header */}
         <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
           <div>
@@ -170,253 +170,278 @@ export default function HistoryView() {
           </div>
         </div>
 
-        {/* Filter Controls Card */}
-        <div className="rounded-3xl border border-outline-variant bg-surface p-5 shadow-sm space-y-4 mb-6">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center">
-            {/* Search Input */}
-            <div className="relative flex-1 group">
-              <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/45">search</span>
-              <input
-                type="text"
-                placeholder="Search memo or category..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-low text-sm focus:outline-none focus:border-secondary transition-all"
-              />
-            </div>
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-4 items-start">
+          
+          {/* Filters Sidebar Card */}
+          <div className="lg:col-span-1 space-y-4">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-5 shadow-sm space-y-4 sticky top-6">
+              <h3 className="font-black text-primary text-xs uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-sm text-secondary">tune</span>
+                Filter Ledger
+              </h3>
 
-            {/* Category Dropdown */}
-            <div className="relative md:w-48">
-              <select
-                value={filterCategory}
-                onChange={(e) => setFilterCategory(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-low text-sm focus:outline-none focus:border-secondary transition-all font-bold text-on-surface-variant appearance-none cursor-pointer"
-              >
-                <option value="all">All Categories</option>
-                {categoryNames.map((name) => (
-                  <option key={name} value={name}>{name}</option>
-                ))}
-              </select>
-              <span className="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant pointer-events-none">expand_more</span>
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between border-t border-outline-variant/20 pt-4">
-            {/* Type Filters */}
-            <div className="flex gap-1.5 bg-surface-container-low p-1 rounded-2xl border border-outline-variant/40">
-              {(['all', 'income', 'expense', 'savings'] as const).map((type) => (
-                <button
-                  key={type}
-                  onClick={() => setFilterType(type)}
-                  className={`rounded-xl px-4 py-2 text-xs font-black uppercase tracking-wider transition-all ${
-                    filterType === type
-                      ? 'bg-secondary text-on-secondary shadow-md'
-                      : 'text-on-surface-variant hover:text-primary'
-                  }`}
-                >
-                  {type}
-                </button>
-              ))}
-            </div>
-
-            {/* Date Filters */}
-            <div className="flex flex-wrap items-center gap-2 text-xs font-bold text-on-surface-variant">
-              <span className="opacity-75">Date:</span>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-outline-variant/60 bg-surface-container-low focus:outline-none"
-              />
-              <span className="opacity-40">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 rounded-xl border border-outline-variant/60 bg-surface-container-low focus:outline-none"
-              />
-              {(startDate || endDate) && (
-                <button
-                  onClick={() => { setStartDate(''); setEndDate(''); }}
-                  className="text-secondary hover:underline"
-                >
-                  Clear
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Transactions List */}
-        <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-black text-primary">Ledger Entries</h2>
-            <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
-              {filteredTransactions.length} transaction{filteredTransactions.length === 1 ? '' : 's'} found
-            </span>
-          </div>
-
-          <div className="space-y-4">
-            {filteredTransactions.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-outline p-12 text-center bg-surface-container-low/40">
-                <span className="material-symbols-outlined mb-2 text-5xl text-on-surface-variant/35">receipt_long</span>
-                <p className="font-bold text-on-surface">No ledger entries match filters</p>
-                <p className="mt-1 text-xs text-on-surface-variant">Try widening your search terms or date scope.</p>
+              {/* Search Input */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80">Search Memo / Tag</label>
+                <div className="relative group">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/45">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search..."
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-full pl-11 pr-4 py-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-low text-xs focus:outline-none focus:border-secondary transition-all"
+                  />
+                </div>
               </div>
-            ) : (
-              filteredTransactions.map((t) => {
-                const isEditing = editingId === t.id;
 
-                if (isEditing) {
-                  return (
-                    <div key={t.id} className="rounded-2xl bg-surface-container-low p-4 border border-secondary/40 space-y-4 animate-in fade-in duration-200">
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {/* Amount */}
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Amount</label>
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={editAmount}
-                            onChange={(e) => setEditAmount(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold"
-                          />
-                        </div>
-                        {/* Date */}
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Date</label>
-                          <input
-                            type="date"
-                            value={editDate}
-                            onChange={(e) => setEditDate(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
-                          />
-                        </div>
-                      </div>
+              {/* Category Dropdown */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80">Category</label>
+                <div className="relative">
+                  <select
+                    value={filterCategory}
+                    onChange={(e) => setFilterCategory(e.target.value)}
+                    className="w-full px-4 py-2.5 rounded-2xl border border-outline-variant/60 bg-surface-container-low text-xs focus:outline-none focus:border-secondary transition-all font-bold text-on-surface-variant appearance-none cursor-pointer"
+                  >
+                    <option value="all">All Categories</option>
+                    {categoryNames.map((name) => (
+                      <option key={name} value={name}>{name}</option>
+                    ))}
+                  </select>
+                  <span className="absolute right-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant pointer-events-none">expand_more</span>
+                </div>
+              </div>
 
-                      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                        {/* Memo */}
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
-                          <input
-                            type="text"
-                            value={editNote}
-                            onChange={(e) => setEditNote(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
-                          />
-                        </div>
-                        {/* Category */}
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
-                          <select
-                            value={editCategoryId || ''}
-                            onChange={(e) => setEditCategoryId(parseInt(e.target.value) || null)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
-                          >
-                            <option value="">Select Category</option>
-                            {categories.filter(c => c.type === t.type).map((c) => (
-                              <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      </div>
+              {/* Type Filters */}
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80">Transaction Type</label>
+                <div className="grid grid-cols-2 gap-1.5 bg-surface-container-low p-1 rounded-2xl border border-outline-variant/40">
+                  {(['all', 'income', 'expense', 'savings'] as const).map((type) => (
+                    <button
+                      key={type}
+                      onClick={() => setFilterType(type)}
+                      className={`rounded-xl py-2 text-[10px] font-black uppercase tracking-wider transition-all ${
+                        filterType === type
+                          ? 'bg-secondary text-on-secondary shadow-md'
+                          : 'text-on-surface-variant hover:text-primary'
+                      }`}
+                    >
+                      {type}
+                    </button>
+                  ))}
+                </div>
+              </div>
 
-                      {/* Spending Plan Link */}
-                      {spendingPlans.length > 0 && (
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
-                          <select
-                            value={editSpendingPlanId || ''}
-                            onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
-                          >
-                            <option value="">Do Not Link</option>
-                            {spendingPlans.map((plan) => (
-                              <option key={plan.id} value={plan.id}>{plan.product_name}</option>
-                            ))}
-                          </select>
-                        </div>
-                      )}
-
-                      <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
-                        <button
-                          type="button"
-                          onClick={() => setEditingId(null)}
-                          className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
-                        >
-                          Cancel
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleSaveEdit(t.id)}
-                          className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
-                        >
-                          Save Changes
-                        </button>
-                      </div>
-                    </div>
-                  );
-                }
-
-                return (
-                  <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/40 p-4 border border-outline-variant/20 hover:border-outline-variant/55 transition-all group">
-                    <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
-                        {t.category_emoji || '🛒'}
-                      </div>
-                      <div>
-                        <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
-                        <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
-                          <span>{t.category_name || t.type}</span>
-                          <span className="opacity-40">•</span>
-                          <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                          {t.spending_plan_id && (() => {
-                            const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
-                            return plan ? (
-                              <>
-                                <span className="opacity-40">•</span>
-                                <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
-                                  <span className="material-symbols-outlined text-[12px] font-black">folder</span>
-                                  {plan.product_name}
-                                </span>
-                              </>
-                            ) : null;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-4">
-                      <div className="text-right">
-                        <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
-                          {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
-                        </p>
-                      </div>
-                      
-                      {/* Inline Actions (edit/delete) */}
-                      <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
-                        <button
-                          type="button"
-                          onClick={() => handleStartEdit(t)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant hover:text-primary transition-colors"
-                          title="Edit transaction"
-                        >
-                          <span className="material-symbols-outlined text-lg">edit</span>
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => handleDelete(t.id)}
-                          className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-red-500/10 text-on-surface-variant hover:text-red-500 transition-colors"
-                          title="Delete transaction"
-                        >
-                          <span className="material-symbols-outlined text-lg">delete</span>
-                        </button>
-                      </div>
-                    </div>
+              {/* Date Filters */}
+              <div className="space-y-2 pt-2 border-t border-outline-variant/20">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80">Date Boundaries</label>
+                <div className="flex flex-col gap-2 text-xs font-bold text-on-surface-variant">
+                  <div className="space-y-1">
+                    <span className="text-[9px] uppercase opacity-60">From</span>
+                    <input
+                      type="date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/60 bg-surface-container-low focus:outline-none text-xs"
+                    />
                   </div>
-                );
-              })
-            )}
+                  <div className="space-y-1">
+                    <span className="text-[9px] uppercase opacity-60">To</span>
+                    <input
+                      type="date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="w-full px-3 py-2 rounded-xl border border-outline-variant/60 bg-surface-container-low focus:outline-none text-xs"
+                    />
+                  </div>
+                  {(startDate || endDate) && (
+                    <button
+                      onClick={() => { setStartDate(''); setEndDate(''); }}
+                      className="text-secondary hover:underline text-xs font-bold text-center mt-1"
+                    >
+                      Clear Range
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Transactions List */}
+          <div className="lg:col-span-3">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm">
+              <div className="flex items-center justify-between mb-5">
+                <h2 className="text-lg font-black text-primary">Ledger Entries</h2>
+                <span className="text-xs font-semibold text-on-surface-variant uppercase tracking-wider">
+                  {filteredTransactions.length} transaction{filteredTransactions.length === 1 ? '' : 's'} found
+                </span>
+              </div>
+
+              <div className="space-y-4">
+                {filteredTransactions.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-outline p-12 text-center bg-surface-container-low/40">
+                    <span className="material-symbols-outlined mb-2 text-5xl text-on-surface-variant/35">receipt_long</span>
+                    <p className="font-bold text-on-surface">No ledger entries match filters</p>
+                    <p className="mt-1 text-xs text-on-surface-variant">Try widening your search terms or date scope.</p>
+                  </div>
+                ) : (
+                  filteredTransactions.map((t) => {
+                    const isEditing = editingId === t.id;
+
+                    if (isEditing) {
+                      return (
+                        <div key={t.id} className="rounded-2xl bg-surface-container-low p-4 border border-secondary/40 space-y-4 animate-in fade-in duration-200">
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {/* Amount */}
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Amount</label>
+                              <input
+                                type="number"
+                                step="0.01"
+                                value={editAmount}
+                                onChange={(e) => setEditAmount(e.target.value)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold"
+                              />
+                            </div>
+                            {/* Date */}
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Date</label>
+                              <input
+                                type="date"
+                                value={editDate}
+                                onChange={(e) => setEditDate(e.target.value)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                            {/* Memo */}
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
+                              <input
+                                type="text"
+                                value={editNote}
+                                onChange={(e) => setEditNote(e.target.value)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
+                              />
+                            </div>
+                            {/* Category */}
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
+                              <select
+                                value={editCategoryId || ''}
+                                onChange={(e) => setEditCategoryId(parseInt(e.target.value) || null)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                              >
+                                <option value="">Select Category</option>
+                                {categories.filter(c => c.type === t.type).map((c) => (
+                                  <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
+
+                          {/* Spending Plan Link */}
+                          {spendingPlans.length > 0 && (
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
+                              <select
+                                value={editSpendingPlanId || ''}
+                                onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                              >
+                                <option value="">Do Not Link</option>
+                                {spendingPlans.map((plan) => (
+                                  <option key={plan.id} value={plan.id}>{plan.product_name}</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                            <button
+                              type="button"
+                              onClick={() => setEditingId(null)}
+                              className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
+                            >
+                              Cancel
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleSaveEdit(t.id)}
+                              className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
+                            >
+                              Save Changes
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/40 p-4 border border-outline-variant/20 hover:border-outline-variant/55 transition-all group">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
+                            {t.category_emoji || '🛒'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
+                            <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
+                              <span>{t.category_name || t.type}</span>
+                              <span className="opacity-40">•</span>
+                              <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                              {t.spending_plan_id && (() => {
+                                const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
+                                return plan ? (
+                                  <>
+                                    <span className="opacity-40">•</span>
+                                    <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
+                                      <span className="material-symbols-outlined text-[12px] font-black">folder</span>
+                                      {plan.product_name}
+                                    </span>
+                                  </>
+                                ) : null;
+                              })()}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-4">
+                          <div className="text-right">
+                            <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                              {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                            </p>
+                          </div>
+                          
+                          {/* Inline Actions (edit/delete) */}
+                          <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                            <button
+                              type="button"
+                              onClick={() => handleStartEdit(t)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant hover:text-primary transition-colors"
+                              title="Edit transaction"
+                            >
+                              <span className="material-symbols-outlined text-lg">edit</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDelete(t.id)}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-red-500/10 text-on-surface-variant hover:text-red-500 transition-colors"
+                              title="Delete transaction"
+                            >
+                              <span className="material-symbols-outlined text-lg">delete</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
           </div>
         </div>
       </div>
