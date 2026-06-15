@@ -48,6 +48,10 @@ export default function DashboardView({ email, displayName, profile, application
   const spendingPlans = useApplicationStore(state => state.spendingPlans);
   const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
   const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
+
+  const sortedTransactions = useMemo(() => {
+    return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }, [transactions]);
   const updateTransactionLocal = useApplicationStore(state => state.updateTransactionLocal);
   const deleteTransactionLocal = useApplicationStore(state => state.deleteTransactionLocal);
 
@@ -467,7 +471,7 @@ export default function DashboardView({ email, displayName, profile, application
                 <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Net Worth Balance</p>
                 <h3 className="mt-3 text-2xl font-black text-primary">{formatCurrency(stats.currentBalance)}</h3>
                 <p className="mt-1 text-[10px] text-on-surface-variant">
-                  Everyday Cash: <span className="font-bold text-on-surface">{formatCurrency(stats.currentBalance - totalIndependentSavings)}</span>
+                  Everyday Cash: <span className="font-bold text-on-surface">{formatCurrency(stats.currentBalance - totalSavings)}</span>
                 </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
@@ -563,14 +567,14 @@ export default function DashboardView({ email, displayName, profile, application
                 </div>
 
                 <div className="space-y-3">
-                  {transactions.length === 0 ? (
+                  {sortedTransactions.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
                       <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">receipt_long</span>
                       <p className="font-bold text-on-surface text-sm">No transactions logged</p>
                       <p className="mt-1 text-xs text-on-surface-variant">Tap Add in the nav bar below to log your first transaction.</p>
                     </div>
                   ) : (
-                    transactions.slice(0, 10).map((t) => {
+                    sortedTransactions.slice(0, 10).map((t) => {
                       const isEditing = editingTxId === t.id;
 
                       if (isEditing) {

@@ -219,7 +219,7 @@ export const useApplicationStore = create<ApplicationState>()(
       },
 
       addTransactionLocal: async (transaction, skipSync = false) => {
-        const txId = transaction.id || crypto.randomUUID();
+        const txId = transaction.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36));
         const newTx = { ...transaction, id: txId } as Transaction;
         
         set((state) => ({

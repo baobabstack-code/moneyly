@@ -43,26 +43,28 @@ export default function HistoryView() {
 
   // Filtered transactions
   const filteredTransactions = useMemo(() => {
-    return transactions.filter(t => {
-      // 1. Text Search (note, category name)
-      const matchesSearch = 
-        !search.trim() || 
-        t.note?.toLowerCase().includes(search.toLowerCase()) || 
-        t.category_name?.toLowerCase().includes(search.toLowerCase());
+    return transactions
+      .filter(t => {
+        // 1. Text Search (note, category name)
+        const matchesSearch = 
+          !search.trim() || 
+          t.note?.toLowerCase().includes(search.toLowerCase()) || 
+          t.category_name?.toLowerCase().includes(search.toLowerCase());
 
-      // 2. Type Filter
-      const matchesType = filterType === 'all' || t.type === filterType;
+        // 2. Type Filter
+        const matchesType = filterType === 'all' || t.type === filterType;
 
-      // 3. Category Filter
-      const matchesCategory = filterCategory === 'all' || t.category_name === filterCategory;
+        // 3. Category Filter
+        const matchesCategory = filterCategory === 'all' || t.category_name === filterCategory;
 
-      // 4. Date Filters
-      const txDate = new Date(t.date).toISOString().substring(0, 10);
-      const matchesStart = !startDate || txDate >= startDate;
-      const matchesEnd = !endDate || txDate <= endDate;
+        // 4. Date Filters
+        const txDate = new Date(t.date).toISOString().substring(0, 10);
+        const matchesStart = !startDate || txDate >= startDate;
+        const matchesEnd = !endDate || txDate <= endDate;
 
-      return matchesSearch && matchesType && matchesCategory && matchesStart && matchesEnd;
-    });
+        return matchesSearch && matchesType && matchesCategory && matchesStart && matchesEnd;
+      })
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions, search, filterType, filterCategory, startDate, endDate]);
 
   const handleStartEdit = (t: Transaction) => {
