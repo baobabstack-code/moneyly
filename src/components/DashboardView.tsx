@@ -448,24 +448,14 @@ export default function DashboardView({ email, displayName, profile, application
         )}
 
         {/* Welcome Header */}
-        <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Money Manager</p>
-            <h1 className="text-3xl font-black text-primary sm:text-4xl">
-              Welcome back, {firstName}
-            </h1>
-            <p className="mt-2 max-w-2xl text-on-surface-variant">
-              Track your net worth, transaction history, categories, accents, and offline syncing.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-outline-variant bg-surface px-4 py-3 text-sm shadow-sm flex items-center gap-3">
-            <span className="material-symbols-outlined text-secondary">wifi</span>
-            <div>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Status</p>
-              <p className="font-bold text-on-surface">Offline Sync Capable</p>
-            </div>
-          </div>
+        <div className="mb-8">
+          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Money Manager</p>
+          <h1 className="text-3xl font-black text-primary sm:text-4xl">
+            Welcome back, {firstName}
+          </h1>
+          <p className="mt-2 max-w-2xl text-on-surface-variant">
+            Track your net worth, transaction history, categories, accents, and offline syncing.
+          </p>
         </div>
 
         {/* Dashboard Stat Grid */}

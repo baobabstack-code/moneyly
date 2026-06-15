@@ -7,6 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
+import { useApplicationStore } from "@/lib/store";
 
 interface NavbarProps {
   initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
@@ -18,6 +19,30 @@ export default function Navbar({ initialUser }: NavbarProps) {
   const [authChanged, setAuthChanged] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const pathname = usePathname();
+
+  const pendingMutations = useApplicationStore(state => state.pendingMutations);
+  const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
+  const [isOnline, setIsOnline] = useState(true);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      setIsOnline(navigator.onLine);
+      const handleOnline = () => {
+        setIsOnline(true);
+        // Automatically trigger sync when coming back online
+        syncOfflineData();
+      };
+      const handleOffline = () => {
+        setIsOnline(false);
+      };
+      window.addEventListener("online", handleOnline);
+      window.addEventListener("offline", handleOffline);
+      return () => {
+        window.removeEventListener("online", handleOnline);
+        window.removeEventListener("offline", handleOffline);
+      };
+    }
+  }, [syncOfflineData]);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -68,6 +93,37 @@ export default function Navbar({ initialUser }: NavbarProps) {
           <ThemeToggle />
           {isLoggedIn ? (
             <div className="flex items-center gap-4">
+              {/* Connection Status Pill */}
+              <div 
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-[11px] font-extrabold backdrop-blur-sm transition-all select-none ${
+                  !isOnline 
+                    ? 'bg-amber-500/10 border-amber-500/25 text-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.08)]' 
+                    : pendingMutations.length > 0
+                      ? 'bg-blue-500/10 border-blue-500/25 text-blue-500 shadow-[0_0_8px_rgba(59,130,246,0.08)] animate-pulse'
+                      : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.08)]'
+                }`}
+                title={
+                  !isOnline 
+                    ? `Offline. ${pendingMutations.length} changes queued to sync.` 
+                    : pendingMutations.length > 0 
+                      ? `Syncing ${pendingMutations.length} updates...` 
+                      : 'Connected. Offline-first sync active.'
+                }
+              >
+                <span className={`material-symbols-outlined text-sm leading-none ${
+                  isOnline && pendingMutations.length > 0 ? 'animate-spin' : ''
+                }`}>
+                  {!isOnline ? 'wifi_off' : pendingMutations.length > 0 ? 'sync' : 'wifi'}
+                </span>
+                <span className="hidden sm:inline uppercase tracking-wider">
+                  {!isOnline 
+                    ? `Offline ${pendingMutations.length > 0 ? `(${pendingMutations.length})` : ''}` 
+                    : pendingMutations.length > 0
+                      ? `Syncing (${pendingMutations.length})`
+                      : 'Online'
+                  }
+                </span>
+              </div>
               <div className="hidden sm:flex flex-col items-end">
                 <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">Account</span>
                 <span className="text-xs font-bold text-on-surface max-w-[120px] truncate">
