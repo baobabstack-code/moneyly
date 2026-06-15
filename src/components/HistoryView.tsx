@@ -12,6 +12,7 @@ export default function HistoryView() {
   const accentColor = useFinanceStore(state => state.accentColor);
   const currencyCode = useFinanceStore(state => state.currency);
   const startingBalance = useFinanceStore(state => state.startingBalance);
+  const accounts = useFinanceStore(state => state.accounts);
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings'>('all');
@@ -26,6 +27,7 @@ export default function HistoryView() {
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editSpendingPlanId, setEditSpendingPlanId] = useState<string | null>(null);
+  const [editAccountId, setEditAccountId] = useState<string | null>(null);
   const spendingPlans = useFinanceStore(state => state.spendingPlans);
 
   const currencySymbol = useMemo(() => {
@@ -74,6 +76,7 @@ export default function HistoryView() {
     setEditCategoryId(t.category_id || null);
     setEditDate(new Date(t.date).toISOString().substring(0, 10));
     setEditSpendingPlanId(t.spending_plan_id || null);
+    setEditAccountId(t.account_id || null);
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -90,6 +93,7 @@ export default function HistoryView() {
       category_emoji: selectedCategory?.emoji || null,
       date: new Date(editDate).toISOString(),
       spending_plan_id: editSpendingPlanId || null,
+      account_id: editAccountId || null,
     });
 
     setEditingId(null);
@@ -349,6 +353,25 @@ export default function HistoryView() {
                             </div>
                           </div>
 
+                          {/* Card / Account Link */}
+                          {accounts.length > 0 && (
+                            <div>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Card / Account (Optional)</label>
+                              <select
+                                value={editAccountId || ''}
+                                onChange={(e) => setEditAccountId(e.target.value || null)}
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                              >
+                                <option value="">Do Not Link</option>
+                                {accounts.map((acc) => (
+                                  <option key={acc.id} value={acc.id}>
+                                    {acc.name} ({acc.type}) — {currencySymbol}{acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
                           {/* Spending Plan Link */}
                           {spendingPlans.length > 0 && (
                             <div>
@@ -398,6 +421,18 @@ export default function HistoryView() {
                               <span>{t.category_name || t.type}</span>
                               <span className="opacity-40">•</span>
                               <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                              {t.account_id && (() => {
+                                const account = accounts.find(a => a.id === t.account_id);
+                                return account ? (
+                                  <>
+                                    <span className="opacity-40">•</span>
+                                    <span className="text-primary font-bold flex items-center gap-0.5 normal-case px-1.5 py-0.5 rounded border border-outline-variant/35 bg-surface-container-low" title="This transaction is linked to a bank card or cash account.">
+                                      <span className="material-symbols-outlined text-[11px] font-black">credit_card</span>
+                                      {account.name}
+                                    </span>
+                                  </>
+                                ) : null;
+                              })()}
                               {t.spending_plan_id && (() => {
                                 const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
                                 return plan ? (

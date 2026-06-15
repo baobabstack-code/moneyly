@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect, useTransition } from "react";
 import { UserProfile } from "@/lib/profile";
-import { useFinanceStore, Transaction, SpendingPlan } from "@/lib/financeStore";
+import { useFinanceStore, Transaction, SpendingPlan, Account } from "@/lib/financeStore";
 import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
 import BudgetEditModal from "./BudgetEditModal";
@@ -56,6 +56,66 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const setDailyBudget = useFinanceStore(state => state.setDailyBudget);
   const setWeeklyBudget = useFinanceStore(state => state.setWeeklyBudget);
   const setMonthlyBudget = useFinanceStore(state => state.setMonthlyBudget);
+  const accounts = useFinanceStore(state => state.accounts);
+  const setAccounts = useFinanceStore(state => state.setAccounts);
+  const addAccountLocal = useFinanceStore(state => state.addAccountLocal);
+  const updateAccountLocal = useFinanceStore(state => state.updateAccountLocal);
+  const deleteAccountLocal = useFinanceStore(state => state.deleteAccountLocal);
+
+  const [accountModalOpen, setAccountModalOpen] = useState(false);
+  const [editingAccount, setEditingAccount] = useState<Account | null>(null);
+  const [accountName, setAccountName] = useState('');
+  const [accountType, setAccountType] = useState<'checking' | 'savings' | 'credit' | 'cash'>('checking');
+  const [accountBalance, setAccountBalance] = useState('');
+  const [accountColor, setAccountColor] = useState('blue');
+
+  const handleOpenAccountModal = (acc: Account | null = null) => {
+    if (acc) {
+      setEditingAccount(acc);
+      setAccountName(acc.name);
+      setAccountType(acc.type);
+      setAccountBalance(acc.balance.toString());
+      setAccountColor(acc.color);
+    } else {
+      setEditingAccount(null);
+      setAccountName('');
+      setAccountType('checking');
+      setAccountBalance('');
+      setAccountColor('blue');
+    }
+    setAccountModalOpen(true);
+  };
+
+  const handleSaveAccount = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accountName.trim()) return;
+    const balanceNum = parseFloat(accountBalance) || 0;
+
+    if (editingAccount) {
+      await updateAccountLocal(editingAccount.id, {
+        name: accountName.trim(),
+        type: accountType,
+        balance: balanceNum,
+        color: accountColor,
+      });
+    } else {
+      await addAccountLocal({
+        user_id: profile?.id || '',
+        name: accountName.trim(),
+        type: accountType,
+        balance: balanceNum,
+        color: accountColor,
+      });
+    }
+    setAccountModalOpen(false);
+  };
+
+  const handleDeleteAccount = async (id: string) => {
+    if (confirm('Are you sure you want to delete this account? Any transactions linked to it will be disassociated.')) {
+      await deleteAccountLocal(id);
+      setAccountModalOpen(false);
+    }
+  };
 
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -95,6 +155,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         const { data: plans } = await supabase.from('spending_plans').select('*').order('created_at', { ascending: false });
         if (plans) setSpendingPlans(plans);
 
+        const { data: accs } = await supabase.from('accounts').select('*').order('created_at', { ascending: true });
+        if (accs) setAccounts(accs);
+
         await syncOfflineData();
       }
     };
@@ -108,7 +171,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [profile, initialSpendingPlans, spendingPlans, setSpendingPlans]);
+  }, [profile, initialSpendingPlans, spendingPlans, setSpendingPlans, setAccounts, setCategories, setTransactions]);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
@@ -771,6 +834,51 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   </div>
                 </div>
 
+                {/* Account Details & Management Table */}
+                <div className="space-y-4 pt-4 border-t border-outline-variant/30">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-sm font-black text-primary">Itemized Accounts Summary</h3>
+                      <p className="text-[10px] text-on-surface-variant">Linked transaction metrics per card</p>
+                    </div>
+                  </div>
+
+                  {accounts.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-outline p-6 text-center bg-surface-container-low/20">
+                      <p className="text-xs text-on-surface-variant font-bold">No accounts configured yet.</p>
+                      <p className="text-[10px] text-on-surface-variant mt-0.5">Use the "+ Add" button in the sidebar to create your first card.</p>
+                    </div>
+                  ) : (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs border-collapse">
+                        <thead>
+                          <tr className="border-b border-outline-variant/40 text-on-surface-variant/70">
+                            <th className="py-2.5 font-bold uppercase tracking-wider">Account Name</th>
+                            <th className="py-2.5 font-bold uppercase tracking-wider">Type</th>
+                            <th className="py-2.5 font-bold uppercase tracking-wider text-right">Balance</th>
+                            <th className="py-2.5 font-bold uppercase tracking-wider text-right">Ledger Entries</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-outline-variant/20">
+                          {accounts.map((acc) => (
+                            <tr key={acc.id} className="text-primary hover:bg-surface-container-low/30 transition-colors cursor-pointer" onClick={() => handleOpenAccountModal(acc)}>
+                              <td className="py-3 flex items-center gap-2 font-bold">
+                                <div className="h-2 w-2 rounded-full" style={{ backgroundColor: acc.color === 'blue' ? '#2563eb' : acc.color === 'green' ? '#10b981' : acc.color === 'purple' ? '#9333ea' : acc.color === 'orange' ? '#d97706' : '#e11d48' }} />
+                                {acc.name}
+                              </td>
+                              <td className="py-3 font-semibold uppercase tracking-wider text-[10px] text-on-surface-variant">{acc.type}</td>
+                              <td className="py-3 font-black text-right">{formatCurrency(acc.balance)}</td>
+                              <td className="py-3 font-bold text-right text-on-surface-variant/80">
+                                {transactions.filter(t => t.account_id === acc.id).length} items
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
                 <div className="rounded-2xl bg-surface-container-low p-5 border border-outline-variant/35 flex items-center justify-between">
                   <div>
                     <h4 className="font-black text-primary text-sm">Offline Synchronization log</h4>
@@ -1352,8 +1460,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
               </div>
             </div>
-
-            {/* Budgets Tracker Widget */}
+                 {/* Budgets Tracker Widget */}
             <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col">
               <div className="flex items-center justify-between mb-4">
                 <div className="text-left">
@@ -1378,14 +1485,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       Daily Limit
                       {budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily && (
                         <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          <span className="material-symbols-outlined text-[12px]">warning</span>
-                          Over
+                          Over Limit!
                         </span>
                       )}
                     </span>
-                    <span>
-                      {formatCurrency(budgetSpending.daily)} / {budgetLimits.daily > 0 ? formatCurrency(budgetLimits.daily) : 'Not set'}
-                    </span>
+                    <span>{formatCurrency(budgetSpending.daily)} / {budgetLimits.daily > 0 ? formatCurrency(budgetLimits.daily) : 'N/A'}</span>
                   </div>
                   <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
                     <div 
@@ -1408,14 +1512,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       Weekly Limit
                       {budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly && (
                         <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          <span className="material-symbols-outlined text-[12px]">warning</span>
-                          Over
+                          Over Limit!
                         </span>
                       )}
                     </span>
-                    <span>
-                      {formatCurrency(budgetSpending.weekly)} / {budgetLimits.weekly > 0 ? formatCurrency(budgetLimits.weekly) : 'Not set'}
-                    </span>
+                    <span>{formatCurrency(budgetSpending.weekly)} / {budgetLimits.weekly > 0 ? formatCurrency(budgetLimits.weekly) : 'N/A'}</span>
                   </div>
                   <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
                     <div 
@@ -1438,14 +1539,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       Monthly Limit
                       {budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly && (
                         <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          <span className="material-symbols-outlined text-[12px]">warning</span>
-                          Over
+                          Over Limit!
                         </span>
                       )}
                     </span>
-                    <span>
-                      {formatCurrency(budgetSpending.monthly)} / {budgetLimits.monthly > 0 ? formatCurrency(budgetLimits.monthly) : 'Not set'}
-                    </span>
+                    <span>{formatCurrency(budgetSpending.monthly)} / {budgetLimits.monthly > 0 ? formatCurrency(budgetLimits.monthly) : 'N/A'}</span>
                   </div>
                   <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
                     <div 
@@ -1462,6 +1560,108 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
               </div>
             </div>
+
+            {/* Cards & Accounts Sidebar Widget */}
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="text-left">
+                  <h3 className="text-lg font-black text-primary">Accounts & Cards</h3>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Manage your active cash nodes</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleOpenAccountModal()}
+                  className="p-2 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors flex items-center justify-center text-on-surface-variant hover:text-primary"
+                  title="Add new account or card"
+                >
+                  <span className="material-symbols-outlined text-[18px]">add</span>
+                </button>
+              </div>
+
+              {accounts.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-outline p-6 text-center bg-surface-container-low/40">
+                  <span className="material-symbols-outlined mb-2 text-3xl text-on-surface-variant/30">credit_card</span>
+                  <p className="font-bold text-on-surface text-xs">No active cards</p>
+                  <p className="mt-1 text-[10px] text-on-surface-variant">Create checking, savings, credit, or cash nodes to link ledger entries.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-[380px] overflow-y-auto scrollbar-hide pr-0.5">
+                  {accounts.map((acc) => {
+                    const cardThemeMap: Record<string, { bg: string, text: string, shadow: string, border: string }> = {
+                      blue: { 
+                        bg: 'bg-gradient-to-br from-blue-600/90 to-cyan-500/90', 
+                        text: 'text-white', 
+                        shadow: 'shadow-blue-500/10',
+                        border: 'border-blue-400/30'
+                      },
+                      green: { 
+                        bg: 'bg-gradient-to-br from-emerald-600/90 to-teal-500/90', 
+                        text: 'text-white', 
+                        shadow: 'shadow-emerald-500/10',
+                        border: 'border-emerald-400/30'
+                      },
+                      purple: { 
+                        bg: 'bg-gradient-to-br from-purple-600/90 to-pink-500/90', 
+                        text: 'text-white', 
+                        shadow: 'shadow-purple-500/10',
+                        border: 'border-purple-400/30'
+                      },
+                      orange: { 
+                        bg: 'bg-gradient-to-br from-amber-600/90 to-orange-500/90', 
+                        text: 'text-white', 
+                        shadow: 'shadow-orange-500/10',
+                        border: 'border-orange-400/30'
+                      },
+                      red: { 
+                        bg: 'bg-gradient-to-br from-rose-600/90 to-red-500/90', 
+                        text: 'text-white', 
+                        shadow: 'shadow-rose-500/10',
+                        border: 'border-rose-400/30'
+                      }
+                    };
+
+                    const theme = cardThemeMap[acc.color] || cardThemeMap.blue;
+                    const typeIconMap: Record<string, string> = {
+                      checking: 'payments',
+                      savings: 'savings',
+                      credit: 'credit_card',
+                      cash: 'account_balance_wallet'
+                    };
+
+                    return (
+                      <div 
+                        key={acc.id}
+                        onClick={() => handleOpenAccountModal(acc)}
+                        className={`relative w-full rounded-2xl p-4 border ${theme.border} ${theme.bg} ${theme.text} shadow-lg ${theme.shadow} transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden`}
+                      >
+                        <div className="absolute right-0 bottom-0 translate-x-1/4 translate-y-1/4 h-24 w-24 rounded-full bg-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                        <div className="absolute left-0 top-0 -translate-x-1/4 -translate-y-1/4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
+
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">{acc.type}</p>
+                            <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[150px]">{acc.name}</h4>
+                          </div>
+                          <span className="material-symbols-outlined text-lg opacity-85">
+                            {typeIconMap[acc.type] || 'credit_card'}
+                          </span>
+                        </div>
+
+                        <div className="mt-5 flex justify-between items-end">
+                          <div>
+                            <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
+                            <p className="text-lg font-black tracking-tight mt-0.5">{formatCurrency(acc.balance)}</p>
+                          </div>
+                          <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
+                            <span className="material-symbols-outlined text-xs text-amber-200 opacity-60">grid_3x3</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -1477,6 +1677,137 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           isOpen={budgetModalOpen}
           onClose={() => setBudgetModalOpen(false)}
         />
+      )}
+      {accountModalOpen && (
+        <div
+          className="fixed inset-0 z-100 flex items-end justify-center bg-slate-950/70 p-0 backdrop-blur-md sm:items-center sm:p-4 animate-in fade-in duration-200"
+          onClick={(e) => { if (e.target === e.currentTarget) setAccountModalOpen(false); }}
+        >
+          <div 
+            className="w-full rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl flex flex-col max-h-[90vh]"
+            data-accent={accentColor}
+          >
+            {/* Header */}
+            <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+              <h2 className="text-xl font-black text-primary flex items-center gap-2">
+                <span className="material-symbols-outlined text-secondary">credit_card</span>
+                {editingAccount ? 'Edit Account / Card' : 'Add Account / Card'}
+              </h2>
+              <button 
+                type="button" 
+                onClick={() => setAccountModalOpen(false)} 
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors"
+              >
+                <span className="material-symbols-outlined text-on-surface-variant">close</span>
+              </button>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleSaveAccount} className="overflow-y-auto flex-1 py-5 space-y-4 pr-1">
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                  Card / Account Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="E.g., Chase Sapphire, Wallet Cash"
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                  value={accountName}
+                  onChange={(e) => setAccountName(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                  Account Type <span className="text-red-500">*</span>
+                </label>
+                <select
+                  required
+                  className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                  value={accountType}
+                  onChange={(e) => setAccountType(e.target.value as any)}
+                >
+                  <option value="checking">Checking / Debit</option>
+                  <option value="savings">Savings Vault</option>
+                  <option value="credit">Credit Card</option>
+                  <option value="cash">Physical Cash / Wallet</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                  Current Balance <span className="text-red-500">*</span>
+                </label>
+                <div className="relative">
+                  <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    required
+                    placeholder="0.00"
+                    className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                    value={accountBalance}
+                    onChange={(e) => setAccountBalance(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                  Card Accent Color <span className="text-red-500">*</span>
+                </label>
+                <div className="flex gap-3 pt-1">
+                  {['blue', 'green', 'purple', 'orange', 'red'].map((col) => (
+                    <button
+                      key={col}
+                      type="button"
+                      onClick={() => setAccountColor(col)}
+                      className={`h-9 w-9 rounded-full border-2 transition-all ${
+                        accountColor === col 
+                          ? 'border-secondary scale-110 shadow-md' 
+                          : 'border-transparent hover:scale-105'
+                      }`}
+                      style={{ 
+                        backgroundColor: col === 'blue' ? '#2563eb' :
+                                         col === 'green' ? '#10b981' :
+                                         col === 'purple' ? '#9333ea' :
+                                         col === 'orange' ? '#d97706' : '#e11d48'
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="pt-4 border-t border-outline-variant/30 flex gap-2">
+                {editingAccount && (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteAccount(editingAccount.id)}
+                    className="px-4 py-3 rounded-xl border border-rose-500/35 hover:bg-rose-500/10 text-rose-500 font-bold text-sm transition-all"
+                  >
+                    Delete Card
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setAccountModalOpen(false)}
+                  className="px-4 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-grow flex items-center justify-center gap-2 rounded-xl bg-secondary py-3 font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
+                >
+                  {editingAccount ? 'Save Changes' : 'Create Card'}
+                  <span className="material-symbols-outlined text-sm">done</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

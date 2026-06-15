@@ -19,6 +19,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
 
   const categories = useFinanceStore(state => state.categories);
   const spendingPlans = useFinanceStore(state => state.spendingPlans);
+  const accounts = useFinanceStore(state => state.accounts);
   const addTransactionLocal = useFinanceStore(state => state.addTransactionLocal);
   const accentColor = useFinanceStore(state => state.accentColor);
   const currencySymbol = useFinanceStore(state => {
@@ -33,6 +34,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
   const [note, setNote] = useState('');
   const [date, setDate] = useState(getLocalDateString);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
 
   // Filter categories by type
   const filteredCategories = categories.filter(c => c.type === type);
@@ -45,6 +47,15 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
       setSelectedCategoryId(null);
     }
   }, [type, categories]);
+
+  // Auto-select first account if available
+  useEffect(() => {
+    if (accounts.length > 0) {
+      setSelectedAccountId(accounts[0].id);
+    } else {
+      setSelectedAccountId(null);
+    }
+  }, [accounts]);
 
   if (!isOpen) return null;
 
@@ -65,12 +76,14 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
       note: note.trim() || null,
       date: new Date(date).toISOString(),
       spending_plan_id: selectedPlanId || null,
+      account_id: selectedAccountId || null,
     });
 
     // Reset and close
     setAmount('');
     setNote('');
     setSelectedPlanId(null);
+    setSelectedAccountId(accounts[0]?.id || null);
     setDate(getLocalDateString());
     onClose();
   };
@@ -176,6 +189,25 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
               </div>
             )}
           </div>
+
+          {/* Link to Card / Account */}
+          {accounts.length > 0 && (
+            <div title="Optionally link this transaction to a card or cash account. Adjusts the card balance automatically.">
+              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Link to Card / Account (Optional)</label>
+              <select
+                value={selectedAccountId || ''}
+                onChange={(e) => setSelectedAccountId(e.target.value || null)}
+                className="mt-2 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm text-primary font-bold focus:outline-none focus:border-secondary"
+              >
+                <option value="">Do Not Link</option>
+                {accounts.map((acc) => (
+                  <option key={acc.id} value={acc.id}>
+                    {acc.name} ({acc.type}) — {currencySymbol}{acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Link to Spending Plan */}
           {spendingPlans.length > 0 && (

@@ -13,6 +13,17 @@ export interface Transaction {
   date: string;
   created_at?: string;
   spending_plan_id?: string | null;
+  account_id?: string | null;
+}
+
+export interface Account {
+  id: string;
+  user_id: string;
+  name: string;
+  type: 'checking' | 'savings' | 'credit' | 'cash';
+  balance: number;
+  color: string;
+  created_at?: string;
 }
 
 export interface Category {
@@ -27,7 +38,7 @@ export interface Category {
 
 export interface PendingMutation {
   id: string;
-  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN';
+  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN' | 'CREATE_ACCOUNT' | 'UPDATE_ACCOUNT' | 'DELETE_ACCOUNT';
   payload: any;
   timestamp: number;
 }
@@ -88,6 +99,7 @@ export interface FinanceState {
   transactions: Transaction[];
   categories: Category[];
   spendingPlans: SpendingPlan[];
+  accounts: Account[];
   pendingMutations: PendingMutation[];
 
   setAccentColor: (color: "green" | "purple" | "blue" | "orange") => void;
@@ -100,6 +112,7 @@ export interface FinanceState {
   setTransactions: (transactions: Transaction[]) => void;
   setCategories: (categories: Category[]) => void;
   setSpendingPlans: (plans: SpendingPlan[]) => void;
+  setAccounts: (accounts: Account[]) => void;
   
   // Offline-first actions
   syncOfflineData: () => Promise<void>;
@@ -111,6 +124,9 @@ export interface FinanceState {
   addSpendingPlanLocal: (plan: Omit<SpendingPlan, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
   deleteSpendingPlanLocal: (id: string, skipSync?: boolean) => Promise<void>;
   updateSpendingPlanLocal: (id: string, updates: Partial<SpendingPlan>, skipSync?: boolean) => Promise<void>;
+  addAccountLocal: (account: Omit<Account, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
+  deleteAccountLocal: (id: string, skipSync?: boolean) => Promise<void>;
+  updateAccountLocal: (id: string, updates: Partial<Account>, skipSync?: boolean) => Promise<void>;
   updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
 
   /** Actions */
@@ -139,6 +155,7 @@ const initialState = {
   transactions: [],
   categories: [],
   spendingPlans: [],
+  accounts: [],
   pendingMutations: [],
 };
 
@@ -176,6 +193,7 @@ export const useFinanceStore = create<FinanceState>()(
       setTransactions: (transactions) => set({ transactions }),
       setCategories: (categories) => set({ categories }),
       setSpendingPlans: (spendingPlans) => set({ spendingPlans }),
+      setAccounts: (accounts) => set({ accounts }),
 
       syncOfflineData: async () => {
         const state = get();
@@ -217,6 +235,15 @@ export const useFinanceStore = create<FinanceState>()(
             } else if (mutation.type === 'UPDATE_SPENDING_PLAN') {
               const { error } = await supabase.from('spending_plans').update(mutation.payload.updates).eq('id', mutation.payload.id);
               if (error) throw error;
+            } else if (mutation.type === 'CREATE_ACCOUNT') {
+              const { error } = await supabase.from('accounts').insert(mutation.payload);
+              if (error) throw error;
+            } else if (mutation.type === 'UPDATE_ACCOUNT') {
+              const { error } = await supabase.from('accounts').update(mutation.payload.updates).eq('id', mutation.payload.id);
+              if (error) throw error;
+            } else if (mutation.type === 'DELETE_ACCOUNT') {
+              const { error } = await supabase.from('accounts').delete().eq('id', mutation.payload.id);
+              if (error) throw error;
             }
           } catch (err) {
             console.error("Failed to sync mutation:", mutation, err);
@@ -246,6 +273,18 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmount = parseFloat(newTx.amount as any) || 0;
             const newSaved = currentSaved + txAmount;
             await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
+          }
+        }
+
+        // Adjust linked account balance
+        if (newTx.account_id) {
+          const accs = get().accounts;
+          const targetAcc = accs.find(a => a.id === newTx.account_id);
+          if (targetAcc) {
+            const currentBal = parseFloat(targetAcc.balance as any) || 0;
+            const txAmt = parseFloat(newTx.amount as any) || 0;
+            const newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
           }
         }
 
@@ -295,6 +334,18 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmount = parseFloat(tx.amount as any) || 0;
             const newSaved = Math.max(0, currentSaved - txAmount);
             await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
+          }
+        }
+
+        // Revert linked account balance
+        if (tx && tx.account_id) {
+          const accs = get().accounts;
+          const targetAcc = accs.find(a => a.id === tx.account_id);
+          if (targetAcc) {
+            const currentBal = parseFloat(targetAcc.balance as any) || 0;
+            const txAmt = parseFloat(tx.amount as any) || 0;
+            const revertedBal = tx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
           }
         }
 
@@ -363,6 +414,30 @@ export const useFinanceStore = create<FinanceState>()(
               const updatedSaved = currentSaved + txAmount;
               await get().updateSpendingPlanLocal(newPlan.id, { saved_amount: updatedSaved }, skipSync);
             }
+          }
+        }
+
+        // Revert old transaction account balance
+        if (oldTx.account_id) {
+          const accs = get().accounts;
+          const targetAcc = accs.find(a => a.id === oldTx.account_id);
+          if (targetAcc) {
+            const currentBal = parseFloat(targetAcc.balance as any) || 0;
+            const txAmt = parseFloat(oldTx.amount as any) || 0;
+            const revertedBal = oldTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
+          }
+        }
+
+        // Apply new transaction account balance
+        if (newTx.account_id) {
+          const accs = get().accounts; // Read again to get the reverted balance
+          const targetAcc = accs.find(a => a.id === newTx.account_id);
+          if (targetAcc) {
+            const currentBal = parseFloat(targetAcc.balance as any) || 0;
+            const txAmt = parseFloat(newTx.amount as any) || 0;
+            const newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
           }
         }
 
@@ -559,6 +634,111 @@ export const useFinanceStore = create<FinanceState>()(
             {
               id: Math.random().toString(36).substring(7),
               type: 'UPDATE_SPENDING_PLAN',
+              payload: { id, updates },
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      addAccountLocal: async (account, skipSync = false) => {
+        const accId = account.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36));
+        const createdAt = account.created_at || new Date().toISOString();
+        const newAcc = { ...account, id: accId, created_at: createdAt } as Account;
+
+        set((state) => ({
+          accounts: [...state.accounts, newAcc],
+        }));
+
+        get().addNotification(`Account "${newAcc.name}" created successfully.`, 'success');
+        get().triggerConfetti();
+
+        if (skipSync) return;
+
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('accounts').insert(newAcc);
+            if (!error) return;
+            console.error("Failed to insert account to DB, queueing offline mutation:", error);
+          }
+        }
+
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'CREATE_ACCOUNT',
+              payload: newAcc,
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      deleteAccountLocal: async (id, skipSync = false) => {
+        const acc = get().accounts.find(a => a.id === id);
+
+        set((state) => ({
+          accounts: state.accounts.filter(a => a.id !== id),
+          // Disassociate account from any linked transactions locally
+          transactions: state.transactions.map(t => t.account_id === id ? { ...t, account_id: null } : t)
+        }));
+
+        if (acc) {
+          get().addNotification(`Account "${acc.name}" deleted.`, 'info');
+        }
+
+        if (skipSync) return;
+
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('accounts').delete().eq('id', id);
+            if (!error) return;
+            console.error("Failed to delete account from DB, queueing offline mutation:", error);
+          }
+        }
+
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'DELETE_ACCOUNT',
+              payload: { id },
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      updateAccountLocal: async (id, updates, skipSync = false) => {
+        set((state) => ({
+          accounts: state.accounts.map(a => a.id === id ? { ...a, ...updates } : a)
+        }));
+
+        if (skipSync) return;
+
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('accounts').update(updates).eq('id', id);
+            if (!error) return;
+            console.error("Failed to update account in DB, queueing offline mutation:", error);
+          }
+        }
+
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'UPDATE_ACCOUNT',
               payload: { id, updates },
               timestamp: Date.now()
             }
