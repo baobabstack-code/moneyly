@@ -62,7 +62,7 @@ export async function generatePlanPDF(data: PlanPdfData) {
   const monthlyCommitVal = tenureMonthsVal > 0 ? cashNeededVal / tenureMonthsVal : 0;
 
   const currencySymbol = (() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[data.currency || 'USD'] || '$';
   })();
 
@@ -167,7 +167,7 @@ export async function generateStatementPDF(data: StatementPdfData) {
   const endingBalance = data.startingBalance + totalIncome - totalExpense;
 
   const currencySymbol = (() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[data.currency || 'USD'] || '$';
   })();
 

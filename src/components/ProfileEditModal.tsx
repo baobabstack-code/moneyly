@@ -14,7 +14,7 @@ interface Props {
 export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
   const currencyCode = useApplicationStore(state => state.currency);
   const currencySymbol = (() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
   })();
   const [saving, setSaving] = useState(false)

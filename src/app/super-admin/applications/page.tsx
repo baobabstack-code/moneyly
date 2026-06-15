@@ -17,7 +17,7 @@ export default async function SuperAdminApplicationsPage({
 
   let query = supabase
     .from('spending_plans')
-    .select('*, profiles(full_name)')
+    .select('*, profiles(full_name, currency)')
     .order('created_at', { ascending: false })
 
   if (params.status) {

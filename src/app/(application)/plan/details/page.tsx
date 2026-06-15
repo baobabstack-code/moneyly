@@ -8,7 +8,7 @@ export default function PurchaseDetailsPage() {
   const { purchaseDetails, setPurchaseDetails, currency } = useApplicationStore();
 
   const currencySymbol = (() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currency] || '$';
   })();
 

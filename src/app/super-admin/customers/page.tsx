@@ -11,7 +11,7 @@ export default async function SuperAdminCustomersPage() {
 
   const { data: customers } = await supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, username, monthly_income, created_at, role')
+    .select('id, full_name, avatar_url, username, monthly_income, created_at, role, currency')
     .eq('role', 'customer')
     .order('created_at', { ascending: false })
 

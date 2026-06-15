@@ -48,6 +48,13 @@ export default function DashboardView({ email, displayName, profile, application
   const spendingPlans = useApplicationStore(state => state.spendingPlans);
   const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
   const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
+  const setStartingBalance = useApplicationStore(state => state.setStartingBalance);
+  const setCurrency = useApplicationStore(state => state.setCurrency);
+  const setAccentColor = useApplicationStore(state => state.setAccentColor);
+  const setOnboarded = useApplicationStore(state => state.setOnboarded);
+  const setDailyBudget = useApplicationStore(state => state.setDailyBudget);
+  const setWeeklyBudget = useApplicationStore(state => state.setWeeklyBudget);
+  const setMonthlyBudget = useApplicationStore(state => state.setMonthlyBudget);
 
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -58,15 +65,13 @@ export default function DashboardView({ email, displayName, profile, application
   // Sync Supabase categories and transactions on mount
   useEffect(() => {
     if (profile) {
-      updateProfilePreferences({
-        starting_balance: parseFloat((profile as any).starting_balance) || 0,
-        currency: (profile as any).currency || 'USD',
-        accent_color: (profile as any).accent_color || 'green',
-        onboarded: !!(profile as any).onboarded,
-        daily_budget: parseFloat((profile as any).daily_budget) || 0,
-        weekly_budget: parseFloat((profile as any).weekly_budget) || 0,
-        monthly_budget: parseFloat((profile as any).monthly_budget) || 0,
-      });
+      setStartingBalance(parseFloat((profile as any).starting_balance) || 0);
+      setCurrency((profile as any).currency || 'USD');
+      setAccentColor(((profile as any).accent_color || 'green') as any);
+      setOnboarded(!!(profile as any).onboarded);
+      setDailyBudget(parseFloat((profile as any).daily_budget) || 0);
+      setWeeklyBudget(parseFloat((profile as any).weekly_budget) || 0);
+      setMonthlyBudget(parseFloat((profile as any).monthly_budget) || 0);
     }
 
     // Seeding store's spendingPlans from props if empty
@@ -104,7 +109,7 @@ export default function DashboardView({ email, displayName, profile, application
   }, [profile, applications, spendingPlans, setSpendingPlans]);
 
   const currencySymbol = useMemo(() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
   }, [currencyCode]);
 

@@ -12,7 +12,7 @@ export default function BudgetEditModal({ isOpen, onClose }: Props) {
   const accentColor = useApplicationStore(state => state.accentColor);
   const currencySymbol = useApplicationStore(state => {
     const code = state.currency;
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[code] || '$';
   });
 

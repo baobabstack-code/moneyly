@@ -29,7 +29,7 @@ export default function HistoryView() {
   const spendingPlans = useApplicationStore(state => state.spendingPlans);
 
   const currencySymbol = useMemo(() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
   }, [currencyCode]);
 

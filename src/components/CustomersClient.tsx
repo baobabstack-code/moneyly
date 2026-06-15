@@ -11,22 +11,26 @@ type Customer = {
   monthly_income: string | null
   created_at: string
   role: string
+  currency: string | null
 }
 
 function parseAmount(n: string | number | null) {
   return typeof n === 'number' ? n : parseFloat(n ?? '');
 }
 
-function currency(n: string | number | null) {
+function currency(n: string | number | null, currencyCode?: string | null) {
   const v = parseAmount(n);
   if (!Number.isFinite(v)) return "$0.00";
+
+  const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
+  const symbol = map[currencyCode || 'USD'] || '$';
 
   const amount = Math.abs(v).toLocaleString(undefined, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
 
-  return `${v < 0 ? '-' : ''}$${amount}`;
+  return `${v < 0 ? '-' : ''}${symbol}${amount}`;
 }
 
 export default function CustomersClient({ customers, storeName, showImpersonate }: { customers: Customer[]; storeName?: string; showImpersonate?: boolean }) {
@@ -136,7 +140,7 @@ export default function CustomersClient({ customers, storeName, showImpersonate 
               {/* Detail grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                 {[
-                  { label: 'Monthly Income', value: c.monthly_income ? currency(c.monthly_income) : 'Not specified' },
+                  { label: 'Monthly Income', value: c.monthly_income ? currency(c.monthly_income, c.currency) : 'Not specified' },
                   { label: 'Joined', value: new Date(c.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
                 ].map(r => (
                   <div key={r.label}>

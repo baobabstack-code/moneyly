@@ -133,7 +133,7 @@ export default function ApplicationsView({ applications: propApplications, profi
   };
 
   const currencySymbol = useMemo(() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
   }, [currencyCode]);
 

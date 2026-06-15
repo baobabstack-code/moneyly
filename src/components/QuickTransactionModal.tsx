@@ -10,13 +10,20 @@ interface Props {
 }
 
 export default function QuickTransactionModal({ user_id, isOpen, onClose }: Props) {
+  const getLocalDateString = () => {
+    const d = new Date();
+    const offset = d.getTimezoneOffset();
+    const localDate = new Date(d.getTime() - (offset * 60 * 1000));
+    return localDate.toISOString().substring(0, 10);
+  };
+
   const categories = useApplicationStore(state => state.categories);
   const spendingPlans = useApplicationStore(state => state.spendingPlans);
   const addTransactionLocal = useApplicationStore(state => state.addTransactionLocal);
   const accentColor = useApplicationStore(state => state.accentColor);
   const currencySymbol = useApplicationStore(state => {
     const code = state.currency;
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[code] || '$';
   });
 
@@ -24,7 +31,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
   const [amount, setAmount] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [note, setNote] = useState('');
-  const [date, setDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [date, setDate] = useState(getLocalDateString);
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   // Filter categories by type
@@ -64,7 +71,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
     setAmount('');
     setNote('');
     setSelectedPlanId(null);
-    setDate(new Date().toISOString().substring(0, 10));
+    setDate(getLocalDateString());
     onClose();
   };
 

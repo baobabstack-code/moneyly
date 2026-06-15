@@ -18,6 +18,7 @@ type SpendingPlan = {
   file_url: string | null
   profiles?: {
     full_name: string | null
+    currency: string | null
   } | null
 }
 
@@ -47,10 +48,12 @@ function parseAmount(n: number | null): number {
   return n ?? 0
 }
 
-function fmt(n: number | null): string | null {
+function fmt(n: number | null, currencyCode?: string | null): string | null {
   const v = parseAmount(n)
+  const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
+  const symbol = map[currencyCode || 'USD'] || '$';
   return v > 0
-    ? `$${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+    ? `${symbol}${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
     : null
 }
 
@@ -144,11 +147,11 @@ export default function AdminApplicationsClient({
               const details = [
                 { label: 'Source',            value: app.store_name },
                 { label: 'Planned Item',      value: app.product_name },
-                { label: 'Planned Cost',      value: fmt(app.planned_cost) },
-                { label: 'Saved Amount',      value: fmt(app.saved_amount) },
-                { label: 'Cash Needed',       value: fmt(cashNeeded) },
+                { label: 'Planned Cost',      value: fmt(app.planned_cost, app.profiles?.currency) },
+                { label: 'Saved Amount',      value: fmt(app.saved_amount, app.profiles?.currency) },
+                { label: 'Cash Needed',       value: fmt(cashNeeded, app.profiles?.currency) },
                 { label: 'Plan Length',       value: app.tenure_months ? `${app.tenure_months} months` : null },
-                { label: 'Monthly Bill',      value: monthly ? fmt(monthly) : null },
+                { label: 'Monthly Bill',      value: monthly ? fmt(monthly, app.profiles?.currency) : null },
               ].filter((r): r is { label: string; value: string } => Boolean(r.value))
 
               return (
@@ -186,7 +189,7 @@ export default function AdminApplicationsClient({
                       <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">
                         <span>Ref: <span className="font-mono font-bold text-on-surface">{app.reference}</span></span>
                         {app.product_name && <span>{app.product_name}</span>}
-                        {cashNeeded > 0 && <span className="font-bold text-secondary">{fmt(cashNeeded)}</span>}
+                        {cashNeeded > 0 && <span className="font-bold text-secondary">{fmt(cashNeeded, app.profiles?.currency)}</span>}
                         <span>{new Date(app.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}</span>
                       </div>
                     </div>

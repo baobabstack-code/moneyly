@@ -6,7 +6,7 @@ import { generatePlanPDF } from "@/utils/pdf-generator";
 
 export default function SuccessPage() {
   const store = useApplicationStore();
-  const { resetStore, lastReference } = store;
+  const { clearPurchaseDetails, lastReference } = store;
 
   const handleDownloadPDF = async () => {
     try {
@@ -45,7 +45,7 @@ export default function SuccessPage() {
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
               <Link 
-                onClick={() => resetStore()}
+                onClick={() => clearPurchaseDetails()}
                 className="bg-secondary text-on-secondary px-12 py-3 rounded-lg font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
                 href="/dashboard"
               >

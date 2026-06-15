@@ -13,7 +13,7 @@ export default function SummaryPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currencySymbol = (() => {
-    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currency] || '$';
   })();
 

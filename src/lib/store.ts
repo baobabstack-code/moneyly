@@ -111,6 +111,7 @@ export interface ApplicationState {
 
   /** Actions */
   resetStore: () => void;
+  clearPurchaseDetails: () => void;
 }
 
 const initialState = {
@@ -415,7 +416,7 @@ export const useApplicationStore = create<ApplicationState>()(
       },
 
       addSpendingPlanLocal: async (plan, skipSync = false) => {
-        const planId = plan.id || crypto.randomUUID();
+        const planId = plan.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36));
         const createdAt = plan.created_at || new Date().toISOString();
         const newPlan = { ...plan, id: planId, created_at: createdAt } as SpendingPlan;
         
@@ -547,6 +548,15 @@ export const useApplicationStore = create<ApplicationState>()(
       },
 
       resetStore: () => set(initialState),
+      clearPurchaseDetails: () => set({
+        purchaseDetails: {
+          productName: "",
+          plannedCost: "",
+          savedAmount: "",
+          tenureMonths: "",
+        },
+        fileUrl: ""
+      }),
     }),
     {
       name: "moneyly-plan-storage",
