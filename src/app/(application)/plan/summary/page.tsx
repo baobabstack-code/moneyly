@@ -185,7 +185,7 @@ export default function SummaryPage() {
       </div>
 
       {/* Navigation */}
-      <div className="mt-8 hidden lg:flex justify-between items-center">
+      <div className="mt-8 flex justify-between items-center">
         <button
           type="button"
           onClick={() => router.push("/plan/documents")}

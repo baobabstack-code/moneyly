@@ -122,7 +122,7 @@ export default function DocumentUploadsPage() {
         </div>
       </div>
 
-      <div className="hidden lg:flex justify-between items-center">
+      <div className="flex justify-between items-center mt-8">
         <button
           type="button"
           onClick={() => router.push("/plan/details")}
