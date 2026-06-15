@@ -147,7 +147,7 @@ export default function SummaryPage() {
 
       <div className="space-y-6">
         {sections.map((section, idx) => (
-          <div key={idx} className="bg-surface rounded-2xl border border-outline-variant shadow-sm overflow-hidden">
+          <div key={idx} className="bg-surface rounded-3xl border border-outline-variant shadow-lg overflow-hidden">
             <div className="bg-surface-container px-6 py-4 border-b border-outline-variant/30 flex justify-between items-center">
               <h2 className="font-bold text-primary">{section.title}</h2>
             </div>
@@ -168,7 +168,7 @@ export default function SummaryPage() {
           </div>
         ))}
 
-        <div className="bg-secondary/5 rounded-2xl border border-secondary/20 p-6 flex items-start gap-4">
+        <div className="bg-secondary/5 rounded-3xl border border-secondary/20 p-6 flex items-start gap-4">
           <span className="material-symbols-outlined text-secondary mt-1">info</span>
           <div>
             <h3 className="font-bold text-secondary mb-1">Save Spending Plan</h3>

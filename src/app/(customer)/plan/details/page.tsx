@@ -38,17 +38,17 @@ export default function PurchaseDetailsPage() {
         </div>
       </div>
 
-      <div className="bg-surface rounded-2xl border border-outline-variant shadow-sm p-6 md:p-8 space-y-6">
+      <div className="bg-surface rounded-3xl border border-outline-variant shadow-lg p-6 md:p-8 space-y-6">
         <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Plan Information</h2>
 
         {/* Product Name */}
         <div>
-          <label className="block font-label-md text-label-md mb-2 text-on-surface">
+          <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
             Item or Goal Name <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
-            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+            className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold placeholder:text-on-surface-variant/30"
             placeholder="e.g. New laptop, school fees, family trip"
             value={purchaseDetails.productName}
             onChange={(e) => setPurchaseDetails({ productName: e.target.value })}
@@ -58,7 +58,7 @@ export default function PurchaseDetailsPage() {
         {/* Pricing */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+            <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
               Planned Cost <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -67,7 +67,7 @@ export default function PurchaseDetailsPage() {
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold placeholder:text-on-surface-variant/30"
                 placeholder="0.00"
                 value={purchaseDetails.plannedCost}
                 onChange={(e) => setPurchaseDetails({ plannedCost: e.target.value })}
@@ -75,7 +75,7 @@ export default function PurchaseDetailsPage() {
             </div>
           </div>
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
+            <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
               Saved Amount <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -84,7 +84,7 @@ export default function PurchaseDetailsPage() {
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none placeholder:text-on-surface-variant/30"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold placeholder:text-on-surface-variant/30"
                 placeholder="0.00"
                 value={purchaseDetails.savedAmount}
                 onChange={(e) => setPurchaseDetails({ savedAmount: e.target.value })}
@@ -95,27 +95,25 @@ export default function PurchaseDetailsPage() {
 
         {/* Tenure + Balance row */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-          {/* Tenure dropdown */}
+          {/* Tenure input */}
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">
-              Plan Length <span className="text-red-500">*</span>
+            <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+              Plan Length (months) <span className="text-red-500">*</span>
             </label>
-            <select
-              title="Plan length in months"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface text-on-surface focus:ring-2 focus:ring-secondary/20 focus:border-secondary transition-all outline-none"
+            <input
+              type="number"
+              min="1"
+              step="1"
+              placeholder="e.g. 12"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold placeholder:text-on-surface-variant/30"
               value={purchaseDetails.tenureMonths}
               onChange={(e) => setPurchaseDetails({ tenureMonths: e.target.value })}
-            >
-              <option value="">Select months</option>
-              {[3, 6, 9, 12, 18, 24].map((m) => (
-                <option key={m} value={m}>{m} months</option>
-              ))}
-            </select>
+            />
           </div>
 
           {/* Balance — read only */}
           <div>
-            <label className="block font-label-md text-label-md mb-2 text-on-surface">Cash Needed</label>
+            <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">Cash Needed</label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
               <input
@@ -123,7 +121,7 @@ export default function PurchaseDetailsPage() {
                 readOnly
                 title="Cash needed"
                 placeholder="0.00"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container text-on-surface outline-none cursor-default select-none"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-high text-on-surface outline-none cursor-default select-none font-bold"
                 value={balanceAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               />
             </div>
@@ -148,7 +146,7 @@ export default function PurchaseDetailsPage() {
               : "—"}
           </p>
           <p className="text-[10px] text-on-surface-variant/60 mt-1">
-            {tenure > 0 ? `over ${tenure} months` : "Select tenure to calculate"}
+            {tenure > 0 ? `over ${tenure} months` : "Enter plan length to calculate"}
           </p>
         </div>
       </div>

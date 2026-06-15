@@ -29,7 +29,7 @@ export default function SuccessPage() {
     <div className="flex-grow flex items-center justify-center py-12">
       <div className="max-w-4xl w-full px-4">
         {/* Success Hero Section */}
-        <div className="bg-surface rounded-2xl border border-outline-variant p-12 shadow-xl text-center relative overflow-hidden">
+        <div className="bg-surface rounded-3xl border border-outline-variant p-12 shadow-xl text-center relative overflow-hidden">
           {/* Top gradient bar */}
           <div className="absolute top-0 left-0 w-full h-1.5 bg-secondary"></div>
           
@@ -46,14 +46,14 @@ export default function SuccessPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center w-full sm:w-auto">
               <Link 
                 onClick={() => clearPurchaseDetails()}
-                className="bg-secondary text-on-secondary px-12 py-3 rounded-lg font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
+                className="bg-secondary text-on-secondary px-12 py-3 rounded-xl font-bold shadow-lg shadow-secondary/20 hover:opacity-90 transition-all active:scale-95 inline-flex items-center justify-center" 
                 href="/dashboard"
               >
                 Go to My Dashboard
               </Link>
               <button 
                 onClick={handleDownloadPDF}
-                className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-lg font-bold transition-all active:scale-95 hover:bg-surface-container flex items-center justify-center gap-2"
+                className="border-2 border-outline-variant text-on-surface px-10 py-3 rounded-xl font-bold transition-all active:scale-95 hover:bg-surface-container flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-[20px]">download</span>
                 View Plan PDF
@@ -65,7 +65,7 @@ export default function SuccessPage() {
         {/* Bento Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
           {/* Confirmation ID */}
-          <div className="bg-surface p-8 rounded-xl border border-outline-variant shadow-sm flex flex-col justify-between">
+          <div className="bg-surface p-8 rounded-2xl border border-outline-variant shadow-sm flex flex-col justify-between">
             <div>
               <span className="material-symbols-outlined text-secondary mb-4">receipt_long</span>
               <h3 className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Plan Reference</h3>
@@ -75,7 +75,7 @@ export default function SuccessPage() {
           </div>
 
           {/* Next Steps */}
-          <div className="md:col-span-2 bg-surface p-8 rounded-xl border border-outline-variant shadow-sm">
+          <div className="md:col-span-2 bg-surface p-8 rounded-2xl border border-outline-variant shadow-sm">
             <h3 className="text-xl font-bold text-primary mb-6 flex items-center gap-2">
               <span className="material-symbols-outlined text-secondary">timeline</span>
               Next Steps

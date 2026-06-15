@@ -111,7 +111,7 @@ export default function DocumentUploadsPage() {
         </div>
       </div>
 
-      <div className="bg-surface-container-low rounded-2xl p-6 border border-outline-variant/30 flex gap-4 items-start mb-8">
+      <div className="bg-surface-container-low rounded-3xl p-6 border border-outline-variant/30 flex gap-4 items-start mb-8">
         <span className="material-symbols-outlined text-secondary">info</span>
         <div>
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">File Requirements</p>

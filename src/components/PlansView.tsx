@@ -163,9 +163,9 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
     return (
       <div className="font-manrope pb-20 lg:pb-0">
         <div className="w-full px-6 py-10 md:px-10 xl:px-12">
-          <div className="max-w-xl rounded-lg border border-outline-variant bg-surface p-6 shadow-sm">
+          <div className="max-w-xl rounded-3xl border border-outline-variant bg-surface p-6 shadow-lg">
             <div className="flex items-start gap-4">
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-status-warning-bg text-status-warning">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-status-warning-bg text-status-warning">
                 <span className="material-symbols-outlined text-2xl">person_add</span>
               </div>
               <div>
@@ -175,7 +175,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                 </p>
                 <Link
                   href="/profile-setup"
-                  className="mt-5 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
                 >
                   <span className="material-symbols-outlined text-lg">verified_user</span>
                   Set Up Profile
@@ -201,7 +201,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
           </div>
           <Link
             href="/plan/details"
-            className="inline-flex items-center justify-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
+            className="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
           >
             <span className="material-symbols-outlined text-lg">add</span>
             New Plan
@@ -231,7 +231,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
           {/* Main Area: Spending Plans Feed (Left 2 Columns) */}
           <div className="lg:col-span-2 space-y-4">
             {spendingPlans.length === 0 ? (
-              <div className="max-w-xl rounded-lg border border-dashed border-outline bg-surface p-8 text-center">
+              <div className="max-w-xl rounded-3xl border border-dashed border-outline bg-surface p-8 text-center">
                 <span className="material-symbols-outlined mb-3 text-5xl text-on-surface-variant/30">playlist_add</span>
                 <p className="text-lg font-black text-primary">No spending plans yet.</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-on-surface-variant">
@@ -239,7 +239,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                 </p>
                 <Link
                   href="/plan/details"
-                  className="mt-6 inline-flex items-center gap-2 rounded-lg bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
+                  className="mt-6 inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
                 >
                   <span className="material-symbols-outlined text-lg">add</span>
                   Create Plan
@@ -259,7 +259,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
 
                 if (isEditing) {
                   return (
-                    <div key={plan.id} className="rounded-lg border border-secondary/40 bg-surface p-5 shadow-sm space-y-4 animate-in fade-in duration-200">
+                    <div key={plan.id} className="rounded-3xl border border-secondary/40 bg-surface p-5 shadow-lg space-y-4 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
                         <h3 className="font-bold text-primary text-sm">Edit Spending Plan</h3>
                       </div>
@@ -270,7 +270,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             type="text"
                             value={editPlanName}
                             onChange={(e) => setEditPlanName(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-secondary/20"
                           />
                         </div>
                         <div>
@@ -278,7 +278,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           <select
                             value={editPlanStatus}
                             onChange={(e) => setEditPlanStatus(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-secondary/20"
                           >
                             <option value="active">Active</option>
                             <option value="paused">Paused</option>
@@ -294,7 +294,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             type="number"
                             value={editPlanCost}
                             onChange={(e) => setEditPlanCost(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-secondary/20"
                           />
                         </div>
                         <div>
@@ -303,7 +303,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             type="number"
                             value={editPlanSaved}
                             onChange={(e) => setEditPlanSaved(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-secondary/20"
                           />
                         </div>
                         <div>
@@ -312,7 +312,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             type="number"
                             value={editPlanTenure}
                             onChange={(e) => setEditPlanTenure(e.target.value)}
-                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-primary font-bold focus:outline-none focus:ring-2 focus:ring-secondary/20"
                           />
                         </div>
                       </div>
@@ -340,10 +340,10 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                 return (
                   <div
                     key={plan.id}
-                    className="overflow-hidden rounded-lg border border-outline-variant bg-surface shadow-sm"
+                    className="overflow-hidden rounded-3xl border border-outline-variant bg-surface shadow-md"
                   >
                     <div className="grid gap-4 p-5 lg:grid-cols-[auto_minmax(0,1fr)_auto] lg:items-center">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-surface-container">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-container">
                         <span className={`material-symbols-outlined text-xl ${plan.status === 'completed' ? 'text-status-success' : plan.status === 'paused' ? 'text-status-danger' : 'text-on-surface-variant'}`}>
                           {getStatusIcon(plan.status)}
                         </span>
@@ -371,7 +371,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                       <button
                         type="button"
                         onClick={() => setExpanded(isOpen ? null : plan.id)}
-                        className="inline-flex h-10 items-center justify-center gap-2 rounded-lg border border-outline-variant px-4 text-sm font-bold text-on-surface transition-all hover:bg-surface-container"
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-outline-variant px-4 text-sm font-bold text-on-surface transition-all hover:bg-surface-container"
                       >
                         {isOpen ? 'Hide' : 'View'}
                         <span className="material-symbols-outlined text-lg">{isOpen ? 'expand_less' : 'expand_more'}</span>
@@ -381,19 +381,19 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                     {isOpen && (
                       <div className="border-t border-outline-variant bg-surface-container-low px-5 py-5">
                         <div className="mb-5 grid grid-cols-1 gap-4 md:grid-cols-3">
-                          <div className="rounded-lg bg-surface p-4">
+                          <div className="rounded-2xl bg-surface p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Budget</p>
                             <p className="mt-3 text-sm text-on-surface-variant">
                               Planned cost {formatCurrency(cost)} with {formatCurrency(saved)} already saved.
                             </p>
                           </div>
-                          <div className="rounded-lg bg-surface p-4">
+                          <div className="rounded-2xl bg-surface p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Bill Forecast</p>
                             <p className="mt-3 text-sm text-on-surface-variant">
                               {formatCurrency(monthly)} per month over {plan.tenure_months || 0} months for cash-flow planning.
                             </p>
                           </div>
-                          <div className="rounded-lg bg-surface p-4">
+                          <div className="rounded-2xl bg-surface p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Savings Goal</p>
                             <p className="mt-3 text-sm text-on-surface-variant">
                               {progress}% complete with {formatCurrency(remaining)} still needed.
@@ -476,7 +476,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
           {/* Sidebar Column (Right 1 Column) */}
           <div className="lg:col-span-1 space-y-6">
             {/* Cash-Flow Readiness Card */}
-            <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm sticky top-6">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-5 shadow-lg sticky top-6">
               <div className="mb-3 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-black text-primary">Cash-Flow Readiness</h2>

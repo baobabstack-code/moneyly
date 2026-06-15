@@ -13,6 +13,7 @@ interface Props {
 
 export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
   const currencyCode = useFinanceStore(state => state.currency);
+  const accentColor = useFinanceStore(state => state.accentColor);
   const currencySymbol = (() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
@@ -53,58 +54,60 @@ export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
   }
 
   return (
-    /* Backdrop */
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm"
+      className="fixed inset-0 z-100 flex items-end justify-center bg-slate-950/70 p-0 backdrop-blur-md sm:items-center sm:p-4"
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
-      {/* Card */}
-      <div className="w-full max-w-md bg-surface rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-
+      <div 
+        className="w-full rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl flex flex-col max-h-[90vh]"
+        data-accent={accentColor}
+      >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-4 border-b border-outline-variant/40">
-          <span className="material-symbols-outlined text-secondary text-xl">settings</span>
-          <h2 className="font-bold text-on-surface flex-1">Profile Settings</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:bg-surface-container transition-colors"
+        <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+          <h2 className="text-xl font-black text-primary flex items-center gap-2">
+            <span className="material-symbols-outlined text-secondary">settings</span>
+            Profile Settings
+          </h2>
+          <button 
+            type="button" 
+            onClick={onClose} 
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors"
           >
-            <span className="material-symbols-outlined text-[18px]">close</span>
+            <span className="material-symbols-outlined text-on-surface-variant">close</span>
           </button>
         </div>
 
         {/* Body */}
-        <div className="overflow-y-auto flex-1 px-5 py-5 space-y-4">
+        <div className="overflow-y-auto flex-1 py-5 space-y-4 pr-1">
           <div>
-            <label htmlFor="first_name" className="block text-sm font-bold text-on-surface-variant mb-1.5">
-              First Name <span className="text-error">*</span>
+            <label htmlFor="first_name" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+              First Name <span className="text-red-500">*</span>
             </label>
             <input
               id="first_name"
               type="text"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
               value={form.first_name}
               onChange={e => upd('first_name', e.target.value)}
             />
           </div>
 
           <div>
-            <label htmlFor="last_name" className="block text-sm font-bold text-on-surface-variant mb-1.5">
-              Last Name <span className="text-error">*</span>
+            <label htmlFor="last_name" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+              Last Name <span className="text-red-500">*</span>
             </label>
             <input
               id="last_name"
               type="text"
-              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+              className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
               value={form.last_name}
               onChange={e => upd('last_name', e.target.value)}
             />
           </div>
 
           <div>
-            <label htmlFor="monthly_income" className="block text-sm font-bold text-on-surface-variant mb-1.5">
-              Monthly Income <span className="text-on-surface-variant/50 font-normal ml-1 text-xs">(optional)</span>
+            <label htmlFor="monthly_income" className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+              Monthly Income <span className="text-on-surface-variant/50 font-normal ml-1 text-[10px] lowercase italic">(optional)</span>
             </label>
             <div className="relative">
               <span className="absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant/60 font-bold text-sm">{currencySymbol}</span>
@@ -113,24 +116,24 @@ export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
                 type="number"
                 min="0"
                 step="0.01"
-                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all"
+                className="w-full pl-8 pr-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
                 placeholder="0.00"
                 value={form.monthly_income}
                 onChange={e => upd('monthly_income', e.target.value)}
               />
             </div>
-            <p className="text-[10px] text-on-surface-variant/60 mt-1">
+            <p className="text-[10px] text-on-surface-variant/60 mt-1.5 leading-relaxed">
               Used for cash-flow planning and budget forecasts on your dashboard.
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="px-5 py-4 border-t border-outline-variant/40 flex gap-3">
+        <div className="pt-4 border-t border-outline-variant/30 flex gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
+            className="px-5 py-3.5 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
           >
             Cancel
           </button>
@@ -138,12 +141,10 @@ export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
             type="button"
             onClick={handleSave}
             disabled={saving || !form.first_name.trim() || !form.last_name.trim()}
-            className="flex-1 py-3 bg-secondary text-on-secondary rounded-xl font-bold text-sm hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-2"
+            className="flex-grow flex items-center justify-center gap-2 rounded-xl bg-secondary py-3.5 font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95 disabled:opacity-50"
           >
-            <span className="material-symbols-outlined text-base">
-              {saving ? 'hourglass_empty' : 'save'}
-            </span>
-            {saving ? 'Saving…' : 'Save Changes'}
+            {saving ? 'Saving...' : 'Save Changes'}
+            <span className="material-symbols-outlined text-sm">done</span>
           </button>
         </div>
       </div>
