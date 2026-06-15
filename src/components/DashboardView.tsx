@@ -164,8 +164,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       return sum + (val || 0);
     }, 0);
 
-    const remainingToFund = Math.max(0, plannedSpend - savedForGoals);
-    const savingsProgress = plannedSpend > 0 ? Math.min(100, Math.round((savedForGoals / plannedSpend) * 100)) : 0;
+    const totalSavingsVal = savedForGoals + stats.totalIndependentSavings;
+    const remainingToFund = Math.max(0, plannedSpend - totalSavingsVal);
+    const savingsProgress = plannedSpend > 0 ? Math.min(100, Math.round((totalSavingsVal / plannedSpend) * 100)) : 0;
 
     return {
       activePlans,
@@ -175,7 +176,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       remainingToFund,
       savingsProgress,
     };
-  }, [spendingPlans]);
+  }, [spendingPlans, stats.totalIndependentSavings]);
 
   const totalIndependentSavings = stats.totalIndependentSavings;
   const totalSavings = money.savedForGoals + totalIndependentSavings;
@@ -1346,7 +1347,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
                 <div className="text-right">
                   <p className="text-[10px] uppercase opacity-75 font-semibold">Total Saved</p>
-                  <p className="text-sm font-black text-emerald-500 mt-1">{formatCurrency(money.savedForGoals)}</p>
+                  <p className="text-sm font-black text-emerald-500 mt-1">{formatCurrency(totalSavings)}</p>
                 </div>
               </div>
             </div>

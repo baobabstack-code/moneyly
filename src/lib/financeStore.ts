@@ -241,7 +241,9 @@ export const useFinanceStore = create<FinanceState>()(
           const plans = get().spendingPlans;
           const plan = plans.find(p => p.id === newTx.spending_plan_id);
           if (plan) {
-            const newSaved = plan.saved_amount + newTx.amount;
+            const currentSaved = parseFloat(plan.saved_amount as any) || 0;
+            const txAmount = parseFloat(newTx.amount as any) || 0;
+            const newSaved = currentSaved + txAmount;
             await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
           }
         }
@@ -286,7 +288,9 @@ export const useFinanceStore = create<FinanceState>()(
           const plans = get().spendingPlans;
           const plan = plans.find(p => p.id === tx.spending_plan_id);
           if (plan) {
-            const newSaved = Math.max(0, plan.saved_amount - tx.amount);
+            const currentSaved = parseFloat(plan.saved_amount as any) || 0;
+            const txAmount = parseFloat(tx.amount as any) || 0;
+            const newSaved = Math.max(0, currentSaved - txAmount);
             await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
           }
         }
@@ -338,7 +342,9 @@ export const useFinanceStore = create<FinanceState>()(
           if (oldTx.spending_plan_id && (oldTx.type === 'savings' || oldTx.type === 'income')) {
             const oldPlan = plans.find(p => p.id === oldTx.spending_plan_id);
             if (oldPlan) {
-              const revertedSaved = Math.max(0, oldPlan.saved_amount - oldTx.amount);
+              const currentSaved = parseFloat(oldPlan.saved_amount as any) || 0;
+              const txAmount = parseFloat(oldTx.amount as any) || 0;
+              const revertedSaved = Math.max(0, currentSaved - txAmount);
               await get().updateSpendingPlanLocal(oldPlan.id, { saved_amount: revertedSaved }, skipSync);
             }
           }
@@ -347,7 +353,9 @@ export const useFinanceStore = create<FinanceState>()(
             const latestPlans = get().spendingPlans;
             const newPlan = latestPlans.find(p => p.id === newTx.spending_plan_id);
             if (newPlan) {
-              const updatedSaved = newPlan.saved_amount + newTx.amount;
+              const currentSaved = parseFloat(newPlan.saved_amount as any) || 0;
+              const txAmount = parseFloat(newTx.amount as any) || 0;
+              const updatedSaved = currentSaved + txAmount;
               await get().updateSpendingPlanLocal(newPlan.id, { saved_amount: updatedSaved }, skipSync);
             }
           }
