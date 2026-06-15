@@ -12,6 +12,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = await createClient();
   const { data: { session } } = await supabase.auth.getSession();
 
+  if (!session?.user) {
+    redirect("/login");
+  }
+
   // Check if super admin is impersonating a customer
   const cookieStore = await cookies();
   const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value);

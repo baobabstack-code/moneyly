@@ -50,11 +50,11 @@ export default function DocumentUploadsPage() {
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
       <div className="mb-10">
-        <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 3 of 4</span>
+        <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 2 of 3</span>
         <h1 className="text-3xl font-bold text-primary mb-2">Supporting Documents</h1>
         <p className="text-on-surface-variant">Attach a receipt, invoice, or quote to this spending plan.</p>
         <div className="mt-6 relative w-full h-2 bg-outline-variant rounded-full overflow-hidden shadow-inner">
-          <div className="absolute left-0 top-0 h-full bg-secondary w-[75%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
+          <div className="absolute left-0 top-0 h-full bg-secondary w-[66%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
         </div>
       </div>
 
