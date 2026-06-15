@@ -2,7 +2,7 @@ const CACHE_NAME = 'moneyly-cache-v1';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
-  '/favicon.ico',
+  '/icon.svg',
 ];
 
 // Install Event

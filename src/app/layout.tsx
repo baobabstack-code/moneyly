@@ -9,6 +9,13 @@ export const metadata: Metadata = {
   title: "Moneyly | Personal Money Manager",
   description: "Track net worth, budgets, bills, savings goals, spending plans, insights, and cash-flow with Moneyly.",
   manifest: "/manifest.json",
+  icons: {
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" }
+    ],
+    shortcut: "/icon.svg",
+    apple: "/icon.svg",
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
