@@ -1,7 +1,7 @@
 'use client';
 
 import Link from "next/link";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useTransition } from "react";
 import { UserProfile } from "@/lib/profile";
 import { useFinanceStore, Transaction, SpendingPlan } from "@/lib/financeStore";
 import OnboardingModal from "./OnboardingModal";
@@ -18,6 +18,7 @@ interface Props {
 
 export default function DashboardView({ email, displayName, profile, initialSpendingPlans }: Props) {
   const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze'>('expenses');
+  const [isPendingTab, startTabTransition] = useTransition();
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [txModalOpen, setTxModalOpen] = useState(false);
@@ -256,9 +257,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       })
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
+    let balance = baseline;
+    let txIndex = 0;
     const trendData = days.map(day => {
-      let balance = baseline;
-      windowTx.forEach(t => {
+      while (txIndex < windowTx.length) {
+        const t = windowTx[txIndex];
         const tDate = new Date(t.date);
         if (tDate <= day) {
           if (t.type === 'income') {
@@ -266,8 +269,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           } else if (t.type === 'expense') {
             balance -= t.amount;
           }
+          txIndex++;
+        } else {
+          break;
         }
-      });
+      }
       return {
         date: day,
         balance
@@ -535,7 +541,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           {(['expenses', 'balance', 'control', 'analyze'] as const).map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => {
+                startTabTransition(() => {
+                  setActiveTab(tab);
+                });
+              }}
               className={`rounded-xl px-5 py-2.5 text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap ${
                 activeTab === tab
                   ? 'bg-secondary text-on-secondary shadow-md shadow-secondary/25'
