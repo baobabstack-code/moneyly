@@ -283,7 +283,13 @@ export const useFinanceStore = create<FinanceState>()(
           if (targetAcc) {
             const currentBal = parseFloat(targetAcc.balance as any) || 0;
             const txAmt = parseFloat(newTx.amount as any) || 0;
-            const newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            let newBal = currentBal;
+            if (targetAcc.type === 'credit') {
+              // Expense on a credit card increases the debt balance; income/savings decreases it
+              newBal = newTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            } else {
+              newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            }
             await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
           }
         }
@@ -344,7 +350,13 @@ export const useFinanceStore = create<FinanceState>()(
           if (targetAcc) {
             const currentBal = parseFloat(targetAcc.balance as any) || 0;
             const txAmt = parseFloat(tx.amount as any) || 0;
-            const revertedBal = tx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            let revertedBal = currentBal;
+            if (targetAcc.type === 'credit') {
+              // Revert credit balance: expense decreases debt; income/savings increases it
+              revertedBal = tx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            } else {
+              revertedBal = tx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            }
             await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
           }
         }
@@ -424,7 +436,12 @@ export const useFinanceStore = create<FinanceState>()(
           if (targetAcc) {
             const currentBal = parseFloat(targetAcc.balance as any) || 0;
             const txAmt = parseFloat(oldTx.amount as any) || 0;
-            const revertedBal = oldTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            let revertedBal = currentBal;
+            if (targetAcc.type === 'credit') {
+              revertedBal = oldTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            } else {
+              revertedBal = oldTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            }
             await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
           }
         }
@@ -436,7 +453,12 @@ export const useFinanceStore = create<FinanceState>()(
           if (targetAcc) {
             const currentBal = parseFloat(targetAcc.balance as any) || 0;
             const txAmt = parseFloat(newTx.amount as any) || 0;
-            const newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            let newBal = currentBal;
+            if (targetAcc.type === 'credit') {
+              newBal = newTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+            } else {
+              newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+            }
             await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
           }
         }

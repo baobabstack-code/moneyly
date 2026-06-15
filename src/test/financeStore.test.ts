@@ -109,6 +109,88 @@ describe('useFinanceStore', () => {
     expect(state.transactions).toHaveLength(0);
   });
 
+  it('manages accounts and adjusts balances based on account types (including credit card debt)', async () => {
+    const { addAccountLocal, addTransactionLocal, updateTransactionLocal, deleteTransactionLocal } = useFinanceStore.getState();
+
+    // 1. Setup Checking and Credit Card accounts
+    await addAccountLocal({
+      id: 'acc-checking',
+      user_id: 'user-123',
+      name: 'Checking Account',
+      type: 'checking',
+      balance: 1000,
+      color: 'blue'
+    }, true);
+
+    await addAccountLocal({
+      id: 'acc-credit',
+      user_id: 'user-123',
+      name: 'Credit Card',
+      type: 'credit',
+      balance: 500, // what is owed
+      color: 'red'
+    }, true);
+
+    let state = useFinanceStore.getState();
+    expect(state.accounts).toHaveLength(2);
+    expect(state.accounts.find(a => a.id === 'acc-checking')?.balance).toBe(1000);
+    expect(state.accounts.find(a => a.id === 'acc-credit')?.balance).toBe(500);
+
+    // 2. Add an expense to Checking Account -> should decrease balance
+    await addTransactionLocal({
+      id: 'tx-check-exp',
+      user_id: 'user-123',
+      amount: 150,
+      type: 'expense',
+      account_id: 'acc-checking',
+      date: '2026-06-14T12:00:00Z'
+    }, true);
+
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-checking')?.balance).toBe(850);
+
+    // 3. Add an expense to Credit Card -> should increase debt balance
+    await addTransactionLocal({
+      id: 'tx-credit-exp',
+      user_id: 'user-123',
+      amount: 200,
+      type: 'expense',
+      account_id: 'acc-credit',
+      date: '2026-06-14T12:00:00Z'
+    }, true);
+
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-credit')?.balance).toBe(700);
+
+    // 4. Add savings (payment) to Credit Card -> should decrease debt balance
+    await addTransactionLocal({
+      id: 'tx-credit-pay',
+      user_id: 'user-123',
+      amount: 100,
+      type: 'savings',
+      account_id: 'acc-credit',
+      date: '2026-06-14T12:00:00Z'
+    }, true);
+
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-credit')?.balance).toBe(600);
+
+    // 5. Update Credit Card transaction (change amount of expense from 200 to 250)
+    await updateTransactionLocal('tx-credit-exp', { amount: 250 }, true);
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-credit')?.balance).toBe(650);
+
+    // 6. Delete checking expense -> should revert checking balance to 1000
+    await deleteTransactionLocal('tx-check-exp', true);
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-checking')?.balance).toBe(1000);
+
+    // 7. Delete Credit Card payment -> should revert credit balance to 750
+    await deleteTransactionLocal('tx-credit-pay', true);
+    state = useFinanceStore.getState();
+    expect(state.accounts.find(a => a.id === 'acc-credit')?.balance).toBe(750);
+  });
+
   it('manages categories locally', async () => {
     const { addCategoryLocal } = useFinanceStore.getState();
     await addCategoryLocal({

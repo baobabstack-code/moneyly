@@ -10,6 +10,7 @@ const DEFAULT_CATEGORIES = [
   { name: 'Bills & Utilities', emoji: '💡', color: '#f97316', type: 'expense' as const },
   { name: 'Entertainment', emoji: '🎬', color: '#ec4899', type: 'expense' as const },
   { name: 'Healthcare', emoji: '🏥', color: '#ef4444', type: 'expense' as const },
+  { name: 'Charity & Giving', emoji: '💝', color: '#f43f5e', type: 'expense' as const },
   { name: 'Salary', emoji: '💰', color: '#10b981', type: 'income' as const },
   { name: 'Freelance', emoji: '💻', color: '#3b82f6', type: 'income' as const },
   { name: 'Investments', emoji: '📈', color: '#a855f7', type: 'income' as const },

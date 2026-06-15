@@ -21,8 +21,10 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [isPendingTab, startTabTransition] = useTransition();
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
-  const [txModalOpen, setTxModalOpen] = useState(false);
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [txModalOpen, setTxModalOpen] = useState(false);
+  const [quickFilter, setQuickFilter] = useState<'all' | 'expense' | 'income' | 'savings'>('all');
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; balance: number; date: Date } | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
@@ -120,6 +122,15 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions]);
+
+  const displayedTransactions = useMemo(() => {
+    let list = sortedTransactions;
+    if (quickFilter !== 'all') {
+      list = list.filter(t => t.type === quickFilter);
+    }
+    return list;
+  }, [sortedTransactions, quickFilter]);
+
   const updateTransactionLocal = useFinanceStore(state => state.updateTransactionLocal);
   const deleteTransactionLocal = useFinanceStore(state => state.deleteTransactionLocal);
 
@@ -190,7 +201,6 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
     const totalIndependentSavings = transactions.filter(t => t.type === 'savings').reduce((sum, t) => sum + t.amount, 0);
-    const currentBalance = startingBalance + totalIncome - totalExpenses;
     
     // Group expenses by category
     const expenseGroup: Record<string, { amount: number; emoji: string; name: string }> = {};
@@ -204,6 +214,14 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
     const expensesByCategory = Object.values(expenseGroup).sort((a, b) => b.amount - a.amount);
 
+    let currentBalance = startingBalance + totalIncome - totalExpenses;
+    if (accounts.length > 0) {
+      currentBalance = accounts.reduce((sum, acc) => {
+        const bal = parseFloat(acc.balance as any) || 0;
+        return sum + (acc.type === 'credit' ? -bal : bal);
+      }, 0);
+    }
+
     return {
       totalExpenses,
       totalIncome,
@@ -211,7 +229,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       currentBalance,
       expensesByCategory
     };
-  }, [transactions, startingBalance]);
+  }, [transactions, startingBalance, accounts]);
 
   // Compute spending plans metrics
   const money = useMemo(() => {
@@ -243,7 +261,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   }, [spendingPlans, stats.totalIndependentSavings]);
 
   const totalIndependentSavings = stats.totalIndependentSavings;
-  const totalSavings = money.savedForGoals + totalIndependentSavings;
+  const totalSavings = accounts.length > 0
+    ? accounts.filter(acc => acc.type === 'savings').reduce((sum, acc) => sum + (parseFloat(acc.balance as any) || 0), 0)
+    : money.savedForGoals + totalIndependentSavings;
 
   // Compute budgets and current spending
   const dailyBudget = useFinanceStore(state => state.dailyBudget);
@@ -646,15 +666,35 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   )}
                 </div>
 
+                {/* Quick Filter Toggle */}
+                {sortedTransactions.length > 0 && (
+                  <div className="mb-4 flex gap-1 rounded-xl bg-surface-container-low p-0.5 border border-outline-variant/30 w-fit">
+                    {(['all', 'expense', 'income', 'savings'] as const).map((filter) => (
+                      <button
+                        key={filter}
+                        type="button"
+                        onClick={() => setQuickFilter(filter)}
+                        className={`rounded-lg px-3 py-1 text-[10px] font-black uppercase tracking-wider transition-all ${
+                          quickFilter === filter
+                            ? 'bg-secondary text-on-secondary shadow-sm'
+                            : 'text-on-surface-variant hover:text-primary'
+                        }`}
+                      >
+                        {filter === 'expense' ? 'Expenses' : filter === 'income' ? 'Income' : filter === 'savings' ? 'Savings' : 'All'}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div className="space-y-3">
-                  {sortedTransactions.length === 0 ? (
+                  {displayedTransactions.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
                       <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">receipt_long</span>
                       <p className="font-bold text-on-surface text-sm">No transactions logged</p>
-                      <p className="mt-1 text-xs text-on-surface-variant">Tap Add in the nav bar below to log your first transaction.</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">No transactions found matching this quick filter.</p>
                     </div>
                   ) : (
-                    sortedTransactions.slice(0, 10).map((t) => {
+                    displayedTransactions.slice(0, 10).map((t) => {
                       const isEditing = editingTxId === t.id;
 
                       if (isEditing) {
@@ -1421,23 +1461,30 @@ export default function DashboardView({ email, displayName, profile, initialSpen
               {/* Circular Gauge */}
               <div className="relative my-8 flex items-center justify-center">
                 <svg className="h-44 w-44 transform -rotate-90">
+                  <defs>
+                    <linearGradient id="savingsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="var(--color-secondary)" />
+                      <stop offset="100%" stopColor="var(--color-secondary-container)" />
+                    </linearGradient>
+                  </defs>
                   <circle
                     cx="88"
                     cy="88"
-                    r="76"
+                    r="74"
                     stroke="var(--color-surface-container-highest)"
                     strokeWidth="10"
                     fill="transparent"
+                    className="opacity-75"
                   />
                   <circle
                     cx="88"
                     cy="88"
-                    r="76"
-                    stroke="var(--color-secondary)"
-                    strokeWidth="10"
+                    r="74"
+                    stroke="url(#savingsGrad)"
+                    strokeWidth="14"
                     fill="transparent"
-                    strokeDasharray={2 * Math.PI * 76}
-                    strokeDashoffset={2 * Math.PI * 76 * (1 - money.savingsProgress / 100)}
+                    strokeDasharray={2 * Math.PI * 74}
+                    strokeDashoffset={2 * Math.PI * 74 * (1 - money.savingsProgress / 100)}
                     strokeLinecap="round"
                     className="transition-all duration-500"
                     style={{ filter: "drop-shadow(0 0 6px var(--color-secondary-glow))" }}
@@ -1477,87 +1524,141 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </button>
               </div>
 
-              <div className="space-y-4 text-left">
+              <div className="space-y-3.5 text-left">
                 {/* Daily Budget */}
-                <div title="Expenditures logged today against your configured daily limit.">
-                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
-                    <span className="flex items-center gap-1">
-                      Daily Limit
-                      {budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily && (
-                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          Over Limit!
-                        </span>
-                      )}
-                    </span>
-                    <span>{formatCurrency(budgetSpending.daily)} / {budgetLimits.daily > 0 ? formatCurrency(budgetLimits.daily) : 'N/A'}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                {(() => {
+                  const isOver = budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily;
+                  const progress = budgetLimits.daily > 0 ? Math.min(100, (budgetSpending.daily / budgetLimits.daily) * 100) : 0;
+                  return (
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily 
-                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
-                          : 'bg-secondary'
+                      className={`rounded-2xl p-4 border transition-all duration-300 ${
+                        isOver 
+                          ? 'bg-rose-500/10 border-rose-500/25 text-rose-400' 
+                          : 'bg-surface-container-low/40 border-outline-variant/20 text-on-surface-variant'
                       }`}
-                      style={{ 
-                        width: `${budgetLimits.daily > 0 ? Math.min(100, (budgetSpending.daily / budgetLimits.daily) * 100) : 0}%` 
-                      }} 
-                    />
-                  </div>
-                </div>
+                      title="Expenditures logged today against your configured daily limit."
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider ${isOver ? 'text-rose-400' : 'text-on-surface-variant/70'}`}>Daily Limit</p>
+                          <p className={`text-base font-black tracking-tight mt-1 ${isOver ? 'text-rose-400' : 'text-primary'}`}>
+                            {formatCurrency(budgetSpending.daily)}
+                            <span className={`text-[10px] font-medium ml-1 ${isOver ? 'text-rose-400/70' : 'text-on-surface-variant/60'}`}>
+                              / {budgetLimits.daily > 0 ? formatCurrency(budgetLimits.daily) : 'N/A'}
+                            </span>
+                          </p>
+                        </div>
+                        {isOver ? (
+                          <span className="material-symbols-outlined text-rose-500 text-lg animate-pulse">warning</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-on-surface-variant/40 text-lg">calendar_today</span>
+                        )}
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-secondary'}`}
+                            style={{ width: `${progress}%` }} 
+                          />
+                        </div>
+                        {isOver && (
+                          <p className="text-[9px] font-bold text-rose-500 mt-1 uppercase tracking-wider">Over Limit!</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Weekly Budget */}
-                <div title="Expenditures logged this week against your configured weekly limit.">
-                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
-                    <span className="flex items-center gap-1">
-                      Weekly Limit
-                      {budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly && (
-                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          Over Limit!
-                        </span>
-                      )}
-                    </span>
-                    <span>{formatCurrency(budgetSpending.weekly)} / {budgetLimits.weekly > 0 ? formatCurrency(budgetLimits.weekly) : 'N/A'}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                {(() => {
+                  const isOver = budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly;
+                  const progress = budgetLimits.weekly > 0 ? Math.min(100, (budgetSpending.weekly / budgetLimits.weekly) * 100) : 0;
+                  return (
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly 
-                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
-                          : 'bg-secondary'
+                      className={`rounded-2xl p-4 border transition-all duration-300 ${
+                        isOver 
+                          ? 'bg-rose-500/10 border-rose-500/25 text-rose-400' 
+                          : 'bg-surface-container-low/40 border-outline-variant/20 text-on-surface-variant'
                       }`}
-                      style={{ 
-                        width: `${budgetLimits.weekly > 0 ? Math.min(100, (budgetSpending.weekly / budgetLimits.weekly) * 100) : 0}%` 
-                      }} 
-                    />
-                  </div>
-                </div>
+                      title="Expenditures logged this week against your configured weekly limit."
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider ${isOver ? 'text-rose-400' : 'text-on-surface-variant/70'}`}>Weekly Limit</p>
+                          <p className={`text-base font-black tracking-tight mt-1 ${isOver ? 'text-rose-400' : 'text-primary'}`}>
+                            {formatCurrency(budgetSpending.weekly)}
+                            <span className={`text-[10px] font-medium ml-1 ${isOver ? 'text-rose-400/70' : 'text-on-surface-variant/60'}`}>
+                              / {budgetLimits.weekly > 0 ? formatCurrency(budgetLimits.weekly) : 'N/A'}
+                            </span>
+                          </p>
+                        </div>
+                        {isOver ? (
+                          <span className="material-symbols-outlined text-rose-500 text-lg animate-pulse">warning</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-on-surface-variant/40 text-lg">date_range</span>
+                        )}
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-secondary'}`}
+                            style={{ width: `${progress}%` }} 
+                          />
+                        </div>
+                        {isOver && (
+                          <p className="text-[9px] font-bold text-rose-500 mt-1 uppercase tracking-wider">Over Limit!</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Monthly Budget */}
-                <div title="Expenditures logged this month against your configured monthly limit.">
-                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
-                    <span className="flex items-center gap-1">
-                      Monthly Limit
-                      {budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly && (
-                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
-                          Over Limit!
-                        </span>
-                      )}
-                    </span>
-                    <span>{formatCurrency(budgetSpending.monthly)} / {budgetLimits.monthly > 0 ? formatCurrency(budgetLimits.monthly) : 'N/A'}</span>
-                  </div>
-                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                {(() => {
+                  const isOver = budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly;
+                  const progress = budgetLimits.monthly > 0 ? Math.min(100, (budgetSpending.monthly / budgetLimits.monthly) * 100) : 0;
+                  return (
                     <div 
-                      className={`h-full rounded-full transition-all duration-500 ${
-                        budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly 
-                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
-                          : 'bg-secondary'
+                      className={`rounded-2xl p-4 border transition-all duration-300 ${
+                        isOver 
+                          ? 'bg-rose-500/10 border-rose-500/25 text-rose-400' 
+                          : 'bg-surface-container-low/40 border-outline-variant/20 text-on-surface-variant'
                       }`}
-                      style={{ 
-                        width: `${budgetLimits.monthly > 0 ? Math.min(100, (budgetSpending.monthly / budgetLimits.monthly) * 100) : 0}%` 
-                      }} 
-                    />
-                  </div>
-                </div>
+                      title="Expenditures logged this month against your configured monthly limit."
+                    >
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className={`text-[10px] font-bold uppercase tracking-wider ${isOver ? 'text-rose-400' : 'text-on-surface-variant/70'}`}>Monthly Limit</p>
+                          <p className={`text-base font-black tracking-tight mt-1 ${isOver ? 'text-rose-400' : 'text-primary'}`}>
+                            {formatCurrency(budgetSpending.monthly)}
+                            <span className={`text-[10px] font-medium ml-1 ${isOver ? 'text-rose-400/70' : 'text-on-surface-variant/60'}`}>
+                              / {budgetLimits.monthly > 0 ? formatCurrency(budgetLimits.monthly) : 'N/A'}
+                            </span>
+                          </p>
+                        </div>
+                        {isOver ? (
+                          <span className="material-symbols-outlined text-rose-500 text-lg animate-pulse">warning</span>
+                        ) : (
+                          <span className="material-symbols-outlined text-on-surface-variant/40 text-lg">calendar_month</span>
+                        )}
+                      </div>
+
+                      <div className="mt-3">
+                        <div className="h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+                          <div 
+                            className={`h-full rounded-full transition-all duration-500 ${isOver ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' : 'bg-secondary'}`}
+                            style={{ width: `${progress}%` }} 
+                          />
+                        </div>
+                        {isOver && (
+                          <p className="text-[9px] font-bold text-rose-500 mt-1 uppercase tracking-wider">Over Limit!</p>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
             </div>
 
