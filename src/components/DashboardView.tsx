@@ -478,12 +478,12 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         {/* Dashboard Stat Grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           {/* Net Worth */}
-          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm" title="Your starting balance + total income - total expenses. Represents total net cash.">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Net Worth Balance</p>
                 <h3 className="mt-3 text-2xl font-black text-primary">{formatCurrency(stats.currentBalance)}</h3>
-                <p className="mt-1 text-[10px] text-on-surface-variant">
+                <p className="mt-1 text-[10px] text-on-surface-variant" title="Your starting balance + total income - total expenses - total savings vault. Represents your liquid cash available for daily spending.">
                   Everyday Cash: <span className="font-bold text-on-surface">{formatCurrency(stats.currentBalance - totalSavings)}</span>
                 </p>
               </div>
@@ -522,7 +522,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           </div>
 
           {/* Total Savings */}
-          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
+          <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm" title="The sum of all savings allocated to goals plus any general/independent savings not linked to specific goals.">
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Total Savings Vault</p>
@@ -998,7 +998,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
             {activeTab === 'analyze' && (
               <div className="space-y-6">
                 {/* 1. Net Worth Trend SVG Line Chart */}
-                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6" title="Cumulative progression of starting balance plus all incomes minus all expenses over the last 30 days.">
                   <div>
                     <h2 className="text-xl font-black text-primary">Net Worth Trend</h2>
                     <p className="text-xs text-on-surface-variant font-medium">30-day cumulative net worth progression</p>
@@ -1091,7 +1091,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
 
                 {/* 2. Category Budgets Tracker */}
-                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6" title="Set specific monthly spending caps for individual categories to manage targets dynamically.">
                   <div>
                     <h2 className="text-xl font-black text-primary">Category Budgets</h2>
                     <p className="text-xs text-on-surface-variant font-medium">Configure and track category-specific monthly spending limits</p>
@@ -1196,7 +1196,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
 
                 {/* 3. Interactive Expenses Distribution */}
-                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6" title="Breakdown of your total expenses grouped by category to visualize where your money goes.">
                   <div>
                     <h2 className="text-xl font-black text-primary">Interactive Expenses Distribution</h2>
                     <p className="text-xs text-on-surface-variant font-medium">Hover over bars to inspect detailed spending totals</p>
@@ -1306,7 +1306,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
           {/* Right sidebar: Savings goal Circular Progress Gauge & Info */}
           <div className="space-y-6">
-            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm text-center flex flex-col items-center">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm text-center flex flex-col items-center" title="Circular gauge showing your total savings progress against your total planned expenditure budgets.">
               <h3 className="text-lg font-black text-primary self-start">Savings Gauge</h3>
               <p className="text-xs text-on-surface-variant self-start mt-0.5">Budget goal coverage overview</p>
 
@@ -1372,7 +1372,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
               <div className="space-y-4 text-left">
                 {/* Daily Budget */}
-                <div>
+                <div title="Expenditures logged today against your configured daily limit.">
                   <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
                     <span className="flex items-center gap-1">
                       Daily Limit
@@ -1402,7 +1402,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
 
                 {/* Weekly Budget */}
-                <div>
+                <div title="Expenditures logged this week against your configured weekly limit.">
                   <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
                     <span className="flex items-center gap-1">
                       Weekly Limit
@@ -1432,7 +1432,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                 </div>
 
                 {/* Monthly Budget */}
-                <div>
+                <div title="Expenditures logged this month against your configured monthly limit.">
                   <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
                     <span className="flex items-center gap-1">
                       Monthly Limit

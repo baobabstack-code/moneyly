@@ -106,11 +106,12 @@ export default function Navbar({ initialUser }: NavbarProps) {
                       : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.08)]'
                 }`}
                 title={
-                  !isOnline 
+                  `Connection status showing if you are online or offline, and indicating count of pending changes synced to the cloud. Current status: ` +
+                  (!isOnline 
                     ? `Offline. ${pendingMutations.length} changes queued to sync.` 
                     : pendingMutations.length > 0 
                       ? `Syncing ${pendingMutations.length} updates...` 
-                      : 'Connected. Offline-first sync active.'
+                      : 'Connected. Offline-first sync active.')
                 }
               >
                 <span className={`material-symbols-outlined text-sm leading-none ${

@@ -361,11 +361,11 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           </span>
                         </div>
                         <div className="grid grid-cols-2 gap-3 text-sm text-on-surface-variant md:grid-cols-5">
-                          <span><strong className="block text-on-surface">{formatCurrency(cost)}</strong>Budget</span>
-                          <span><strong className="block text-on-surface">{formatCurrency(saved)}</strong>Saved</span>
-                          <span><strong className="block text-on-surface">{formatCurrency(remaining)}</strong>Cash needed</span>
-                          <span><strong className="block text-on-surface">{formatCurrency(monthly)}</strong>Commitment</span>
-                          <span><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
+                          <span title="The target total amount of money required to fully fund this goal."><strong className="block text-on-surface">{formatCurrency(cost)}</strong>Budget</span>
+                          <span title="The total amount of money currently saved or linked to this goal."><strong className="block text-on-surface">{formatCurrency(saved)}</strong>Saved</span>
+                          <span title="The remaining amount of money required to reach the target budget."><strong className="block text-on-surface">{formatCurrency(remaining)}</strong>Cash needed</span>
+                          <span title="The suggested amount you need to save each month to achieve this goal within the timeline."><strong className="block text-on-surface">{formatCurrency(monthly)}</strong>Commitment</span>
+                          <span title="The percentage of the goal budget that has been successfully funded."><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
                         </div>
                       </div>
 
@@ -477,7 +477,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
           {/* Sidebar Column (Right 1 Column) */}
           <div className="lg:col-span-1 space-y-6">
             {/* Cash-Flow Readiness Card */}
-            <div className="rounded-3xl border border-outline-variant bg-surface p-5 shadow-lg sticky top-6">
+            <div className="rounded-3xl border border-outline-variant bg-surface p-5 shadow-lg sticky top-6" title="A weighted indicator score tracking how prepared you are based on starting balance, monthly income, and total planned commitments.">
               <div className="mb-3 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-black text-primary">Cash-Flow Readiness</h2>

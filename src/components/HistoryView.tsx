@@ -167,6 +167,7 @@ export default function HistoryView() {
             <button
               onClick={handleDownloadPDF}
               className="rounded-xl bg-secondary px-4 py-2.5 text-xs font-bold text-on-secondary shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap"
+              title="Download a PDF audit statement of your itemized transaction ledger matching current search and date filters."
             >
               <span className="material-symbols-outlined text-sm font-black">download</span>
               Download Statement PDF
@@ -402,7 +403,7 @@ export default function HistoryView() {
                                 return plan ? (
                                   <>
                                     <span className="opacity-40">•</span>
-                                    <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
+                                    <span className="text-secondary font-bold flex items-center gap-0.5 normal-case" title="This transaction is linked to a Goal or Milestone. Linked savings automatically update the goal's saved progress.">
                                       <span className="material-symbols-outlined text-[12px] font-black">track_changes</span>
                                       {plan.product_name}
                                     </span>

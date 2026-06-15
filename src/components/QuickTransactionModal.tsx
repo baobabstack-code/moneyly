@@ -97,7 +97,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
           {/* Income / Expense / Savings Toggle */}
-          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-container-low p-1 border border-outline-variant/40">
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-container-low p-1 border border-outline-variant/40" title="Expense logs cash outflows, Income logs inflows, and Savings logs funds put aside for goals/vault.">
             <button
               type="button"
               onClick={() => setType('expense')}
@@ -179,7 +179,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
 
           {/* Link to Spending Plan */}
           {spendingPlans.length > 0 && (
-            <div>
+            <div title="Optionally link this transaction to a goal. Incomes/savings will increase the goal's saved amount; deleting/modifying them will adjust it.">
               <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Link to Goal / Milestone (Optional)</label>
               <select
                 value={selectedPlanId || ''}
