@@ -19,7 +19,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
     return map[code] || '$';
   });
 
-  const [type, setType] = useState<'expense' | 'income'>('expense');
+  const [type, setType] = useState<'expense' | 'income' | 'savings'>('expense');
   const [amount, setAmount] = useState('');
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [note, setNote] = useState('');
@@ -85,12 +85,12 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">
-          {/* Income / Expense Toggle */}
-          <div className="grid grid-cols-2 gap-2 rounded-2xl bg-surface-container-low p-1 border border-outline-variant/40">
+          {/* Income / Expense / Savings Toggle */}
+          <div className="grid grid-cols-3 gap-2 rounded-2xl bg-surface-container-low p-1 border border-outline-variant/40">
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`rounded-xl py-2.5 text-sm font-black transition-all ${
+              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
                 type === 'expense'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
@@ -101,13 +101,24 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`rounded-xl py-2.5 text-sm font-black transition-all ${
+              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
                 type === 'income'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
               }`}
             >
               Income
+            </button>
+            <button
+              type="button"
+              onClick={() => setType('savings')}
+              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+                type === 'savings'
+                  ? 'bg-secondary text-on-secondary shadow-md'
+                  : 'text-on-surface-variant hover:text-primary'
+              }`}
+            >
+              Savings
             </button>
           </div>
 

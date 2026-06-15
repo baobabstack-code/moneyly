@@ -6,6 +6,7 @@ import { UserProfile } from "@/lib/profile";
 import { useApplicationStore, Transaction } from "@/lib/store";
 import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
+import BudgetEditModal from "./BudgetEditModal";
 
 type SpendingPlan = {
   id: string;
@@ -33,6 +34,7 @@ export default function DashboardView({ email, displayName, profile, application
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [txModalOpen, setTxModalOpen] = useState(false);
+  const [budgetModalOpen, setBudgetModalOpen] = useState(false);
 
   // Zustand Store Hooks
   const setTransactions = useApplicationStore(state => state.setTransactions);
@@ -54,7 +56,10 @@ export default function DashboardView({ email, displayName, profile, application
         starting_balance: parseFloat((profile as any).starting_balance) || 0,
         currency: (profile as any).currency || 'USD',
         accent_color: (profile as any).accent_color || 'green',
-        onboarded: !!(profile as any).onboarded
+        onboarded: !!(profile as any).onboarded,
+        daily_budget: parseFloat((profile as any).daily_budget) || 0,
+        weekly_budget: parseFloat((profile as any).weekly_budget) || 0,
+        monthly_budget: parseFloat((profile as any).monthly_budget) || 0,
       });
     }
 
@@ -97,10 +102,10 @@ export default function DashboardView({ email, displayName, profile, application
     return `${n < 0 ? '-' : ''}${currencySymbol}${v}`;
   };
 
-  // Compute stats based on transactions list
   const stats = useMemo(() => {
     const totalExpenses = transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
     const totalIncome = transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+    const totalIndependentSavings = transactions.filter(t => t.type === 'savings').reduce((sum, t) => sum + t.amount, 0);
     const currentBalance = startingBalance + totalIncome - totalExpenses;
     
     // Group expenses by category
@@ -118,6 +123,7 @@ export default function DashboardView({ email, displayName, profile, application
     return {
       totalExpenses,
       totalIncome,
+      totalIndependentSavings,
       currentBalance,
       expensesByCategory
     };
@@ -150,6 +156,50 @@ export default function DashboardView({ email, displayName, profile, application
       savingsProgress,
     };
   }, [applications]);
+
+  const totalIndependentSavings = stats.totalIndependentSavings;
+  const totalSavings = money.savedForGoals + totalIndependentSavings;
+
+  // Compute budgets and current spending
+  const budgetLimits = useApplicationStore(state => ({
+    daily: state.dailyBudget,
+    weekly: state.weeklyBudget,
+    monthly: state.monthlyBudget
+  }));
+
+  const budgetSpending = useMemo(() => {
+    const now = new Date();
+    
+    // Start of today (local time)
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    
+    // Start of this week (Monday)
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), diff);
+    startOfWeek.setHours(0, 0, 0, 0);
+    
+    // Start of this month (1st)
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+    const dailyExpenses = transactions
+      .filter(t => t.type === 'expense' && new Date(t.date) >= startOfToday)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const weeklyExpenses = transactions
+      .filter(t => t.type === 'expense' && new Date(t.date) >= startOfWeek)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    const monthlyExpenses = transactions
+      .filter(t => t.type === 'expense' && new Date(t.date) >= startOfMonth)
+      .reduce((sum, t) => sum + t.amount, 0);
+
+    return {
+      daily: dailyExpenses,
+      weekly: weeklyExpenses,
+      monthly: monthlyExpenses
+    };
+  }, [transactions]);
 
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
 
@@ -193,7 +243,9 @@ export default function DashboardView({ email, displayName, profile, application
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Net Worth Balance</p>
                 <h3 className="mt-3 text-2xl font-black text-primary">{formatCurrency(stats.currentBalance)}</h3>
-                <p className="mt-1 text-xs text-on-surface-variant">Includes starting holding</p>
+                <p className="mt-1 text-[10px] text-on-surface-variant">
+                  Everyday Cash: <span className="font-bold text-on-surface">{formatCurrency(stats.currentBalance - totalIndependentSavings)}</span>
+                </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
                 <span className="material-symbols-outlined text-2xl">account_balance_wallet</span>
@@ -229,13 +281,15 @@ export default function DashboardView({ email, displayName, profile, application
             </div>
           </div>
 
-          {/* Active Goals */}
+          {/* Total Savings */}
           <div className="rounded-2xl border border-outline-variant bg-surface p-5 shadow-sm">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Savings Goal Progress</p>
-                <h3 className="mt-3 text-2xl font-black text-secondary">{money.savingsProgress}%</h3>
-                <p className="mt-1 text-xs text-on-surface-variant">{formatCurrency(money.savedForGoals)} of {formatCurrency(money.plannedSpend)}</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/70">Total Savings Vault</p>
+                <h3 className="mt-3 text-2xl font-black text-secondary">{formatCurrency(totalSavings)}</h3>
+                <p className="mt-1 text-[10px] text-on-surface-variant">
+                  Goal: {formatCurrency(money.savedForGoals)} | Cash: {formatCurrency(totalIndependentSavings)}
+                </p>
               </div>
               <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
                 <span className="material-symbols-outlined text-2xl">savings</span>
@@ -301,12 +355,12 @@ export default function DashboardView({ email, displayName, profile, application
                           </div>
                           <div>
                             <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
-                            <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">{t.category_name || 'Expense'}</p>
+                            <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">{t.category_name || t.type}</p>
                           </div>
                         </div>
                         <div className="text-right">
-                          <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                            {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                          <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                            {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
                           </p>
                           <p className="text-[10px] text-on-surface-variant mt-0.5">
                             {new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
@@ -587,6 +641,116 @@ export default function DashboardView({ email, displayName, profile, application
               </div>
             </div>
 
+            {/* Budgets Tracker Widget */}
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col">
+              <div className="flex items-center justify-between mb-4">
+                <div className="text-left">
+                  <h3 className="text-lg font-black text-primary">Budgets & Limits</h3>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Live spending thresholds tracking</p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setBudgetModalOpen(true)}
+                  className="p-2 rounded-xl border border-outline-variant hover:bg-surface-container transition-colors flex items-center justify-center text-on-surface-variant hover:text-primary"
+                  title="Configure budget limits"
+                >
+                  <span className="material-symbols-outlined text-[18px]">settings</span>
+                </button>
+              </div>
+
+              <div className="space-y-4 text-left">
+                {/* Daily Budget */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
+                    <span className="flex items-center gap-1">
+                      Daily Limit
+                      {budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily && (
+                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
+                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                          Over
+                        </span>
+                      )}
+                    </span>
+                    <span>
+                      {formatCurrency(budgetSpending.daily)} / {budgetLimits.daily > 0 ? formatCurrency(budgetLimits.daily) : 'Not set'}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        budgetLimits.daily > 0 && budgetSpending.daily > budgetLimits.daily 
+                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
+                          : 'bg-secondary'
+                      }`}
+                      style={{ 
+                        width: `${budgetLimits.daily > 0 ? Math.min(100, (budgetSpending.daily / budgetLimits.daily) * 100) : 0}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                {/* Weekly Budget */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
+                    <span className="flex items-center gap-1">
+                      Weekly Limit
+                      {budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly && (
+                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
+                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                          Over
+                        </span>
+                      )}
+                    </span>
+                    <span>
+                      {formatCurrency(budgetSpending.weekly)} / {budgetLimits.weekly > 0 ? formatCurrency(budgetLimits.weekly) : 'Not set'}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        budgetLimits.weekly > 0 && budgetSpending.weekly > budgetLimits.weekly 
+                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
+                          : 'bg-secondary'
+                      }`}
+                      style={{ 
+                        width: `${budgetLimits.weekly > 0 ? Math.min(100, (budgetSpending.weekly / budgetLimits.weekly) * 100) : 0}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+
+                {/* Monthly Budget */}
+                <div>
+                  <div className="flex justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
+                    <span className="flex items-center gap-1">
+                      Monthly Limit
+                      {budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly && (
+                        <span className="text-rose-500 text-[10px] font-black uppercase flex items-center gap-0.5 animate-pulse">
+                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                          Over
+                        </span>
+                      )}
+                    </span>
+                    <span>
+                      {formatCurrency(budgetSpending.monthly)} / {budgetLimits.monthly > 0 ? formatCurrency(budgetLimits.monthly) : 'Not set'}
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                    <div 
+                      className={`h-full rounded-full transition-all duration-500 ${
+                        budgetLimits.monthly > 0 && budgetSpending.monthly > budgetLimits.monthly 
+                          ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
+                          : 'bg-secondary'
+                      }`}
+                      style={{ 
+                        width: `${budgetLimits.monthly > 0 ? Math.min(100, (budgetSpending.monthly / budgetLimits.monthly) * 100) : 0}%` 
+                      }} 
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Help Card */}
             <div className="rounded-3xl border border-outline-variant bg-gradient-to-br from-secondary/5 to-secondary/15 p-6 space-y-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
@@ -605,6 +769,12 @@ export default function DashboardView({ email, displayName, profile, application
           user_id={profile.id}
           isOpen={txModalOpen}
           onClose={() => setTxModalOpen(false)}
+        />
+      )}
+      {budgetModalOpen && (
+        <BudgetEditModal
+          isOpen={budgetModalOpen}
+          onClose={() => setBudgetModalOpen(false)}
         />
       )}
     </div>

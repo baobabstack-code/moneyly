@@ -5,7 +5,7 @@ export interface Transaction {
   id: string;
   user_id: string;
   amount: number;
-  type: 'expense' | 'income';
+  type: 'expense' | 'income' | 'savings';
   category_id?: number | null;
   category_name?: string | null;
   category_emoji?: string | null;
@@ -20,7 +20,7 @@ export interface Category {
   name: string;
   emoji: string;
   color: string;
-  type: 'expense' | 'income';
+  type: 'expense' | 'income' | 'savings';
 }
 
 export interface PendingMutation {
@@ -62,6 +62,9 @@ export interface ApplicationState {
   currency: string;
   onboarded: boolean;
   startingBalance: number;
+  dailyBudget: number;
+  weeklyBudget: number;
+  monthlyBudget: number;
   transactions: Transaction[];
   categories: Category[];
   pendingMutations: PendingMutation[];
@@ -70,6 +73,9 @@ export interface ApplicationState {
   setCurrency: (currency: string) => void;
   setOnboarded: (onboarded: boolean) => void;
   setStartingBalance: (balance: number) => void;
+  setDailyBudget: (budget: number) => void;
+  setWeeklyBudget: (budget: number) => void;
+  setMonthlyBudget: (budget: number) => void;
   setTransactions: (transactions: Transaction[]) => void;
   setCategories: (categories: Category[]) => void;
   
@@ -79,7 +85,7 @@ export interface ApplicationState {
   deleteTransactionLocal: (id: string, skipSync?: boolean) => Promise<void>;
   updateTransactionLocal: (id: string, updates: Partial<Transaction>, skipSync?: boolean) => Promise<void>;
   addCategoryLocal: (category: Omit<Category, "id"> & { id?: number }, skipSync?: boolean) => Promise<void>;
-  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean }) => Promise<void>;
+  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
 
   /** Actions */
   resetStore: () => void;
@@ -99,6 +105,9 @@ const initialState = {
   currency: "USD",
   onboarded: false,
   startingBalance: 0,
+  dailyBudget: 0,
+  weeklyBudget: 0,
+  monthlyBudget: 0,
   transactions: [],
   categories: [],
   pendingMutations: [],
@@ -127,6 +136,9 @@ export const useApplicationStore = create<ApplicationState>()(
       setCurrency: (currency) => set({ currency }),
       setOnboarded: (onboarded) => set({ onboarded }),
       setStartingBalance: (startingBalance) => set({ startingBalance }),
+      setDailyBudget: (dailyBudget) => set({ dailyBudget }),
+      setWeeklyBudget: (weeklyBudget) => set({ weeklyBudget }),
+      setMonthlyBudget: (monthlyBudget) => set({ monthlyBudget }),
       setTransactions: (transactions) => set({ transactions }),
       setCategories: (categories) => set({ categories }),
 
@@ -294,6 +306,9 @@ export const useApplicationStore = create<ApplicationState>()(
           currency: updates.currency !== undefined ? updates.currency : state.currency,
           accentColor: (updates.accent_color !== undefined ? updates.accent_color : state.accentColor) as any,
           onboarded: updates.onboarded !== undefined ? updates.onboarded : state.onboarded,
+          dailyBudget: updates.daily_budget !== undefined ? updates.daily_budget : state.dailyBudget,
+          weeklyBudget: updates.weekly_budget !== undefined ? updates.weekly_budget : state.weeklyBudget,
+          monthlyBudget: updates.monthly_budget !== undefined ? updates.monthly_budget : state.monthlyBudget,
         }));
         
         let synced = false;

@@ -13,6 +13,8 @@ const DEFAULT_CATEGORIES = [
   { name: 'Salary', emoji: '💰', color: '#10b981', type: 'income' as const },
   { name: 'Freelance', emoji: '💻', color: '#3b82f6', type: 'income' as const },
   { name: 'Investments', emoji: '📈', color: '#a855f7', type: 'income' as const },
+  { name: 'Savings Account', emoji: '🏦', color: '#3b82f6', type: 'savings' as const },
+  { name: 'Emergency Fund', emoji: '🛡️', color: '#10b981', type: 'savings' as const },
 ];
 
 const CURRENCIES = [
@@ -40,7 +42,7 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
   // Custom Category Input
   const [customName, setCustomName] = useState('');
   const [customEmoji, setCustomEmoji] = useState('💰');
-  const [customType, setCustomType] = useState<'expense' | 'income'>('expense');
+  const [customType, setCustomType] = useState<'expense' | 'income' | 'savings'>('expense');
 
   const updateProfilePreferences = useApplicationStore(state => state.updateProfilePreferences);
   const addCategoryLocal = useApplicationStore(state => state.addCategoryLocal);
@@ -320,6 +322,7 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
                 >
                   <option value="expense">Expense</option>
                   <option value="income">Income</option>
+                  <option value="savings">Savings</option>
                 </select>
 
                 <button

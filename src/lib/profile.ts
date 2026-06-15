@@ -15,6 +15,9 @@ export interface UserProfile {
   first_name: string | null;
   last_name: string | null;
   monthly_income: string | null;
+  daily_budget?: number | null;
+  weekly_budget?: number | null;
+  monthly_budget?: number | null;
   
   // ROLE
   role: string;

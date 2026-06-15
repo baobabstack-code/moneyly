@@ -12,7 +12,7 @@ export default function HistoryView() {
   const currencyCode = useApplicationStore(state => state.currency);
 
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -147,7 +147,7 @@ export default function HistoryView() {
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center justify-between border-t border-outline-variant/20 pt-4">
             {/* Type Filters */}
             <div className="flex gap-1.5 bg-surface-container-low p-1 rounded-2xl border border-outline-variant/40">
-              {(['all', 'income', 'expense'] as const).map((type) => (
+              {(['all', 'income', 'expense', 'savings'] as const).map((type) => (
                 <button
                   key={type}
                   onClick={() => setFilterType(type)}
@@ -293,7 +293,7 @@ export default function HistoryView() {
                       <div>
                         <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
                         <div className="flex items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
-                          <span>{t.category_name || 'Expense'}</span>
+                          <span>{t.category_name || t.type}</span>
                           <span className="opacity-40">•</span>
                           <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                         </div>
@@ -302,8 +302,8 @@ export default function HistoryView() {
 
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : 'text-rose-500'}`}>
-                          {t.type === 'income' ? '+' : '-'}{formatCurrency(t.amount)}
+                        <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                          {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
                         </p>
                       </div>
                       
