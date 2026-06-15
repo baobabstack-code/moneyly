@@ -11,6 +11,7 @@ interface Props {
 
 export default function QuickTransactionModal({ user_id, isOpen, onClose }: Props) {
   const categories = useApplicationStore(state => state.categories);
+  const spendingPlans = useApplicationStore(state => state.spendingPlans);
   const addTransactionLocal = useApplicationStore(state => state.addTransactionLocal);
   const accentColor = useApplicationStore(state => state.accentColor);
   const currencySymbol = useApplicationStore(state => {
@@ -24,6 +25,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
   const [note, setNote] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().substring(0, 10));
+  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
 
   // Filter categories by type
   const filteredCategories = categories.filter(c => c.type === type);
@@ -55,11 +57,13 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
       category_emoji: selectedCategory?.emoji || null,
       note: note.trim() || null,
       date: new Date(date).toISOString(),
+      spending_plan_id: selectedPlanId || null,
     });
 
     // Reset and close
     setAmount('');
     setNote('');
+    setSelectedPlanId(null);
     setDate(new Date().toISOString().substring(0, 10));
     onClose();
   };
@@ -165,6 +169,25 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
               </div>
             )}
           </div>
+
+          {/* Link to Spending Plan */}
+          {spendingPlans.length > 0 && (
+            <div>
+              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Link to Spending Plan (Optional)</label>
+              <select
+                value={selectedPlanId || ''}
+                onChange={(e) => setSelectedPlanId(e.target.value || null)}
+                className="mt-2 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2.5 text-sm text-primary font-bold focus:outline-none focus:border-secondary"
+              >
+                <option value="">Do Not Link</option>
+                {spendingPlans.map((plan) => (
+                  <option key={plan.id} value={plan.id}>
+                    {plan.product_name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
 
           {/* Note & Date */}
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

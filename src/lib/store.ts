@@ -12,6 +12,7 @@ export interface Transaction {
   note?: string | null;
   date: string;
   created_at?: string;
+  spending_plan_id?: string | null;
 }
 
 export interface Category {
@@ -26,7 +27,7 @@ export interface Category {
 
 export interface PendingMutation {
   id: string;
-  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY';
+  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN';
   payload: any;
   timestamp: number;
 }
@@ -104,6 +105,8 @@ export interface ApplicationState {
   addCategoryLocal: (category: Omit<Category, "id"> & { id?: number }, skipSync?: boolean) => Promise<void>;
   updateCategoryLocal: (id: number, updates: Partial<Category>, skipSync?: boolean) => Promise<void>;
   addSpendingPlanLocal: (plan: Omit<SpendingPlan, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
+  deleteSpendingPlanLocal: (id: string, skipSync?: boolean) => Promise<void>;
+  updateSpendingPlanLocal: (id: string, updates: Partial<SpendingPlan>, skipSync?: boolean) => Promise<void>;
   updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
 
   /** Actions */
@@ -196,6 +199,12 @@ export const useApplicationStore = create<ApplicationState>()(
             } else if (mutation.type === 'UPDATE_CATEGORY') {
               const { error } = await supabase.from('categories').update(mutation.payload.updates).eq('id', mutation.payload.id);
               if (error) throw error;
+            } else if (mutation.type === 'DELETE_SPENDING_PLAN') {
+              const { error } = await supabase.from('spending_plans').delete().eq('id', mutation.payload.id);
+              if (error) throw error;
+            } else if (mutation.type === 'UPDATE_SPENDING_PLAN') {
+              const { error } = await supabase.from('spending_plans').update(mutation.payload.updates).eq('id', mutation.payload.id);
+              if (error) throw error;
             }
           } catch (err) {
             console.error("Failed to sync mutation:", mutation, err);
@@ -217,6 +226,15 @@ export const useApplicationStore = create<ApplicationState>()(
           transactions: [newTx, ...state.transactions],
         }));
         
+        if (newTx.spending_plan_id && (newTx.type === 'savings' || newTx.type === 'income')) {
+          const plans = get().spendingPlans;
+          const plan = plans.find(p => p.id === newTx.spending_plan_id);
+          if (plan) {
+            const newSaved = plan.saved_amount + newTx.amount;
+            await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
+          }
+        }
+
         if (skipSync) return;
         
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -241,10 +259,21 @@ export const useApplicationStore = create<ApplicationState>()(
       },
 
       deleteTransactionLocal: async (id, skipSync = false) => {
+        const tx = get().transactions.find(t => t.id === id);
+
         set((state) => ({
           transactions: state.transactions.filter(t => t.id !== id),
         }));
         
+        if (tx && tx.spending_plan_id && (tx.type === 'savings' || tx.type === 'income')) {
+          const plans = get().spendingPlans;
+          const plan = plans.find(p => p.id === tx.spending_plan_id);
+          if (plan) {
+            const newSaved = Math.max(0, plan.saved_amount - tx.amount);
+            await get().updateSpendingPlanLocal(plan.id, { saved_amount: newSaved }, skipSync);
+          }
+        }
+
         if (skipSync) return;
         
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -269,10 +298,40 @@ export const useApplicationStore = create<ApplicationState>()(
       },
 
       updateTransactionLocal: async (id, updates, skipSync = false) => {
+        const oldTx = get().transactions.find(t => t.id === id);
+        if (!oldTx) return;
+
         set((state) => ({
           transactions: state.transactions.map(t => t.id === id ? { ...t, ...updates } : t),
         }));
         
+        const newTx = { ...oldTx, ...updates } as Transaction;
+
+        const amountChanged = oldTx.amount !== newTx.amount;
+        const typeChanged = oldTx.type !== newTx.type;
+        const planChanged = oldTx.spending_plan_id !== newTx.spending_plan_id;
+
+        if (amountChanged || typeChanged || planChanged) {
+          const plans = get().spendingPlans;
+          
+          if (oldTx.spending_plan_id && (oldTx.type === 'savings' || oldTx.type === 'income')) {
+            const oldPlan = plans.find(p => p.id === oldTx.spending_plan_id);
+            if (oldPlan) {
+              const revertedSaved = Math.max(0, oldPlan.saved_amount - oldTx.amount);
+              await get().updateSpendingPlanLocal(oldPlan.id, { saved_amount: revertedSaved }, skipSync);
+            }
+          }
+
+          if (newTx.spending_plan_id && (newTx.type === 'savings' || newTx.type === 'income')) {
+            const latestPlans = get().spendingPlans;
+            const newPlan = latestPlans.find(p => p.id === newTx.spending_plan_id);
+            if (newPlan) {
+              const updatedSaved = newPlan.saved_amount + newTx.amount;
+              await get().updateSpendingPlanLocal(newPlan.id, { saved_amount: updatedSaved }, skipSync);
+            }
+          }
+        }
+
         if (skipSync) return;
         
         if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -381,6 +440,64 @@ export const useApplicationStore = create<ApplicationState>()(
               id: Math.random().toString(36).substring(7),
               type: 'CREATE_SPENDING_PLAN',
               payload: newPlan,
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      deleteSpendingPlanLocal: async (id, skipSync = false) => {
+        set((state) => ({
+          spendingPlans: state.spendingPlans.filter(p => p.id !== id),
+          // Disassociate plan from any linked transactions locally
+          transactions: state.transactions.map(t => t.spending_plan_id === id ? { ...t, spending_plan_id: null } : t)
+        }));
+
+        if (skipSync) return;
+
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          const { error } = await supabase.from('spending_plans').delete().eq('id', id);
+          if (!error) return;
+          console.error("Failed to delete spending plan from DB, queueing offline mutation:", error);
+        }
+
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'DELETE_SPENDING_PLAN',
+              payload: { id },
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      updateSpendingPlanLocal: async (id, updates, skipSync = false) => {
+        set((state) => ({
+          spendingPlans: state.spendingPlans.map(p => p.id === id ? { ...p, ...updates } : p)
+        }));
+
+        if (skipSync) return;
+
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          const { error } = await supabase.from('spending_plans').update(updates).eq('id', id);
+          if (!error) return;
+          console.error("Failed to update spending plan in DB, queueing offline mutation:", error);
+        }
+
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'UPDATE_SPENDING_PLAN',
+              payload: { id, updates },
               timestamp: Date.now()
             }
           ]

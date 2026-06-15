@@ -25,6 +25,11 @@ export default function DashboardView({ email, displayName, profile, application
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; balance: number; date: Date } | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
+  const [editingTxId, setEditingTxId] = useState<string | null>(null);
+  const [editTxAmount, setEditTxAmount] = useState('');
+  const [editTxNote, setEditTxNote] = useState('');
+  const [editTxCategoryId, setEditTxCategoryId] = useState<number | null>(null);
+  const [editTxDate, setEditTxDate] = useState('');
 
   // Zustand Store Hooks
   const setTransactions = useApplicationStore(state => state.setTransactions);
@@ -40,6 +45,11 @@ export default function DashboardView({ email, displayName, profile, application
   const addNotification = useApplicationStore(state => state.addNotification);
   const updateCategoryLocal = useApplicationStore(state => state.updateCategoryLocal);
   const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
+  const spendingPlans = useApplicationStore(state => state.spendingPlans);
+  const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
+  const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
+  const updateTransactionLocal = useApplicationStore(state => state.updateTransactionLocal);
+  const deleteTransactionLocal = useApplicationStore(state => state.deleteTransactionLocal);
 
   // Sync Supabase categories and transactions on mount
   useEffect(() => {
@@ -53,6 +63,11 @@ export default function DashboardView({ email, displayName, profile, application
         weekly_budget: parseFloat((profile as any).weekly_budget) || 0,
         monthly_budget: parseFloat((profile as any).monthly_budget) || 0,
       });
+    }
+
+    // Seeding store's spendingPlans from props if empty
+    if (spendingPlans.length === 0 && applications.length > 0) {
+      setSpendingPlans(applications);
     }
 
     const loadData = async () => {
@@ -82,7 +97,7 @@ export default function DashboardView({ email, displayName, profile, application
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [profile]);
+  }, [profile, applications, spendingPlans, setSpendingPlans]);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
@@ -126,8 +141,8 @@ export default function DashboardView({ email, displayName, profile, application
 
   // Compute spending plans metrics
   const money = useMemo(() => {
-    const activePlans = applications.filter((plan) => plan.status !== 'paused');
-    const completedPlans = applications.filter((plan) => plan.status === 'completed');
+    const activePlans = spendingPlans.filter((plan) => plan.status !== 'paused');
+    const completedPlans = spendingPlans.filter((plan) => plan.status === 'completed');
     
     const plannedSpend = activePlans.reduce((sum, plan) => {
       const val = typeof plan.planned_cost === 'number' ? plan.planned_cost : parseFloat(plan.planned_cost || '0');
@@ -150,7 +165,7 @@ export default function DashboardView({ email, displayName, profile, application
       remainingToFund,
       savingsProgress,
     };
-  }, [applications]);
+  }, [spendingPlans]);
 
   const totalIndependentSavings = stats.totalIndependentSavings;
   const totalSavings = money.savedForGoals + totalIndependentSavings;
@@ -338,6 +353,89 @@ export default function DashboardView({ email, displayName, profile, application
     }
   };
 
+  const [editTxSpendingPlanId, setEditTxSpendingPlanId] = useState<string | null>(null);
+
+  // Spending Plan editing state
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [editPlanName, setEditPlanName] = useState('');
+  const [editPlanCost, setEditPlanCost] = useState('');
+  const [editPlanSaved, setEditPlanSaved] = useState('');
+  const [editPlanTenure, setEditPlanTenure] = useState('');
+  const [editPlanStatus, setEditPlanStatus] = useState('active');
+
+  const handleStartEditPlan = (plan: SpendingPlan) => {
+    setEditingPlanId(plan.id);
+    setEditPlanName(plan.product_name);
+    setEditPlanCost(plan.planned_cost.toString());
+    setEditPlanSaved(plan.saved_amount.toString());
+    setEditPlanTenure(plan.tenure_months.toString());
+    setEditPlanStatus(plan.status);
+  };
+
+  const handleSaveEditPlan = async (id: string) => {
+    const costNum = parseFloat(editPlanCost);
+    const savedNum = parseFloat(editPlanSaved);
+    const tenureNum = parseInt(editPlanTenure);
+    if (!editPlanName.trim() || isNaN(costNum) || costNum < 0 || isNaN(savedNum) || savedNum < 0 || isNaN(tenureNum) || tenureNum <= 0) {
+      addNotification("Please check all fields are valid.", "error");
+      return;
+    }
+
+    await updateSpendingPlanLocal(id, {
+      product_name: editPlanName.trim(),
+      planned_cost: costNum,
+      saved_amount: savedNum,
+      tenure_months: tenureNum,
+      status: editPlanStatus,
+    });
+
+    setEditingPlanId(null);
+    addNotification("Spending plan updated!", "success");
+  };
+
+  const handleDeletePlan = async (id: string) => {
+    if (confirm("Are you sure you want to delete this spending plan?")) {
+      await deleteSpendingPlanLocal(id);
+      addNotification("Spending plan deleted!", "success");
+    }
+  };
+
+  const handleStartEditTx = (t: Transaction) => {
+    setEditingTxId(t.id);
+    setEditTxAmount(t.amount.toString());
+    setEditTxNote(t.note || '');
+    setEditTxCategoryId(t.category_id || null);
+    setEditTxDate(new Date(t.date).toISOString().substring(0, 10));
+    setEditTxSpendingPlanId(t.spending_plan_id || null);
+  };
+
+  const handleSaveEditTx = async (id: string) => {
+    const amountNum = parseFloat(editTxAmount);
+    if (isNaN(amountNum) || amountNum <= 0) return;
+
+    const selectedCategory = categories.find(c => c.id === editTxCategoryId);
+
+    await updateTransactionLocal(id, {
+      amount: amountNum,
+      note: editTxNote.trim() || null,
+      category_id: editTxCategoryId,
+      category_name: selectedCategory?.name || null,
+      category_emoji: selectedCategory?.emoji || null,
+      date: new Date(editTxDate).toISOString(),
+      spending_plan_id: editTxSpendingPlanId || null,
+    });
+
+    setEditingTxId(null);
+    addNotification("Transaction updated!", "success");
+  };
+
+  const handleDeleteTx = async (id: string) => {
+    if (confirm('Are you sure you want to delete this transaction?')) {
+      await deleteTransactionLocal(id);
+      addNotification("Transaction deleted!", "success");
+    }
+  };
+
   return (
     <div 
       className="font-manrope pb-20 lg:pb-0 min-h-screen bg-slate-950/20"
@@ -482,27 +580,159 @@ export default function DashboardView({ email, displayName, profile, application
                       <p className="mt-1 text-xs text-on-surface-variant">Tap Add in the nav bar below to log your first transaction.</p>
                     </div>
                   ) : (
-                    transactions.slice(0, 10).map((t) => (
-                      <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/45 p-4 border border-outline-variant/20 hover:border-outline-variant/60 transition-all">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
-                            {t.category_emoji || '🛒'}
+                    transactions.slice(0, 10).map((t) => {
+                      const isEditing = editingTxId === t.id;
+
+                      if (isEditing) {
+                        return (
+                          <div key={t.id} className="rounded-2xl bg-surface-container-low p-4 border border-secondary/40 space-y-4 animate-in fade-in duration-200">
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              {/* Amount */}
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Amount</label>
+                                <input
+                                  type="number"
+                                  step="0.01"
+                                  value={editTxAmount}
+                                  onChange={(e) => setEditTxAmount(e.target.value)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                                />
+                              </div>
+                              {/* Date */}
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Date</label>
+                                <input
+                                  type="date"
+                                  value={editTxDate}
+                                  onChange={(e) => setEditTxDate(e.target.value)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              {/* Memo */}
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
+                                <input
+                                  type="text"
+                                  value={editTxNote}
+                                  onChange={(e) => setEditTxNote(e.target.value)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none"
+                                />
+                              </div>
+                              {/* Category */}
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
+                                <select
+                                  value={editTxCategoryId || ''}
+                                  onChange={(e) => setEditTxCategoryId(parseInt(e.target.value) || null)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                >
+                                  <option value="">Select Category</option>
+                                  {categories.filter(c => c.type === t.type).map((c) => (
+                                    <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+
+                            {spendingPlans.length > 0 && (
+                              <div className="grid grid-cols-1 mt-1">
+                                <div>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
+                                  <select
+                                    value={editTxSpendingPlanId || ''}
+                                    onChange={(e) => setEditTxSpendingPlanId(e.target.value || null)}
+                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                  >
+                                    <option value="">Do Not Link</option>
+                                    {spendingPlans.map((plan) => (
+                                      <option key={plan.id} value={plan.id}>{plan.product_name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                              <button
+                                type="button"
+                                onClick={() => setEditingTxId(null)}
+                                className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditTx(t.id)}
+                                className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
+                              >
+                                Save Changes
+                              </button>
+                            </div>
                           </div>
-                          <div>
-                            <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
-                            <p className="text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">{t.category_name || t.type}</p>
+                        );
+                      }
+
+                      return (
+                        <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/45 p-4 border border-outline-variant/20 hover:border-outline-variant/60 transition-all group">
+                          <div className="flex items-center gap-3">
+                            <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
+                              {t.category_emoji || '🛒'}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
+                              <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
+                                <span>{t.category_name || t.type}</span>
+                                <span className="opacity-40">•</span>
+                                <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}</span>
+                                {t.spending_plan_id && (() => {
+                                  const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
+                                  return plan ? (
+                                    <>
+                                      <span className="opacity-40">•</span>
+                                      <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
+                                        <span className="material-symbols-outlined text-[12px] font-black">folder</span>
+                                        {plan.product_name}
+                                      </span>
+                                    </>
+                                  ) : null;
+                                })()}
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-4">
+                            <div className="text-right">
+                              <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                                {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                              </p>
+                            </div>
+                            
+                            {/* Inline Actions (edit/delete) */}
+                            <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
+                              <button
+                                type="button"
+                                onClick={() => handleStartEditTx(t)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-surface-container-highest text-on-surface-variant hover:text-primary transition-colors"
+                                title="Edit transaction"
+                              >
+                                <span className="material-symbols-outlined text-lg">edit</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteTx(t.id)}
+                                className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-red-500/10 text-on-surface-variant hover:text-red-500 transition-colors"
+                                title="Delete transaction"
+                              >
+                                <span className="material-symbols-outlined text-lg">delete</span>
+                              </button>
+                            </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
-                            {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
-                          </p>
-                          <p className="text-[10px] text-on-surface-variant mt-0.5">
-                            {new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
-                          </p>
-                        </div>
-                      </div>
-                    ))
+                      );
+                    })
                   )}
                 </div>
               </div>
@@ -567,24 +797,115 @@ export default function DashboardView({ email, displayName, profile, application
                 </div>
 
                 <div className="space-y-3">
-                  {applications.length === 0 ? (
+                  {spendingPlans.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
                       <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">playlist_add</span>
                       <p className="font-bold text-on-surface text-sm">No spending plans yet</p>
                       <p className="mt-1 text-xs text-on-surface-variant">Create plans to forecast budgets and savings goals.</p>
                     </div>
                   ) : (
-                    applications.map((plan) => {
+                    spendingPlans.map((plan) => {
                       const cost = typeof plan.planned_cost === 'number' ? plan.planned_cost : parseFloat(plan.planned_cost || '0') || 0;
                       const saved = typeof plan.saved_amount === 'number' ? plan.saved_amount : parseFloat(plan.saved_amount || '0') || 0;
                       const progress = cost > 0 ? Math.min(100, Math.round((saved / cost) * 100)) : 0;
                       const isExpanded = expandedPlan === plan.id;
+                      const isEditing = editingPlanId === plan.id;
+
+                      if (isEditing) {
+                        return (
+                          <div key={plan.id} className="p-4 bg-surface-container-low/60 border border-secondary/40 rounded-2xl space-y-3 animate-in fade-in duration-200">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Goal/Item Name</label>
+                                <input
+                                  type="text"
+                                  value={editPlanName}
+                                  onChange={(e) => setEditPlanName(e.target.value)}
+                                  className="mt-1 w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-primary font-bold focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Status</label>
+                                <select
+                                  value={editPlanStatus}
+                                  onChange={(e) => setEditPlanStatus(e.target.value)}
+                                  className="mt-1 w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-primary font-bold focus:outline-none"
+                                >
+                                  <option value="active">Active</option>
+                                  <option value="paused">Paused</option>
+                                  <option value="completed">Completed</option>
+                                </select>
+                              </div>
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-3">
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Budget Cost</label>
+                                <input
+                                  type="number"
+                                  value={editPlanCost}
+                                  onChange={(e) => setEditPlanCost(e.target.value)}
+                                  className="mt-1 w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-primary font-bold focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Saved Amt</label>
+                                <input
+                                  type="number"
+                                  value={editPlanSaved}
+                                  onChange={(e) => setEditPlanSaved(e.target.value)}
+                                  className="mt-1 w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-primary font-bold focus:outline-none"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Months</label>
+                                <input
+                                  type="number"
+                                  value={editPlanTenure}
+                                  onChange={(e) => setEditPlanTenure(e.target.value)}
+                                  className="mt-1 w-full rounded-xl border border-outline-variant bg-surface px-3 py-1.5 text-xs text-primary font-bold focus:outline-none"
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                              <button
+                                type="button"
+                                onClick={() => setEditingPlanId(null)}
+                                className="rounded-xl border border-outline-variant px-3 py-1.5 text-[11px] font-bold text-on-surface hover:bg-surface-container transition-all"
+                              >
+                                Cancel
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleSaveEditPlan(plan.id)}
+                                className="rounded-xl bg-secondary px-3 py-1.5 text-[11px] font-bold text-on-secondary shadow-md"
+                              >
+                                Save Plan
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      }
+
+                      const linkedTransactions = transactions.filter(t => t.spending_plan_id === plan.id);
 
                       return (
                         <div key={plan.id} className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-low/30">
                           <div className="flex items-center justify-between p-4">
                             <div>
-                              <p className="font-black text-primary text-sm">{plan.product_name || 'Planned Purchase'}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="font-black text-primary text-sm">{plan.product_name || 'Planned Purchase'}</p>
+                                <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${
+                                  plan.status === 'completed'
+                                    ? 'bg-emerald-500/10 text-emerald-500'
+                                    : plan.status === 'paused'
+                                    ? 'bg-rose-500/10 text-rose-500'
+                                    : 'bg-blue-500/10 text-blue-500'
+                                }`}>
+                                  {plan.status}
+                                </span>
+                              </div>
                               <p className="text-[10px] text-on-surface-variant mt-0.5">Budget: {formatCurrency(cost)} | Saved: {formatCurrency(saved)}</p>
                             </div>
                             <button
@@ -596,7 +917,7 @@ export default function DashboardView({ email, displayName, profile, application
                           </div>
 
                           {isExpanded && (
-                            <div className="border-t border-outline-variant/35 bg-surface-container-low/60 p-4 space-y-3 animate-in fade-in duration-200">
+                            <div className="border-t border-outline-variant/35 bg-surface-container-low/60 p-4 space-y-3.5 animate-in fade-in duration-200">
                               <div>
                                 <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
                                   <span>Goal Progress</span>
@@ -606,8 +927,52 @@ export default function DashboardView({ email, displayName, profile, application
                                   <div className="h-full bg-secondary rounded-full" style={{ width: `${progress}%` }} />
                                 </div>
                               </div>
-                              <div className="text-xs text-on-surface-variant">
+
+                              {/* Linked Transactions Section */}
+                              <div className="border-t border-outline-variant/30 pt-3">
+                                <h4 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/75 mb-2 flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-xs font-black">link</span>
+                                  Linked Transactions History
+                                </h4>
+                                {linkedTransactions.length === 0 ? (
+                                  <p className="text-[10px] text-on-surface-variant/60 italic pl-1">No transactions linked to this plan yet.</p>
+                                ) : (
+                                  <div className="space-y-1.5">
+                                    {linkedTransactions.map(t => (
+                                      <div key={t.id} className="flex justify-between items-center text-[11px] bg-slate-950/10 p-2 rounded-xl border border-outline-variant/20">
+                                        <div className="flex flex-col">
+                                          <span className="font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</span>
+                                          <span className="text-[8px] text-on-surface-variant/65 uppercase tracking-wide mt-0.5">
+                                            {t.type} • {new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                          </span>
+                                        </div>
+                                        <span className={`font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                                          {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                                        </span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div className="flex justify-between items-center text-xs text-on-surface-variant border-t border-outline-variant/30 pt-3">
                                 <div>Tenure: <strong className="text-primary">{plan.tenure_months ? `${plan.tenure_months} months` : 'N/A'}</strong></div>
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={() => handleStartEditPlan(plan)}
+                                    className="rounded-lg hover:bg-surface-container px-2 py-1 text-[11px] font-bold text-secondary flex items-center gap-1 transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">edit</span>
+                                    Edit
+                                  </button>
+                                  <button
+                                    onClick={() => handleDeletePlan(plan.id)}
+                                    className="rounded-lg hover:bg-red-500/10 px-2 py-1 text-[11px] font-bold text-red-500 flex items-center gap-1 transition-all"
+                                  >
+                                    <span className="material-symbols-outlined text-[14px]">delete</span>
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           )}

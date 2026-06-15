@@ -64,6 +64,17 @@ export default function ApplicationsView({ applications: propApplications, profi
   const applications = useApplicationStore(state => state.spendingPlans);
   const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
   
+  const transactions = useApplicationStore(state => state.transactions);
+  const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
+  const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
+  const addNotification = useApplicationStore(state => state.addNotification);
+
+  useEffect(() => {
+    if (applications.length === 0 && propApplications.length > 0) {
+      setSpendingPlans(propApplications);
+    }
+  }, [propApplications, applications, setSpendingPlans]);
+
   useEffect(() => {
     const loadPlans = async () => {
       if (typeof window !== "undefined" && navigator.onLine) {
@@ -75,6 +86,51 @@ export default function ApplicationsView({ applications: propApplications, profi
     };
     loadPlans();
   }, [setSpendingPlans]);
+
+  // Spending Plan editing state
+  const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
+  const [editPlanName, setEditPlanName] = useState('');
+  const [editPlanCost, setEditPlanCost] = useState('');
+  const [editPlanSaved, setEditPlanSaved] = useState('');
+  const [editPlanTenure, setEditPlanTenure] = useState('');
+  const [editPlanStatus, setEditPlanStatus] = useState('active');
+
+  const handleStartEdit = (plan: SpendingPlan) => {
+    setEditingPlanId(plan.id);
+    setEditPlanName(plan.product_name);
+    setEditPlanCost(plan.planned_cost.toString());
+    setEditPlanSaved(plan.saved_amount.toString());
+    setEditPlanTenure(plan.tenure_months.toString());
+    setEditPlanStatus(plan.status);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    const costNum = parseFloat(editPlanCost);
+    const savedNum = parseFloat(editPlanSaved);
+    const tenureNum = parseInt(editPlanTenure);
+    if (!editPlanName.trim() || isNaN(costNum) || costNum < 0 || isNaN(savedNum) || savedNum < 0 || isNaN(tenureNum) || tenureNum <= 0) {
+      addNotification("Please check all fields are valid.", "error");
+      return;
+    }
+
+    await updateSpendingPlanLocal(id, {
+      product_name: editPlanName.trim(),
+      planned_cost: costNum,
+      saved_amount: savedNum,
+      tenure_months: tenureNum,
+      status: editPlanStatus,
+    });
+
+    setEditingPlanId(null);
+    addNotification("Spending plan updated!", "success");
+  };
+
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this spending plan?")) {
+      await deleteSpendingPlanLocal(id);
+      addNotification("Spending plan deleted!", "success");
+    }
+  };
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
@@ -211,6 +267,89 @@ export default function ApplicationsView({ applications: propApplications, profi
               const monthly = monthlyBill(plan);
               const progress = percent(saved, cost);
               const hasDoc = Boolean(plan.file_url);
+              const isEditing = editingPlanId === plan.id;
+
+              if (isEditing) {
+                return (
+                  <div key={plan.id} className="rounded-lg border border-secondary/40 bg-surface p-5 shadow-sm space-y-4 animate-in fade-in duration-200">
+                    <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
+                      <h3 className="font-bold text-primary text-sm">Edit Spending Plan</h3>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Goal/Item Name</label>
+                        <input
+                          type="text"
+                          value={editPlanName}
+                          onChange={(e) => setEditPlanName(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Status</label>
+                        <select
+                          value={editPlanStatus}
+                          onChange={(e) => setEditPlanStatus(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                        >
+                          <option value="active">Active</option>
+                          <option value="paused">Paused</option>
+                          <option value="completed">Completed</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-3 gap-4">
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Budget Cost</label>
+                        <input
+                          type="number"
+                          value={editPlanCost}
+                          onChange={(e) => setEditPlanCost(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Saved Amt</label>
+                        <input
+                          type="number"
+                          value={editPlanSaved}
+                          onChange={(e) => setEditPlanSaved(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                        />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Months</label>
+                        <input
+                          type="number"
+                          value={editPlanTenure}
+                          onChange={(e) => setEditPlanTenure(e.target.value)}
+                          className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary font-bold focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
+                      <button
+                        type="button"
+                        onClick={() => setEditingPlanId(null)}
+                        className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleSaveEdit(plan.id)}
+                        className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
+                      >
+                        Save Plan
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+
+              const linkedTransactions = transactions.filter(t => t.spending_plan_id === plan.id);
 
               return (
                 <div
@@ -292,6 +431,53 @@ export default function ApplicationsView({ applications: propApplications, profi
                             <div className="mt-1 text-sm font-bold text-on-surface wrap-break-word">{row.value}</div>
                           </div>
                         ))}
+                      </div>
+
+                      {/* Linked Transactions Section */}
+                      <div className="border-t border-outline-variant/30 pt-4 mt-5">
+                        <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-3 flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-sm font-black">link</span>
+                          Linked Transactions Audit Trail
+                        </h4>
+                        {linkedTransactions.length === 0 ? (
+                          <p className="text-xs text-on-surface-variant/60 italic pl-1">No transactions linked to this plan yet.</p>
+                        ) : (
+                          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+                            {linkedTransactions.map(t => (
+                              <div key={t.id} className="flex justify-between items-center text-xs bg-surface p-3 rounded-xl border border-outline-variant/20">
+                                <div className="flex flex-col">
+                                  <span className="font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</span>
+                                  <span className="text-[9px] text-on-surface-variant/65 uppercase tracking-wide mt-0.5">
+                                    {t.type} • {new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}
+                                  </span>
+                                </div>
+                                <span className={`font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
+                                  {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Management Controls */}
+                      <div className="border-t border-outline-variant/30 pt-4 mt-5 flex justify-end gap-3">
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(plan)}
+                          className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-secondary flex items-center gap-1.5 hover:bg-surface-container transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">edit</span>
+                          Edit Plan Details
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDelete(plan.id)}
+                          className="rounded-xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 text-xs font-bold text-red-500 flex items-center gap-1.5 transition-all"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                          Delete Plan
+                        </button>
                       </div>
                     </div>
                   )}

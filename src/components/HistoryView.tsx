@@ -25,6 +25,8 @@ export default function HistoryView() {
   const [editNote, setEditNote] = useState('');
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState('');
+  const [editSpendingPlanId, setEditSpendingPlanId] = useState<string | null>(null);
+  const spendingPlans = useApplicationStore(state => state.spendingPlans);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
@@ -69,6 +71,7 @@ export default function HistoryView() {
     setEditNote(t.note || '');
     setEditCategoryId(t.category_id || null);
     setEditDate(new Date(t.date).toISOString().substring(0, 10));
+    setEditSpendingPlanId(t.spending_plan_id || null);
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -84,6 +87,7 @@ export default function HistoryView() {
       category_name: selectedCategory?.name || null,
       category_emoji: selectedCategory?.emoji || null,
       date: new Date(editDate).toISOString(),
+      spending_plan_id: editSpendingPlanId || null,
     });
 
     setEditingId(null);
@@ -317,6 +321,23 @@ export default function HistoryView() {
                         </div>
                       </div>
 
+                      {/* Spending Plan Link */}
+                      {spendingPlans.length > 0 && (
+                        <div>
+                          <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
+                          <select
+                            value={editSpendingPlanId || ''}
+                            onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
+                            className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                          >
+                            <option value="">Do Not Link</option>
+                            {spendingPlans.map((plan) => (
+                              <option key={plan.id} value={plan.id}>{plan.product_name}</option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
+
                       <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
                         <button
                           type="button"
@@ -345,10 +366,22 @@ export default function HistoryView() {
                       </div>
                       <div>
                         <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
-                        <div className="flex items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
+                        <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
                           <span>{t.category_name || t.type}</span>
                           <span className="opacity-40">•</span>
                           <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                          {t.spending_plan_id && (() => {
+                            const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
+                            return plan ? (
+                              <>
+                                <span className="opacity-40">•</span>
+                                <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
+                                  <span className="material-symbols-outlined text-[12px] font-black">folder</span>
+                                  {plan.product_name}
+                                </span>
+                              </>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                     </div>
@@ -361,7 +394,7 @@ export default function HistoryView() {
                       </div>
                       
                       {/* Inline Actions (edit/delete) */}
-                      <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center gap-1 opacity-70 group-hover:opacity-100 transition-opacity">
                         <button
                           type="button"
                           onClick={() => handleStartEdit(t)}
