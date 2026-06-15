@@ -10,7 +10,7 @@ import { IMPERSONATE_COOKIE, parseImpersonationCookie } from "@/lib/impersonate"
 
 export const dynamic = "force-dynamic";
 
-export default async function ApplicationLayout({
+export default async function CustomerLayout({
   children,
 }: {
   children: React.ReactNode;

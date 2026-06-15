@@ -50,7 +50,7 @@ export interface SpendingPlan {
  * Moneyly plan-builder store.
  * Tracks details for planned purchase, preferences, transactions, and offline sync queue.
  */
-export interface ApplicationState {
+export interface FinanceState {
   /** System notifications for user feedback */
   notifications: Array<{ id: string; message: string; type: 'success' | 'info' | 'error'; timestamp: number }>;
   addNotification: (message: string, type?: 'success' | 'info' | 'error') => void;
@@ -67,7 +67,7 @@ export interface ApplicationState {
     savedAmount: string;
     tenureMonths: string;
   };
-  setPurchaseDetails: (details: Partial<ApplicationState["purchaseDetails"]>) => void;
+  setPurchaseDetails: (details: Partial<FinanceState["purchaseDetails"]>) => void;
 
   /** Supporting File (receipt/quote/invoice) */
   fileUrl: string;
@@ -137,7 +137,7 @@ const initialState = {
   pendingMutations: [],
 };
 
-export const useApplicationStore = create<ApplicationState>()(
+export const useFinanceStore = create<FinanceState>()(
   persist(
     (set, get) => ({
       ...initialState,
@@ -559,7 +559,7 @@ export const useApplicationStore = create<ApplicationState>()(
       }),
     }),
     {
-      name: "moneyly-plan-storage",
+      name: "moneyly-finance-storage",
       storage: createJSONStorage(() => localStorage),
     }
   )

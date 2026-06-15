@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 
-import { useApplicationStore, SpendingPlan } from "@/lib/store";
+import { useFinanceStore, SpendingPlan } from "@/lib/financeStore";
 
 function parseAmount(n: string | number | null) {
   return typeof n === 'number' ? n : parseFloat(n ?? '');
@@ -53,27 +53,27 @@ function statusLabel(status: string | null) {
   return 'active';
 }
 
-interface ApplicationsViewProps {
-  applications: SpendingPlan[];
+interface PlansViewProps {
+  initialSpendingPlans: SpendingPlan[];
   profileComplete: boolean;
 }
 
-export default function ApplicationsView({ applications: propApplications, profileComplete }: ApplicationsViewProps) {
+export default function PlansView({ initialSpendingPlans, profileComplete }: PlansViewProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
-  const currencyCode = useApplicationStore(state => state.currency);
-  const applications = useApplicationStore(state => state.spendingPlans);
-  const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
+  const currencyCode = useFinanceStore(state => state.currency);
+  const spendingPlans = useFinanceStore(state => state.spendingPlans);
+  const setSpendingPlans = useFinanceStore(state => state.setSpendingPlans);
   
-  const transactions = useApplicationStore(state => state.transactions);
-  const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
-  const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
-  const addNotification = useApplicationStore(state => state.addNotification);
+  const transactions = useFinanceStore(state => state.transactions);
+  const deleteSpendingPlanLocal = useFinanceStore(state => state.deleteSpendingPlanLocal);
+  const updateSpendingPlanLocal = useFinanceStore(state => state.updateSpendingPlanLocal);
+  const addNotification = useFinanceStore(state => state.addNotification);
 
   useEffect(() => {
-    if (applications.length === 0 && propApplications.length > 0) {
-      setSpendingPlans(propApplications);
+    if (spendingPlans.length === 0 && initialSpendingPlans.length > 0) {
+      setSpendingPlans(initialSpendingPlans);
     }
-  }, [propApplications, applications, setSpendingPlans]);
+  }, [initialSpendingPlans, spendingPlans, setSpendingPlans]);
 
   useEffect(() => {
     const loadPlans = async () => {
@@ -150,14 +150,14 @@ export default function ApplicationsView({ applications: propApplications, profi
   };
 
   const summary = useMemo(() => {
-    const activePlans = applications.filter((plan) => plan.status !== 'paused');
+    const activePlans = spendingPlans.filter((plan) => plan.status !== 'paused');
     const planned = activePlans.reduce((sum, plan) => sum + plannedCost(plan), 0);
     const saved = activePlans.reduce((sum, plan) => sum + savedTowardPlan(plan), 0);
     const monthly = activePlans.reduce((sum, plan) => sum + monthlyBill(plan), 0);
     const progress = percent(saved, planned);
 
     return { activePlans, planned, saved, monthly, progress };
-  }, [applications]);
+  }, [spendingPlans]);
 
   if (!profileComplete) {
     return (
@@ -230,7 +230,7 @@ export default function ApplicationsView({ applications: propApplications, profi
           
           {/* Main Area: Spending Plans Feed (Left 2 Columns) */}
           <div className="lg:col-span-2 space-y-4">
-            {applications.length === 0 ? (
+            {spendingPlans.length === 0 ? (
               <div className="max-w-xl rounded-lg border border-dashed border-outline bg-surface p-8 text-center">
                 <span className="material-symbols-outlined mb-3 text-5xl text-on-surface-variant/30">playlist_add</span>
                 <p className="text-lg font-black text-primary">No spending plans yet.</p>
@@ -246,7 +246,7 @@ export default function ApplicationsView({ applications: propApplications, profi
                 </Link>
               </div>
             ) : (
-              applications.map((plan) => {
+              spendingPlans.map((plan) => {
                 const isOpen = expanded === plan.id;
                 const cost = plannedCost(plan);
                 const saved = savedTowardPlan(plan);

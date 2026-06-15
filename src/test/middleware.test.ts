@@ -84,8 +84,8 @@ describe('updateSession — ?next= param in redirect', () => {
   })
 
   it('includes ?next= for super admin paths', async () => {
-    const res = await updateSession(req('/super-admin/applications'))
-    expect(redirectParams(res).get('next')).toBe('/super-admin/applications')
+    const res = await updateSession(req('/super-admin/plans'))
+    expect(redirectParams(res).get('next')).toBe('/super-admin/plans')
   })
 
   it('redirects to /login (correct pathname)', async () => {

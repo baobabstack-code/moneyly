@@ -1,14 +1,14 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'
 import { isProfileComplete, UserProfile } from '@/lib/profile'
-import ApplicationsView from '@/components/ApplicationsView'
+import PlansView from '@/components/PlansView'
 import Navbar from '@/components/layout/Navbar'
 import DashboardSidebar from '@/components/DashboardSidebar'
 import MobileBottomNav from '@/components/MobileBottomNav'
 
 export const dynamic = 'force-dynamic'
 
-export default async function ApplicationsPage() {
+export default async function PlansPage() {
   const supabase = await createClient()
   const { data: { session } } = await supabase.auth.getSession()
 
@@ -16,7 +16,7 @@ export default async function ApplicationsPage() {
     redirect('/login')
   }
 
-  const [profileResult, applicationsResult] = await Promise.all([
+  const [profileResult, plansResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('*')
@@ -30,7 +30,7 @@ export default async function ApplicationsPage() {
   ])
 
   const profile = profileResult.data as UserProfile | null
-  const applications = applicationsResult.data || []
+  const spendingPlans = plansResult.data || []
   const profileComplete = profile ? isProfileComplete(profile) : false
   const initialUser = {
     email: session.user.email!,
@@ -52,8 +52,8 @@ export default async function ApplicationsPage() {
           <DashboardSidebar initialUser={initialUser} profileComplete={profileComplete} profile={profile} />
         )}
         <main className="flex-1 min-w-0 pb-20 lg:pb-0">
-          <ApplicationsView
-            applications={applications}
+          <PlansView
+            initialSpendingPlans={spendingPlans}
             profileComplete={profileComplete}
           />
         </main>

@@ -1,13 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 import { createClient } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 
 export default function DocumentUploadsPage() {
   const router = useRouter();
-  const { fileUrl, setFileUrl } = useApplicationStore();
+  const { fileUrl, setFileUrl } = useFinanceStore();
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 

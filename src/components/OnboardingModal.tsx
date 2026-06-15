@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useApplicationStore } from '@/lib/store';
+import { useFinanceStore } from '@/lib/financeStore';
 
 const DEFAULT_CATEGORIES = [
   { name: 'Food & Dining', emoji: '🍔', color: '#10b981', type: 'expense' as const },
@@ -44,9 +44,9 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
   const [customEmoji, setCustomEmoji] = useState('💰');
   const [customType, setCustomType] = useState<'expense' | 'income' | 'savings'>('expense');
 
-  const updateProfilePreferences = useApplicationStore(state => state.updateProfilePreferences);
-  const addCategoryLocal = useApplicationStore(state => state.addCategoryLocal);
-  const addNotification = useApplicationStore(state => state.addNotification);
+  const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
+  const addCategoryLocal = useFinanceStore(state => state.addCategoryLocal);
+  const addNotification = useFinanceStore(state => state.addNotification);
 
   const handleAddCustomCategory = () => {
     if (!customName.trim()) return;

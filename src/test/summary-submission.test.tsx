@@ -1,6 +1,6 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import SummaryPage from '../app/(application)/plan/summary/page';
-import { useApplicationStore } from '../lib/store';
+import SummaryPage from '../app/(customer)/plan/summary/page';
+import { useFinanceStore } from '../lib/financeStore';
 
 const push = jest.fn();
 const insert = jest.fn(() => Promise.resolve({ error: null }));
@@ -36,9 +36,9 @@ describe('SummaryPage submission', () => {
     insert.mockClear();
     getUser.mockClear();
     global.fetch = jest.fn(() => Promise.resolve({ ok: true } as Response));
-    useApplicationStore.getState().resetStore();
+    useFinanceStore.getState().resetStore();
 
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     state.setPurchaseDetails({
       productName: 'Laptop',
       plannedCost: '1200',

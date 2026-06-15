@@ -9,7 +9,7 @@
 // ── types ──────────────────────────────────────────────────────────────────
 
 type Profile = { id: string; role: 'customer' | 'super_admin' }
-type Application = { id: string; user_id: string }
+type SpendingPlan = { id: string; user_id: string }
 
 // ── policy predicates (mirror the SQL logic) ───────────────────────────────
 
@@ -23,13 +23,13 @@ function superAdminCanViewProfile(viewer: Profile) {
   return viewer.role === 'super_admin'
 }
 
-/** applications: customers can see their own */
-function customerCanViewApplication(viewer: Profile, app: Application) {
-  return viewer.role === 'customer' && viewer.id === app.user_id
+/** spending plans: customers can see their own */
+function customerCanViewPlan(viewer: Profile, plan: SpendingPlan) {
+  return viewer.role === 'customer' && viewer.id === plan.user_id
 }
 
-/** applications: super admin can view all applications */
-function superAdminCanViewApplication(viewer: Profile) {
+/** spending plans: super admin can view all spending plans */
+function superAdminCanViewPlan(viewer: Profile) {
   return viewer.role === 'super_admin'
 }
 
@@ -39,8 +39,8 @@ const customer1: Profile  = { id: 'c1', role: 'customer' }
 const customer2: Profile  = { id: 'c2', role: 'customer' }
 const superAdmin: Profile = { id: 'sa', role: 'super_admin' }
 
-const app1: Application = { id: 'app1', user_id: 'c1' }
-const app2: Application = { id: 'app2', user_id: 'c2' }
+const plan1: SpendingPlan = { id: 'plan1', user_id: 'c1' }
+const plan2: SpendingPlan = { id: 'plan2', user_id: 'c2' }
 
 // ── profile policy tests ───────────────────────────────────────────────────
 
@@ -68,29 +68,29 @@ describe('RLS — profiles: super admin access', () => {
   })
 });
 
-// ── application policy tests ───────────────────────────────────────────────
+// ── spending plan policy tests ─────────────────────────────────────────────
 
-describe('RLS — applications: customer access', () => {
-  it('customer can view their own application', () => {
-    expect(customerCanViewApplication(customer1, app1)).toBe(true)
+describe('RLS — spending plans: customer access', () => {
+  it('customer can view their own spending plan', () => {
+    expect(customerCanViewPlan(customer1, plan1)).toBe(true)
   })
 
-  it('customer cannot view another customer application', () => {
-    expect(customerCanViewApplication(customer1, app2)).toBe(false)
+  it('customer cannot view another customer spending plan', () => {
+    expect(customerCanViewPlan(customer1, plan2)).toBe(false)
   })
 
-  it('super admin cannot use customer policy to view applications', () => {
-    expect(customerCanViewApplication(superAdmin, app1)).toBe(false)
+  it('super admin cannot use customer policy to view spending plans', () => {
+    expect(customerCanViewPlan(superAdmin, plan1)).toBe(false)
   })
 });
 
-describe('RLS — applications: super admin access', () => {
-  it('super admin can view applications', () => {
-    expect(superAdminCanViewApplication(superAdmin)).toBe(true)
+describe('RLS — spending plans: super admin access', () => {
+  it('super admin can view spending plans', () => {
+    expect(superAdminCanViewPlan(superAdmin)).toBe(true)
   })
 
-  it('customer role cannot use super admin application policy', () => {
-    expect(superAdminCanViewApplication(customer1)).toBe(false)
+  it('customer role cannot use super admin spending plan policy', () => {
+    expect(superAdminCanViewPlan(customer1)).toBe(false)
   })
 });
 

@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 
 export default function AutoSaveDraft() {
-  const state = useApplicationStore();
+  const state = useFinanceStore();
   const [lastSaved, setLastSaved] = useState<number | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 

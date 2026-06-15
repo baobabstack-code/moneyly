@@ -1,6 +1,6 @@
 "use client";
 
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { generatePlanPDF } from "@/utils/pdf-generator";
@@ -9,7 +9,7 @@ import { createClient } from "@/utils/supabase/client";
 export default function SummaryPage() {
   const router = useRouter();
 
-  const { purchaseDetails, fileUrl, setLastReference, currency } = useApplicationStore();
+  const { purchaseDetails, fileUrl, setLastReference, currency } = useFinanceStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const currencySymbol = (() => {
@@ -39,7 +39,7 @@ export default function SummaryPage() {
       const reference = `PLN-${Math.floor(Math.random() * 9000) + 1000}`;
 
       // Insert into local Zustand store (handles offline stashing and syncing)
-      await useApplicationStore.getState().addSpendingPlanLocal({
+      await useFinanceStore.getState().addSpendingPlanLocal({
         user_id:          user?.id ?? null,
         reference,
         status:           'active',
@@ -80,7 +80,7 @@ export default function SummaryPage() {
         }
       }
 
-      useApplicationStore.getState().addNotification(
+      useFinanceStore.getState().addNotification(
         `Spending plan for "${purchaseDetails.productName}" (${reference}) has been saved successfully.`,
         'success'
       );
@@ -90,7 +90,7 @@ export default function SummaryPage() {
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Submission error:', error);
-      useApplicationStore.getState().addNotification(
+      useFinanceStore.getState().addNotification(
         `Error saving spending plan: ${message}. Please try again.`,
         'error'
       );

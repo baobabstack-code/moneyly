@@ -1,10 +1,10 @@
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-import AdminApplicationsClient from './AdminApplicationsClient'
+import AdminPlansClient from './AdminPlansClient'
 
 export const dynamic = 'force-dynamic'
 
-export default async function SuperAdminApplicationsPage({
+export default async function SuperAdminPlansPage({
   searchParams,
 }: {
   searchParams: Promise<{ status?: string }>
@@ -24,14 +24,14 @@ export default async function SuperAdminApplicationsPage({
     query = query.eq('status', params.status)
   }
 
-  const { data: applications } = await query
+  const { data: plans } = await query
 
   return (
     <div className="w-full">
-      <AdminApplicationsClient
-        applications={applications ?? []}
+      <AdminPlansClient
+        plans={plans ?? []}
         statusFilter={params.status}
-        basePath="/super-admin/applications"
+        basePath="/super-admin/plans"
       />
     </div>
   )

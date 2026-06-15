@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useApplicationStore } from '@/lib/store';
+import { useFinanceStore } from '@/lib/financeStore';
 
 interface Props {
   isOpen: boolean;
@@ -9,18 +9,18 @@ interface Props {
 }
 
 export default function BudgetEditModal({ isOpen, onClose }: Props) {
-  const accentColor = useApplicationStore(state => state.accentColor);
-  const currencySymbol = useApplicationStore(state => {
+  const accentColor = useFinanceStore(state => state.accentColor);
+  const currencySymbol = useFinanceStore(state => {
     const code = state.currency;
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[code] || '$';
   });
 
-  const dailyBudget = useApplicationStore(state => state.dailyBudget);
-  const weeklyBudget = useApplicationStore(state => state.weeklyBudget);
-  const monthlyBudget = useApplicationStore(state => state.monthlyBudget);
-  const updateProfilePreferences = useApplicationStore(state => state.updateProfilePreferences);
-  const addNotification = useApplicationStore(state => state.addNotification);
+  const dailyBudget = useFinanceStore(state => state.dailyBudget);
+  const weeklyBudget = useFinanceStore(state => state.weeklyBudget);
+  const monthlyBudget = useFinanceStore(state => state.monthlyBudget);
+  const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
+  const addNotification = useFinanceStore(state => state.addNotification);
 
   const [daily, setDaily] = useState('0.00');
   const [weekly, setWeekly] = useState('0.00');

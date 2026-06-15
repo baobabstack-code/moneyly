@@ -59,17 +59,17 @@ function fmt(n: number | null, currencyCode?: string | null): string | null {
 
 // ── component ──────────────────────────────────────────────────────────────
 
-export default function AdminApplicationsClient({
-  applications: initial,
+export default function AdminPlansClient({
+  plans: initial,
   statusFilter,
-  basePath = '/super-admin/applications',
+  basePath = '/super-admin/plans',
 }: {
-  applications: SpendingPlan[]
+  plans: SpendingPlan[]
   statusFilter?: string
   basePath?: string
 }) {
   const [expanded, setExpanded] = useState<string | null>(null)
-  const [applications, setApplications] = useState(initial)
+  const [plans, setPlans] = useState(initial)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [isPending, startTransition] = useTransition()
   const supabase = createClient()
@@ -84,7 +84,7 @@ export default function AdminApplicationsClient({
           .eq('id', id)
 
         if (!error) {
-          setApplications(prev => prev.map(a => (a.id === id ? { ...a, status } : a)))
+          setPlans(prev => prev.map(a => (a.id === id ? { ...a, status } : a)))
         }
       }
       setUpdatingId(null)
@@ -98,7 +98,7 @@ export default function AdminApplicationsClient({
         <div>
           <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Spending Plans</h1>
           <p className="text-on-surface-variant text-sm">
-            {applications.length} {statusFilter ? `${statusFilter} ` : ''}plan{applications.length !== 1 ? 's' : ''}
+            {plans.length} {statusFilter ? `${statusFilter} ` : ''}plan{plans.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -130,7 +130,7 @@ export default function AdminApplicationsClient({
         </div>
 
         {/* Empty state */}
-        {applications.length === 0 ? (
+        {plans.length === 0 ? (
           <div className="max-w-md text-center py-10 px-6 bg-surface rounded-2xl border border-outline-variant">
             <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3 block">
               description
@@ -139,7 +139,7 @@ export default function AdminApplicationsClient({
           </div>
         ) : (
           <div className="space-y-4">
-            {applications.map(app => {
+            {plans.map(app => {
               const isOpen = expanded === app.id
               const cashNeeded = Math.max(0, parseAmount(app.planned_cost) - parseAmount(app.saved_amount))
               const monthly = app.tenure_months && cashNeeded > 0 ? cashNeeded / app.tenure_months : null

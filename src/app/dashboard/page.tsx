@@ -32,7 +32,7 @@ export default async function DashboardPage() {
   }
 
   // Fetch impersonated (or real) user's profile and spending plans
-  const [profileResult, applicationsResult] = await Promise.all([
+  const [profileResult, spendingPlansResult] = await Promise.all([
     supabase
       .from('profiles')
       .select('*')
@@ -46,7 +46,7 @@ export default async function DashboardPage() {
   ])
 
   const profile = profileResult.data
-  const applications = applicationsResult.data || []
+  const spendingPlans = spendingPlansResult.data || []
 
   const displayName =
     profile?.first_name ||
@@ -62,7 +62,7 @@ export default async function DashboardPage() {
       email={isImpersonating ? (impersonation!.targetName) : session.user.email!}
       displayName={displayName}
       profile={profile}
-      applications={applications}
+      initialSpendingPlans={spendingPlans}
       profileComplete={profileComplete}
     />
   )

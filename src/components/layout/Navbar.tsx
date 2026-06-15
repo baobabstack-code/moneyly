@@ -7,7 +7,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { usePathname } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 
 interface NavbarProps {
   initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
@@ -20,8 +20,8 @@ export default function Navbar({ initialUser }: NavbarProps) {
   const supabase = useMemo(() => createClient(), []);
   const pathname = usePathname();
 
-  const pendingMutations = useApplicationStore(state => state.pendingMutations);
-  const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
+  const pendingMutations = useFinanceStore(state => state.pendingMutations);
+  const syncOfflineData = useFinanceStore(state => state.syncOfflineData);
   const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {

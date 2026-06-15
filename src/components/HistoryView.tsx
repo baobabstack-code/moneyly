@@ -1,17 +1,17 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { useApplicationStore, Transaction } from '@/lib/store';
+import { useFinanceStore, Transaction } from '@/lib/financeStore';
 import { generateStatementPDF } from '@/utils/pdf-generator';
 
 export default function HistoryView() {
-  const transactions = useApplicationStore(state => state.transactions);
-  const categories = useApplicationStore(state => state.categories);
-  const deleteTransactionLocal = useApplicationStore(state => state.deleteTransactionLocal);
-  const updateTransactionLocal = useApplicationStore(state => state.updateTransactionLocal);
-  const accentColor = useApplicationStore(state => state.accentColor);
-  const currencyCode = useApplicationStore(state => state.currency);
-  const startingBalance = useApplicationStore(state => state.startingBalance);
+  const transactions = useFinanceStore(state => state.transactions);
+  const categories = useFinanceStore(state => state.categories);
+  const deleteTransactionLocal = useFinanceStore(state => state.deleteTransactionLocal);
+  const updateTransactionLocal = useFinanceStore(state => state.updateTransactionLocal);
+  const accentColor = useFinanceStore(state => state.accentColor);
+  const currencyCode = useFinanceStore(state => state.currency);
+  const startingBalance = useFinanceStore(state => state.startingBalance);
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings'>('all');
@@ -26,7 +26,7 @@ export default function HistoryView() {
   const [editCategoryId, setEditCategoryId] = useState<number | null>(null);
   const [editDate, setEditDate] = useState('');
   const [editSpendingPlanId, setEditSpendingPlanId] = useState<string | null>(null);
-  const spendingPlans = useApplicationStore(state => state.spendingPlans);
+  const spendingPlans = useFinanceStore(state => state.spendingPlans);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };

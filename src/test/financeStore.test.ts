@@ -1,12 +1,12 @@
-import { useApplicationStore } from '../lib/store';
+import { useFinanceStore } from '../lib/financeStore';
 
-describe('useApplicationStore', () => {
+describe('useFinanceStore', () => {
   beforeEach(() => {
-    useApplicationStore.getState().resetStore();
+    useFinanceStore.getState().resetStore();
   });
 
   it('has correct initial state', () => {
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.purchaseDetails.productName).toBe('');
     expect(state.purchaseDetails.plannedCost).toBe('');
     expect(state.purchaseDetails.savedAmount).toBe('');
@@ -15,55 +15,55 @@ describe('useApplicationStore', () => {
   });
 
   it('setPurchaseDetails updates purchase details', () => {
-    const { setPurchaseDetails } = useApplicationStore.getState();
+    const { setPurchaseDetails } = useFinanceStore.getState();
     setPurchaseDetails({ productName: 'Smart TV', plannedCost: '800.00' });
     
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.purchaseDetails.productName).toBe('Smart TV');
     expect(state.purchaseDetails.plannedCost).toBe('800.00');
   });
 
   it('setFileUrl updates document file url', () => {
-    const { setFileUrl } = useApplicationStore.getState();
+    const { setFileUrl } = useFinanceStore.getState();
     setFileUrl('https://example.com/receipt.png');
     
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.fileUrl).toBe('https://example.com/receipt.png');
   });
 
   it('resetStore resets all state', () => {
-    const { setPurchaseDetails, setFileUrl, resetStore } = useApplicationStore.getState();
+    const { setPurchaseDetails, setFileUrl, resetStore } = useFinanceStore.getState();
     
     setPurchaseDetails({ productName: 'Laptop' });
     setFileUrl('https://example.com/file.pdf');
     
     resetStore();
     
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.purchaseDetails.productName).toBe('');
     expect(state.fileUrl).toBe('');
   });
 
   it('addNotification adds notification', () => {
-    const { addNotification } = useApplicationStore.getState();
+    const { addNotification } = useFinanceStore.getState();
     addNotification('Test message', 'success');
     
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.notifications).toHaveLength(1);
     expect(state.notifications[0].message).toBe('Test message');
     expect(state.notifications[0].type).toBe('success');
   });
 
   it('setLastReference updates reference', () => {
-    const { setLastReference } = useApplicationStore.getState();
+    const { setLastReference } = useFinanceStore.getState();
     setLastReference('PLN-1234');
     
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.lastReference).toBe('PLN-1234');
   });
 
   it('updates profile preferences correctly', async () => {
-    const { updateProfilePreferences } = useApplicationStore.getState();
+    const { updateProfilePreferences } = useFinanceStore.getState();
     await updateProfilePreferences({
       starting_balance: 5000,
       currency: 'EUR',
@@ -71,7 +71,7 @@ describe('useApplicationStore', () => {
       onboarded: true
     });
 
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.startingBalance).toBe(5000);
     expect(state.currency).toBe('EUR');
     expect(state.accentColor).toBe('purple');
@@ -79,7 +79,7 @@ describe('useApplicationStore', () => {
   });
 
   it('manages transactions locally', async () => {
-    const { addTransactionLocal, updateTransactionLocal, deleteTransactionLocal } = useApplicationStore.getState();
+    const { addTransactionLocal, updateTransactionLocal, deleteTransactionLocal } = useFinanceStore.getState();
     
     // Add transaction
     await addTransactionLocal({
@@ -92,25 +92,25 @@ describe('useApplicationStore', () => {
       date: '2026-06-14T12:00:00Z'
     }, true); // skipSync = true to avoid remote call
 
-    let state = useApplicationStore.getState();
+    let state = useFinanceStore.getState();
     expect(state.transactions).toHaveLength(1);
     expect(state.transactions[0].amount).toBe(150.50);
     expect(state.transactions[0].note).toBe('Dinner');
 
     // Update transaction
     await updateTransactionLocal('tx-1', { amount: 120.00, note: 'Dinner discount' }, true);
-    state = useApplicationStore.getState();
+    state = useFinanceStore.getState();
     expect(state.transactions[0].amount).toBe(120.00);
     expect(state.transactions[0].note).toBe('Dinner discount');
 
     // Delete transaction
     await deleteTransactionLocal('tx-1', true);
-    state = useApplicationStore.getState();
+    state = useFinanceStore.getState();
     expect(state.transactions).toHaveLength(0);
   });
 
   it('manages categories locally', async () => {
-    const { addCategoryLocal } = useApplicationStore.getState();
+    const { addCategoryLocal } = useFinanceStore.getState();
     await addCategoryLocal({
       id: 101,
       user_id: 'user-123',
@@ -120,7 +120,7 @@ describe('useApplicationStore', () => {
       type: 'expense'
     }, true);
 
-    const state = useApplicationStore.getState();
+    const state = useFinanceStore.getState();
     expect(state.categories).toHaveLength(1);
     expect(state.categories[0].name).toBe('Coffee');
     expect(state.categories[0].emoji).toBe('☕');

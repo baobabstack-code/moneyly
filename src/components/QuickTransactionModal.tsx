@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useApplicationStore, Category } from '@/lib/store';
+import { useFinanceStore, Category } from '@/lib/financeStore';
 
 interface Props {
   user_id: string;
@@ -17,11 +17,11 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
     return localDate.toISOString().substring(0, 10);
   };
 
-  const categories = useApplicationStore(state => state.categories);
-  const spendingPlans = useApplicationStore(state => state.spendingPlans);
-  const addTransactionLocal = useApplicationStore(state => state.addTransactionLocal);
-  const accentColor = useApplicationStore(state => state.accentColor);
-  const currencySymbol = useApplicationStore(state => {
+  const categories = useFinanceStore(state => state.categories);
+  const spendingPlans = useFinanceStore(state => state.spendingPlans);
+  const addTransactionLocal = useFinanceStore(state => state.addTransactionLocal);
+  const accentColor = useFinanceStore(state => state.accentColor);
+  const currencySymbol = useFinanceStore(state => {
     const code = state.currency;
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[code] || '$';

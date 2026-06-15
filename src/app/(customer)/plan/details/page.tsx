@@ -1,11 +1,11 @@
 "use client";
 
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 import { useRouter } from "next/navigation";
 
 export default function PurchaseDetailsPage() {
   const router = useRouter();
-  const { purchaseDetails, setPurchaseDetails, currency } = useApplicationStore();
+  const { purchaseDetails, setPurchaseDetails, currency } = useFinanceStore();
 
   const currencySymbol = (() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };

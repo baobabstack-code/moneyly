@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 import { generatePlanPDF } from "@/utils/pdf-generator";
 
 export default function SuccessPage() {
-  const store = useApplicationStore();
+  const store = useFinanceStore();
   const { clearPurchaseDetails, lastReference } = store;
 
   const handleDownloadPDF = async () => {

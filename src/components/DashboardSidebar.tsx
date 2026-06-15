@@ -20,7 +20,7 @@ const navItems = [
   { name: "Dashboard",        href: "/dashboard",      icon: "dashboard",       tooltip: "View your account dashboard" },
   { name: "History",          href: "/dashboard/history", icon: "history",       tooltip: "View transaction history" },
   { name: "New Plan",         href: "/plan/details",   icon: "add_circle",     tooltip: "Create a new spending plan" },
-  { name: "Spending Plans",   href: "/applications",    icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
+  { name: "Spending Plans",   href: "/plans",           icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
 ];
 
 export default function DashboardSidebar({ initialUser, profileComplete = true, profile }: Props) {

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { UserProfile } from "@/lib/profile";
-import { useApplicationStore, Transaction, SpendingPlan } from "@/lib/store";
+import { useFinanceStore, Transaction, SpendingPlan } from "@/lib/financeStore";
 import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
 import BudgetEditModal from "./BudgetEditModal";
@@ -12,11 +12,11 @@ interface Props {
   email: string;
   displayName: string;
   profile: UserProfile | null;
-  applications: SpendingPlan[];
+  initialSpendingPlans: SpendingPlan[];
   profileComplete: boolean;
 }
 
-export default function DashboardView({ email, displayName, profile, applications }: Props) {
+export default function DashboardView({ email, displayName, profile, initialSpendingPlans }: Props) {
   const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze'>('expenses');
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
@@ -32,35 +32,35 @@ export default function DashboardView({ email, displayName, profile, application
   const [editTxDate, setEditTxDate] = useState('');
 
   // Zustand Store Hooks
-  const setTransactions = useApplicationStore(state => state.setTransactions);
-  const setCategories = useApplicationStore(state => state.setCategories);
-  const updateProfilePreferences = useApplicationStore(state => state.updateProfilePreferences);
-  const transactions = useApplicationStore(state => state.transactions);
-  const categories = useApplicationStore(state => state.categories);
-  const accentColor = useApplicationStore(state => state.accentColor);
-  const currencyCode = useApplicationStore(state => state.currency);
-  const onboarded = useApplicationStore(state => state.onboarded);
-  const startingBalance = useApplicationStore(state => state.startingBalance);
-  const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
-  const addNotification = useApplicationStore(state => state.addNotification);
-  const updateCategoryLocal = useApplicationStore(state => state.updateCategoryLocal);
-  const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
-  const spendingPlans = useApplicationStore(state => state.spendingPlans);
-  const deleteSpendingPlanLocal = useApplicationStore(state => state.deleteSpendingPlanLocal);
-  const updateSpendingPlanLocal = useApplicationStore(state => state.updateSpendingPlanLocal);
-  const setStartingBalance = useApplicationStore(state => state.setStartingBalance);
-  const setCurrency = useApplicationStore(state => state.setCurrency);
-  const setAccentColor = useApplicationStore(state => state.setAccentColor);
-  const setOnboarded = useApplicationStore(state => state.setOnboarded);
-  const setDailyBudget = useApplicationStore(state => state.setDailyBudget);
-  const setWeeklyBudget = useApplicationStore(state => state.setWeeklyBudget);
-  const setMonthlyBudget = useApplicationStore(state => state.setMonthlyBudget);
+  const setTransactions = useFinanceStore(state => state.setTransactions);
+  const setCategories = useFinanceStore(state => state.setCategories);
+  const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
+  const transactions = useFinanceStore(state => state.transactions);
+  const categories = useFinanceStore(state => state.categories);
+  const accentColor = useFinanceStore(state => state.accentColor);
+  const currencyCode = useFinanceStore(state => state.currency);
+  const onboarded = useFinanceStore(state => state.onboarded);
+  const startingBalance = useFinanceStore(state => state.startingBalance);
+  const syncOfflineData = useFinanceStore(state => state.syncOfflineData);
+  const addNotification = useFinanceStore(state => state.addNotification);
+  const updateCategoryLocal = useFinanceStore(state => state.updateCategoryLocal);
+  const setSpendingPlans = useFinanceStore(state => state.setSpendingPlans);
+  const spendingPlans = useFinanceStore(state => state.spendingPlans);
+  const deleteSpendingPlanLocal = useFinanceStore(state => state.deleteSpendingPlanLocal);
+  const updateSpendingPlanLocal = useFinanceStore(state => state.updateSpendingPlanLocal);
+  const setStartingBalance = useFinanceStore(state => state.setStartingBalance);
+  const setCurrency = useFinanceStore(state => state.setCurrency);
+  const setAccentColor = useFinanceStore(state => state.setAccentColor);
+  const setOnboarded = useFinanceStore(state => state.setOnboarded);
+  const setDailyBudget = useFinanceStore(state => state.setDailyBudget);
+  const setWeeklyBudget = useFinanceStore(state => state.setWeeklyBudget);
+  const setMonthlyBudget = useFinanceStore(state => state.setMonthlyBudget);
 
   const sortedTransactions = useMemo(() => {
     return [...transactions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [transactions]);
-  const updateTransactionLocal = useApplicationStore(state => state.updateTransactionLocal);
-  const deleteTransactionLocal = useApplicationStore(state => state.deleteTransactionLocal);
+  const updateTransactionLocal = useFinanceStore(state => state.updateTransactionLocal);
+  const deleteTransactionLocal = useFinanceStore(state => state.deleteTransactionLocal);
 
   // Sync Supabase categories and transactions on mount
   useEffect(() => {
@@ -75,8 +75,8 @@ export default function DashboardView({ email, displayName, profile, application
     }
 
     // Seeding store's spendingPlans from props if empty
-    if (spendingPlans.length === 0 && applications.length > 0) {
-      setSpendingPlans(applications);
+    if (spendingPlans.length === 0 && initialSpendingPlans.length > 0) {
+      setSpendingPlans(initialSpendingPlans);
     }
 
     const loadData = async () => {
@@ -106,7 +106,7 @@ export default function DashboardView({ email, displayName, profile, application
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [profile, applications, spendingPlans, setSpendingPlans]);
+  }, [profile, initialSpendingPlans, spendingPlans, setSpendingPlans]);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
@@ -180,9 +180,9 @@ export default function DashboardView({ email, displayName, profile, application
   const totalSavings = money.savedForGoals + totalIndependentSavings;
 
   // Compute budgets and current spending
-  const dailyBudget = useApplicationStore(state => state.dailyBudget);
-  const weeklyBudget = useApplicationStore(state => state.weeklyBudget);
-  const monthlyBudget = useApplicationStore(state => state.monthlyBudget);
+  const dailyBudget = useFinanceStore(state => state.dailyBudget);
+  const weeklyBudget = useFinanceStore(state => state.weeklyBudget);
+  const monthlyBudget = useFinanceStore(state => state.monthlyBudget);
   const budgetLimits = useMemo(() => ({
     daily: dailyBudget,
     weekly: weeklyBudget,
@@ -762,7 +762,7 @@ export default function DashboardView({ email, displayName, profile, application
                 <div className="rounded-2xl bg-surface-container-low p-5 border border-outline-variant/35 flex items-center justify-between">
                   <div>
                     <h4 className="font-black text-primary text-sm">Offline Synchronization log</h4>
-                    <p className="text-xs text-on-surface-variant mt-1">Pending mutations queued: {useApplicationStore.getState().pendingMutations.length}</p>
+                    <p className="text-xs text-on-surface-variant mt-1">Pending mutations queued: {useFinanceStore.getState().pendingMutations.length}</p>
                   </div>
                   <button
                     onClick={async () => {

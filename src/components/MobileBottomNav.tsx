@@ -9,14 +9,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { useApplicationStore } from "@/lib/store";
+import { useFinanceStore } from "@/lib/financeStore";
 import QuickTransactionModal from "./QuickTransactionModal";
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
   const [userId, setUserId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
-  const accentColor = useApplicationStore(state => state.accentColor);
+  const accentColor = useFinanceStore(state => state.accentColor);
 
   useEffect(() => {
     const supabase = createClient();
@@ -35,7 +35,7 @@ export default function MobileBottomNav() {
     { name: "History", href: "/dashboard/history", icon: "history" },
     { name: "Add", isCenter: true },
     { name: "Plan", href: "/plan/details", icon: "add_circle" },
-    { name: "Plans", href: "/applications", icon: "pending_actions" },
+    { name: "Plans", href: "/plans", icon: "pending_actions" },
   ];
 
   return (

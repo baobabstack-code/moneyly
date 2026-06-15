@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { saveProfile, type UserProfile } from '@/lib/profile'
-import { useApplicationStore } from '@/lib/store'
+import { useFinanceStore } from '@/lib/financeStore'
 
 interface Props {
   section: 'personal'
@@ -12,7 +12,7 @@ interface Props {
 }
 
 export default function ProfileEditModal({ profile, onClose, onSaved }: Props) {
-  const currencyCode = useApplicationStore(state => state.currency);
+  const currencyCode = useFinanceStore(state => state.currency);
   const currencySymbol = (() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
     return map[currencyCode] || '$';
