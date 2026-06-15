@@ -46,7 +46,7 @@ export async function generatePlanPDF(data: PlanPdfData) {
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('Personal Money Manager - Spending Plan Summary', 15, 30);
+  doc.text('Personal Money Manager - Goal & Milestone Summary', 15, 30);
   
   // Reference number
   doc.setFontSize(10);
@@ -71,12 +71,12 @@ export async function generatePlanPDF(data: PlanPdfData) {
     { title: 'User Details', rows: [
       ['Customer Name', data.customerName || 'N/A'],
     ]},
-    { title: 'Spending Plan Details', rows: [
-      ['Planned Item', data.purchaseDetails?.productName || 'N/A'],
+    { title: 'Goal & Milestone Details', rows: [
+      ['Goal Item', data.purchaseDetails?.productName || 'N/A'],
       ['Planned Cost', `${currencySymbol}${plannedCostVal.toFixed(2)}`],
       ['Saved Amount', `${currencySymbol}${savedAmountVal.toFixed(2)}`],
       ['Cash Needed', `${currencySymbol}${cashNeededVal.toFixed(2)}`],
-      ['Plan Length', `${tenureMonthsVal} months`],
+      ['Goal Timeline', `${tenureMonthsVal} months`],
       ['Estimated Monthly Commitment', `${currencySymbol}${monthlyCommitVal.toFixed(2)}`],
     ]},
     { title: 'Supporting Documents', rows: [

@@ -52,7 +52,7 @@ export default function DocumentUploadsPage() {
       <div className="mb-10">
         <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 2 of 3</span>
         <h1 className="text-3xl font-bold text-primary mb-2">Supporting Documents</h1>
-        <p className="text-on-surface-variant">Attach a receipt, invoice, or quote to this spending plan.</p>
+        <p className="text-on-surface-variant">Attach a receipt, invoice, or quote to this goal.</p>
         <div className="mt-6 relative w-full h-2 bg-outline-variant rounded-full overflow-hidden shadow-inner">
           <div className="absolute left-0 top-0 h-full bg-secondary w-[66%] transition-all duration-500 shadow-[0_0_8px_rgba(0,81,213,0.3)]"></div>
         </div>
@@ -117,7 +117,7 @@ export default function DocumentUploadsPage() {
           <p className="text-xs font-bold text-primary uppercase tracking-wider mb-1">File Requirements</p>
           <p className="text-[11px] text-on-surface-variant leading-relaxed">
             Supported formats: JPG, PNG, PDF. Maximum file size: 5MB.
-            Attaching files helps you keep all quotes and receipts in one place for this plan.
+            Attaching files helps you keep all quotes and receipts in one place for this goal.
           </p>
         </div>
       </div>

@@ -96,9 +96,9 @@ export default function AdminPlansClient({
 
         {/* Page header */}
         <div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Spending Plans</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-primary mb-1">Goals & Milestones</h1>
           <p className="text-on-surface-variant text-sm">
-            {plans.length} {statusFilter ? `${statusFilter} ` : ''}plan{plans.length !== 1 ? 's' : ''}
+            {plans.length} {statusFilter ? `${statusFilter} ` : ''}goal{plans.length !== 1 ? 's' : ''}
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export default function AdminPlansClient({
             <span className="material-symbols-outlined text-5xl text-on-surface-variant/20 mb-3 block">
               description
             </span>
-            <p className="text-on-surface-variant font-medium text-base">No plans found.</p>
+            <p className="text-on-surface-variant font-medium text-base">No goals found.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -146,12 +146,12 @@ export default function AdminPlansClient({
 
               const details = [
                 { label: 'Source',            value: app.store_name },
-                { label: 'Planned Item',      value: app.product_name },
+                { label: 'Goal Item',         value: app.product_name },
                 { label: 'Planned Cost',      value: fmt(app.planned_cost, app.profiles?.currency) },
                 { label: 'Saved Amount',      value: fmt(app.saved_amount, app.profiles?.currency) },
                 { label: 'Cash Needed',       value: fmt(cashNeeded, app.profiles?.currency) },
-                { label: 'Plan Length',       value: app.tenure_months ? `${app.tenure_months} months` : null },
-                { label: 'Monthly Bill',      value: monthly ? fmt(monthly, app.profiles?.currency) : null },
+                { label: 'Goal Timeline',     value: app.tenure_months ? `${app.tenure_months} months` : null },
+                { label: 'Monthly Commitment', value: monthly ? fmt(monthly, app.profiles?.currency) : null },
               ].filter((r): r is { label: string; value: string } => Boolean(r.value))
 
               return (
@@ -183,7 +183,7 @@ export default function AdminPlansClient({
                           {app.status}
                         </span>
                         <span className="inline-block px-2.5 py-0.5 text-[10px] font-bold rounded-full uppercase bg-primary/10 text-primary">
-                          Plan
+                          Goal
                         </span>
                       </div>
                       <div className="flex flex-wrap gap-x-5 gap-y-1 text-sm text-on-surface-variant">

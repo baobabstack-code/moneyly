@@ -47,12 +47,12 @@ export async function POST(req: Request) {
     const { data, error } = await resend.emails.send({
       from: 'Moneyly <notifications@moneyly.app>', // Change to your verified domain
       to: email,
-      subject: `Spending Plan Saved: ${reference}`,
+      subject: `Goal & Milestone Saved: ${reference}`,
       html: `
         <div style="font-family: sans-serif; padding: 20px; color: #1e293b;">
-          <h2 style="color: #0f172a;">Spending Plan Saved</h2>
+          <h2 style="color: #0f172a;">Goal & Milestone Saved</h2>
           <p>Dear ${customerName},</p>
-          <p>Your Moneyly spending plan (Ref: <strong>${reference}</strong>) has been saved successfully.</p>
+          <p>Your Moneyly goal (Ref: <strong>${reference}</strong>) has been saved successfully.</p>
           <p>Please find the summary of your plan attached as a PDF.</p>
           <br/>
           <p>Best regards,<br/>Moneyly Team</p>
@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       `,
       attachments: [
         {
-          filename: `Moneyly-Plan-${reference}.pdf`,
+          filename: `Moneyly-Goal-${reference}.pdf`,
           content: base64Data,
         },
       ],

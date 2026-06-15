@@ -81,7 +81,7 @@ export default function SummaryPage() {
       }
 
       useFinanceStore.getState().addNotification(
-        `Spending plan for "${purchaseDetails.productName}" (${reference}) has been saved successfully.`,
+        `Goal for "${purchaseDetails.productName}" (${reference}) has been saved successfully.`,
         'success'
       );
 
@@ -91,7 +91,7 @@ export default function SummaryPage() {
       const message = error instanceof Error ? error.message : 'Unknown error';
       console.error('Submission error:', error);
       useFinanceStore.getState().addNotification(
-        `Error saving spending plan: ${message}. Please try again.`,
+        `Error saving goal: ${message}. Please try again.`,
         'error'
       );
     } finally {
@@ -101,13 +101,13 @@ export default function SummaryPage() {
 
   const sections = [
     {
-      title: "Spending Plan Details",
+      title: "Goal & Milestone Details",
       data: [
         { label: "Planned Item", value: purchaseDetails.productName },
         { label: "Planned Cost", value: `${currencySymbol}${plannedCost.toFixed(2)}` },
         { label: "Saved Amount", value: `${currencySymbol}${savedAmount.toFixed(2)}` },
         { label: "Cash Needed", value: `${currencySymbol}${balanceAmount.toFixed(2)}` },
-        { label: "Plan Length", value: `${tenureMonths} months` },
+        { label: "Goal Timeline", value: `${tenureMonths} months` },
         { label: "Estimated Monthly Commitment", value: `${currencySymbol}${monthlyCommitment.toFixed(2)}` },
       ],
     },
@@ -130,13 +130,13 @@ export default function SummaryPage() {
               <div className="group relative">
                 <span className="material-symbols-outlined text-[16px] text-on-surface-variant/40 cursor-help">help</span>
                 <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-primary text-on-primary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl text-center font-body-md normal-case tracking-normal">
-                  Final review before saving this spending plan.
+                  Final review before saving this goal.
                 </div>
               </div>
             </div>
-            <h1 className="font-h1 text-primary mb-2">Plan Summary</h1>
+            <h1 className="font-h1 text-primary mb-2">Goal Summary</h1>
             <p className="font-body-md text-on-surface-variant max-w-xl">
-              Please review the details below before saving your spending plan.
+              Please review the details below before saving your goal.
             </p>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default function SummaryPage() {
         <div className="bg-secondary/5 rounded-3xl border border-secondary/20 p-6 flex items-start gap-4">
           <span className="material-symbols-outlined text-secondary mt-1">info</span>
           <div>
-            <h3 className="font-bold text-secondary mb-1">Save Spending Plan</h3>
+            <h3 className="font-bold text-secondary mb-1">Save Goal & Milestones</h3>
             <p className="text-sm text-on-surface-variant">
               By saving, you confirm that these planning details are accurate and will be added to your dashboard.
             </p>
@@ -202,12 +202,12 @@ export default function SummaryPage() {
                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                </svg>
-               Saving Plan...
+               Saving Goal...
              </>
           ) : (
             <>
               <span className="material-symbols-outlined">check_circle</span>
-              Save Plan
+              Save Goal
             </>
           )}
         </button>

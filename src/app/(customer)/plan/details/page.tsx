@@ -27,9 +27,9 @@ export default function PurchaseDetailsPage() {
         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
           <div>
             <span className="text-secondary font-bold text-[10px] uppercase tracking-widest mb-2 block">Step 1 of 3</span>
-            <h1 className="font-h1 text-primary mb-2">Planned Purchase</h1>
+            <h1 className="font-h1 text-primary mb-2">New Goal / Milestone</h1>
             <p className="font-body-md text-on-surface-variant max-w-xl">
-              Enter the item details, budget, saved amount, and planning length.
+              Enter the item details, budget, saved amount, and goal timeline.
             </p>
           </div>
         </div>
@@ -39,7 +39,7 @@ export default function PurchaseDetailsPage() {
       </div>
 
       <div className="bg-surface rounded-3xl border border-outline-variant shadow-lg p-6 md:p-8 space-y-6">
-        <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Plan Information</h2>
+        <h2 className="font-h2 text-primary border-b border-outline-variant/30 pb-4">Goal Information</h2>
 
         {/* Product Name */}
         <div>
@@ -98,7 +98,7 @@ export default function PurchaseDetailsPage() {
           {/* Tenure input */}
           <div>
             <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
-              Plan Length (months) <span className="text-red-500">*</span>
+              Goal Timeline (months) <span className="text-red-500">*</span>
             </label>
             <input
               type="number"
@@ -137,7 +137,7 @@ export default function PurchaseDetailsPage() {
             <span className="text-[10px] uppercase tracking-widest font-bold text-secondary">Monthly Commitment</span>
             <span className="material-symbols-outlined text-[16px] text-secondary/40 cursor-help">help</span>
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-52 p-2 bg-secondary text-on-secondary text-[10px] rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] shadow-xl">
-              Cash needed divided by plan length. This is your estimated monthly budget line.
+              Cash needed divided by goal timeline. This is your estimated monthly budget line.
             </div>
           </div>
           <p className="font-h1 text-secondary text-3xl">
@@ -146,7 +146,7 @@ export default function PurchaseDetailsPage() {
               : "—"}
           </p>
           <p className="text-[10px] text-on-surface-variant/60 mt-1">
-            {tenure > 0 ? `over ${tenure} months` : "Enter plan length to calculate"}
+            {tenure > 0 ? `over ${tenure} months` : "Enter goal timeline to calculate"}
           </p>
         </div>
       </div>

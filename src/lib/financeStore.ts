@@ -515,7 +515,7 @@ export const useFinanceStore = create<FinanceState>()(
              (newPlan.saved_amount >= newPlan.planned_cost && oldPlan.saved_amount < oldPlan.planned_cost && newPlan.planned_cost > 0))
         ) {
           get().triggerConfetti();
-          get().addNotification(`Congratulations! Your spending plan "${newPlan.product_name}" is fully funded! 🎉`, "success");
+          get().addNotification(`Congratulations! Your goal "${newPlan.product_name}" is fully funded! 🎉`, "success");
         }
 
         if (skipSync) return;

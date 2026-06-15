@@ -24,7 +24,7 @@ export default function LandingPageContent() {
               Know where your money is going before it goes.
             </h1>
             <p className="mt-6 max-w-2xl text-lg leading-relaxed text-white/78">
-              Track net worth, budgets, bills, savings goals, spending plans, insights, and cash-flow in one calm workspace built for everyday money decisions.
+              Track net worth, budgets, bills, savings goals, milestones, insights, and cash-flow in one calm workspace built for everyday money decisions.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -110,7 +110,7 @@ export default function LandingPageContent() {
           <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <p className="mb-3 text-xs font-bold uppercase tracking-widest text-secondary">How Moneyly Works</p>
-              <h2 className="font-h2 text-h2 text-primary">From spending plan to monthly cash-flow.</h2>
+              <h2 className="font-h2 text-h2 text-primary">From goals & milestones to monthly cash-flow.</h2>
             </div>
             <Link href="/login" className="inline-flex items-center gap-2 text-sm font-black text-secondary">
               Open account
@@ -121,8 +121,8 @@ export default function LandingPageContent() {
           <div className="grid grid-cols-1 gap-4 lg:grid-cols-4">
             {[
               { step: "01", title: "Build your money profile", text: "Add the contact and income details Moneyly uses to organize your planning workspace." },
-              { step: "02", title: "Create spending plans", text: "Capture upcoming purchases with a budget, saved amount, target length, and supporting files." },
-              { step: "03", title: "Track bills and goals", text: "See monthly bill estimates, goal progress, cash still needed, and plan status in one view." },
+              { step: "02", title: "Create goals & milestones", text: "Capture financial goals and milestones with a budget, saved amount, target timeline, and supporting files." },
+              { step: "03", title: "Track bills and milestones", text: "See monthly commitments, goal progress, cash still needed, and status in one view." },
               { step: "04", title: "Read the signals", text: "Use insights to understand budget load, cash-flow pressure, and what needs attention next." },
             ].map((item) => (
               <div key={item.step} className="rounded-lg border border-outline-variant bg-surface p-5 shadow-sm">
@@ -146,9 +146,9 @@ export default function LandingPageContent() {
           </div>
           <div className="rounded-lg border border-outline-variant bg-background p-6">
             <span className="material-symbols-outlined text-3xl text-secondary">playlist_add_check</span>
-            <h3 className="mt-6 text-xl font-black text-primary">Spending plans with context</h3>
+            <h3 className="mt-6 text-xl font-black text-primary">Goals & milestones with context</h3>
             <p className="mt-3 text-sm leading-relaxed text-on-surface-variant">
-              The existing purchase flow becomes a practical planning tool for upcoming expenses and goal tracking.
+              The planning flow becomes a practical tool for upcoming expenses and goal tracking.
             </p>
           </div>
           <div className="rounded-lg border border-outline-variant bg-background p-6">
@@ -165,9 +165,9 @@ export default function LandingPageContent() {
         <div className="mx-auto flex max-w-7xl flex-col gap-6 rounded-lg border border-outline-variant bg-surface p-6 shadow-sm md:flex-row md:items-center md:justify-between">
           <div>
             <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Ready to organize your money?</p>
-            <h2 className="text-2xl font-black text-primary">Start with a profile, then build your first spending plan.</h2>
+            <h2 className="text-2xl font-black text-primary">Start with a profile, then build your first goal or milestone.</h2>
             <p className="mt-2 max-w-2xl text-sm text-on-surface-variant">
-              Sign in to see the dashboard and turn upcoming purchases into budgets, bills, savings goals, and cash-flow insight.
+              Sign in to see the dashboard and turn goals into budgets, bills, savings milestones, and cash-flow insight.
             </p>
           </div>
           <Link

@@ -86,7 +86,7 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
               <p className="text-sm text-on-surface-variant/70 leading-relaxed">
                 {isSignUp 
                   ? 'Create your workspace for budgets, bills, goals, and cash-flow.' 
-                  : 'Sign in to manage your spending plans and money dashboard.'}
+                  : 'Sign in to manage your goals & milestones and money dashboard.'}
               </p>
             </div>
 

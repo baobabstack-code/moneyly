@@ -51,7 +51,7 @@ describe('SummaryPage submission', () => {
   it('inserts the simplified spending plan payload and redirects to success', async () => {
     render(<SummaryPage />);
 
-    fireEvent.click(screen.getByRole('button', { name: /save plan/i }));
+    fireEvent.click(screen.getByRole('button', { name: /save goal/i }));
 
     await waitFor(() => expect(insert).toHaveBeenCalledTimes(1));
 

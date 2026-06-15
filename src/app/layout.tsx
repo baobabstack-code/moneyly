@@ -9,7 +9,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Moneyly | Personal Money Manager",
-  description: "Track net worth, budgets, bills, savings goals, spending plans, insights, and cash-flow with Moneyly.",
+  description: "Track net worth, budgets, bills, savings goals, milestones, insights, and cash-flow with Moneyly.",
   manifest: "/manifest.json",
   icons: {
     icon: [

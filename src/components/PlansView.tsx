@@ -122,13 +122,13 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
     });
 
     setEditingPlanId(null);
-    addNotification("Spending plan updated!", "success");
+    addNotification("Goal updated!", "success");
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this spending plan?")) {
+    if (confirm("Are you sure you want to delete this goal?")) {
       await deleteSpendingPlanLocal(id);
-      addNotification("Spending plan deleted!", "success");
+      addNotification("Goal deleted!", "success");
     }
   };
 
@@ -171,7 +171,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
               <div>
                 <h2 className="text-xl font-black text-primary">Complete your money profile</h2>
                 <p className="mt-2 text-sm text-on-surface-variant">
-                  Add your profile details before creating spending plans, savings goals, and cash-flow forecasts.
+                  Add your profile details before creating goals and milestones.
                 </p>
                 <Link
                   href="/profile-setup"
@@ -193,26 +193,26 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
       <section className="w-full px-6 py-8 md:px-10 xl:px-12">
         <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Spending Plans</p>
-            <h1 className="text-3xl font-black text-primary sm:text-4xl">Planned Purchases</h1>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Goals & Milestones</p>
+            <h1 className="text-3xl font-black text-primary sm:text-4xl">Goals & Milestones</h1>
             <p className="mt-2 max-w-2xl text-on-surface-variant">
-              Turn upcoming purchases into budgets, savings goals, monthly bills, and cash-flow signals.
+              Turn financial goals into budgets, savings milestones, monthly commitments, and cash-flow signals.
             </p>
           </div>
           <Link
             href="/plan/details"
             className="inline-flex items-center justify-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
           >
-            <span className="material-symbols-outlined text-lg">add</span>
-            New Plan
+            <span className="material-symbols-outlined text-lg">flag</span>
+            New Goal
           </Link>
         </div>
 
         <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
           {[
-            { label: 'Budgeted Spend', value: formatCurrency(summary.planned), icon: 'account_balance_wallet' },
+            { label: 'Planned Budget', value: formatCurrency(summary.planned), icon: 'account_balance_wallet' },
             { label: 'Saved Toward Goals', value: formatCurrency(summary.saved), icon: 'savings' },
-            { label: 'Monthly Bills', value: formatCurrency(summary.monthly), icon: 'receipt_long' },
+            { label: 'Monthly Commitments', value: formatCurrency(summary.monthly), icon: 'receipt_long' },
             { label: 'Goal Progress', value: `${summary.progress}%`, icon: 'trending_up' },
           ].map((item) => (
             <div key={item.label} className="rounded-lg border border-outline-variant bg-surface p-4 shadow-sm">
@@ -233,16 +233,16 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
             {spendingPlans.length === 0 ? (
               <div className="max-w-xl rounded-3xl border border-dashed border-outline bg-surface p-8 text-center">
                 <span className="material-symbols-outlined mb-3 text-5xl text-on-surface-variant/30">playlist_add</span>
-                <p className="text-lg font-black text-primary">No spending plans yet.</p>
+                <p className="text-lg font-black text-primary">No goals or milestones yet.</p>
                 <p className="mx-auto mt-2 max-w-md text-sm text-on-surface-variant">
-                  Add a planned purchase and Moneyly will track its budget, saved amount, monthly bill, and goal progress.
+                  Add a goal or milestone and Moneyly will track its budget, saved amount, monthly commitment, and goal progress.
                 </p>
                 <Link
                   href="/plan/details"
                   className="mt-6 inline-flex items-center gap-2 rounded-xl bg-secondary px-5 py-3 text-sm font-bold text-on-secondary"
                 >
-                  <span className="material-symbols-outlined text-lg">add</span>
-                  Create Plan
+                  <span className="material-symbols-outlined text-lg">flag</span>
+                  Create Goal
                 </Link>
               </div>
             ) : (
@@ -261,7 +261,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                   return (
                     <div key={plan.id} className="rounded-3xl border border-secondary/40 bg-surface p-5 shadow-lg space-y-4 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between border-b border-outline-variant/30 pb-2">
-                        <h3 className="font-bold text-primary text-sm">Edit Spending Plan</h3>
+                        <h3 className="font-bold text-primary text-sm">Edit Goal Details</h3>
                       </div>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
@@ -330,7 +330,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           onClick={() => handleSaveEdit(plan.id)}
                           className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
                         >
-                          Save Plan
+                          Save Goal
                         </button>
                       </div>
                     </div>
@@ -351,7 +351,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
 
                       <div className="min-w-0">
                         <div className="mb-3 flex flex-wrap items-center gap-2">
-                          <h3 className="font-black text-primary">{plan.product_name || 'Planned purchase'}</h3>
+                          <h3 className="font-black text-primary">{plan.product_name || 'Goal / Milestone'}</h3>
                           <span className={`rounded-full px-3 py-1 text-[10px] font-black uppercase ${getStatusStyles(plan.status)}`}>
                             {statusLabel(plan.status)}
                           </span>
@@ -363,7 +363,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           <span><strong className="block text-on-surface">{formatCurrency(cost)}</strong>Budget</span>
                           <span><strong className="block text-on-surface">{formatCurrency(saved)}</strong>Saved</span>
                           <span><strong className="block text-on-surface">{formatCurrency(remaining)}</strong>Cash needed</span>
-                          <span><strong className="block text-on-surface">{formatCurrency(monthly)}</strong>Monthly bill</span>
+                          <span><strong className="block text-on-surface">{formatCurrency(monthly)}</strong>Commitment</span>
                           <span><strong className="block text-on-surface">{progress}%</strong>Goal progress</span>
                         </div>
                       </div>
@@ -390,7 +390,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           <div className="rounded-2xl bg-surface p-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-on-surface-variant/60">Bill Forecast</p>
                             <p className="mt-3 text-sm text-on-surface-variant">
-                              {formatCurrency(monthly)} per month over {plan.tenure_months || 0} months for cash-flow planning.
+                              {formatCurrency(monthly)} per month over {plan.tenure_months || 0} months for commitment planning.
                             </p>
                           </div>
                           <div className="rounded-2xl bg-surface p-4">
@@ -409,7 +409,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           {[
                             { label: 'Reference', value: plan.reference },
                             { label: 'Created', value: new Date(plan.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' }) },
-                            { label: 'Plan Length', value: plan.tenure_months ? `${plan.tenure_months} months` : null },
+                            { label: 'Goal Timeline', value: plan.tenure_months ? `${plan.tenure_months} months` : null },
                             { label: 'Receipt / Document', value: plan.file_url ? <a href={plan.file_url} target="_blank" rel="noreferrer" className="text-secondary hover:underline">View Attached Document</a> : 'None' },
                           ].filter((row) => Boolean(row.value)).map((row) => (
                             <div key={row.label}>
@@ -426,7 +426,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             Linked Transactions Audit Trail
                           </h4>
                           {linkedTransactions.length === 0 ? (
-                            <p className="text-xs text-on-surface-variant/60 italic pl-1">No transactions linked to this plan yet.</p>
+                            <p className="text-xs text-on-surface-variant/60 italic pl-1">No transactions linked to this goal yet.</p>
                           ) : (
                             <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                               {linkedTransactions.map(t => (
@@ -454,7 +454,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-secondary flex items-center gap-1.5 hover:bg-surface-container transition-all"
                           >
                             <span className="material-symbols-outlined text-sm">edit</span>
-                            Edit Plan Details
+                            Edit Goal Details
                           </button>
                           <button
                             type="button"
@@ -462,7 +462,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             className="rounded-xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 text-xs font-bold text-red-500 flex items-center gap-1.5 transition-all"
                           >
                             <span className="material-symbols-outlined text-sm">delete</span>
-                            Delete Plan
+                            Delete Goal
                           </button>
                         </div>
                       </div>
@@ -480,7 +480,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
               <div className="mb-3 flex items-center justify-between gap-4">
                 <div>
                   <h2 className="text-lg font-black text-primary">Cash-Flow Readiness</h2>
-                  <p className="text-xs text-on-surface-variant mt-0.5">Your planned purchase data is reused here as a money-manager forecast.</p>
+                  <p className="text-xs text-on-surface-variant mt-0.5">Your goals and milestones are reused here as a money-manager forecast.</p>
                 </div>
                 <span className="material-symbols-outlined text-2xl text-secondary">waterfall_chart</span>
               </div>
@@ -489,7 +489,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
               </div>
               <div className="mt-3 grid grid-cols-1 gap-3 text-sm text-on-surface-variant">
                 <div className="flex justify-between items-center border-b border-outline-variant/30 pb-2">
-                  <span className="opacity-75">Active Plans:</span>
+                  <span className="opacity-75">Active Goals:</span>
                   <span className="font-black text-primary">{summary.activePlans.length}</span>
                 </div>
                 <div className="flex justify-between items-center">

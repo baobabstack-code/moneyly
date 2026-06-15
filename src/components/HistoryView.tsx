@@ -349,7 +349,7 @@ export default function HistoryView() {
                           {/* Spending Plan Link */}
                           {spendingPlans.length > 0 && (
                             <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
+                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
                               <select
                                 value={editSpendingPlanId || ''}
                                 onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
@@ -401,7 +401,7 @@ export default function HistoryView() {
                                   <>
                                     <span className="opacity-40">•</span>
                                     <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
-                                      <span className="material-symbols-outlined text-[12px] font-black">folder</span>
+                                      <span className="material-symbols-outlined text-[12px] font-black">track_changes</span>
                                       {plan.product_name}
                                     </span>
                                   </>

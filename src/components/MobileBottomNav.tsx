@@ -34,8 +34,8 @@ export default function MobileBottomNav() {
     { name: "Home", href: "/dashboard", icon: "dashboard" },
     { name: "History", href: "/dashboard/history", icon: "history" },
     { name: "Add", isCenter: true },
-    { name: "Plan", href: "/plan/details", icon: "add_circle" },
-    { name: "Plans", href: "/plans", icon: "pending_actions" },
+    { name: "Goal", href: "/plan/details", icon: "flag" },
+    { name: "Goals", href: "/plans", icon: "track_changes" },
   ];
 
   return (

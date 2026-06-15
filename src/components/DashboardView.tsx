@@ -399,13 +399,13 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     });
 
     setEditingPlanId(null);
-    addNotification("Spending plan updated!", "success");
+    addNotification("Goal updated!", "success");
   };
 
   const handleDeletePlan = async (id: string) => {
-    if (confirm("Are you sure you want to delete this spending plan?")) {
+    if (confirm("Are you sure you want to delete this goal?")) {
       await deleteSpendingPlanLocal(id);
-      addNotification("Spending plan deleted!", "success");
+      addNotification("Goal deleted!", "success");
     }
   };
 
@@ -639,7 +639,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                             {spendingPlans.length > 0 && (
                               <div className="grid grid-cols-1 mt-1">
                                 <div>
-                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Spending Plan (Optional)</label>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
                                   <select
                                     value={editTxSpendingPlanId || ''}
                                     onChange={(e) => setEditTxSpendingPlanId(e.target.value || null)}
@@ -692,7 +692,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                                     <>
                                       <span className="opacity-40">•</span>
                                       <span className="text-secondary font-bold flex items-center gap-0.5 normal-case">
-                                        <span className="material-symbols-outlined text-[12px] font-black">folder</span>
+                                        <span className="material-symbols-outlined text-[12px] font-black">track_changes</span>
                                         {plan.product_name}
                                       </span>
                                     </>
@@ -784,14 +784,14 @@ export default function DashboardView({ email, displayName, profile, initialSpen
               <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm">
                 <div className="mb-5 flex items-center justify-between">
                   <div>
-                    <h2 className="text-xl font-black text-primary">Spending Plans</h2>
-                    <p className="text-xs text-on-surface-variant font-medium">Control goals, commitments and purchases</p>
+                    <h2 className="text-xl font-black text-primary">Goals & Milestones</h2>
+                    <p className="text-xs text-on-surface-variant font-medium">Control goals, commitments and milestones</p>
                   </div>
                   <Link 
                     href="/plan/details"
                     className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md"
                   >
-                    Add Plan
+                    Add Goal
                   </Link>
                 </div>
 
@@ -799,8 +799,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   {spendingPlans.length === 0 ? (
                     <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
                       <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">playlist_add</span>
-                      <p className="font-bold text-on-surface text-sm">No spending plans yet</p>
-                      <p className="mt-1 text-xs text-on-surface-variant">Create plans to forecast budgets and savings goals.</p>
+                      <p className="font-bold text-on-surface text-sm">No goals or milestones yet</p>
+                      <p className="mt-1 text-xs text-on-surface-variant">Create goals to forecast budgets and milestones.</p>
                     </div>
                   ) : (
                     spendingPlans.map((plan) => {
@@ -880,7 +880,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                                 onClick={() => handleSaveEditPlan(plan.id)}
                                 className="rounded-xl bg-secondary px-3 py-1.5 text-[11px] font-bold text-on-secondary shadow-md"
                               >
-                                Save Plan
+                                Save Goal
                               </button>
                             </div>
                           </div>
@@ -894,7 +894,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                           <div className="flex items-center justify-between p-4">
                             <div>
                               <div className="flex items-center gap-2">
-                                <p className="font-black text-primary text-sm">{plan.product_name || 'Planned Purchase'}</p>
+                                <p className="font-black text-primary text-sm">{plan.product_name || 'Goal / Milestone'}</p>
                                 <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${
                                   plan.status === 'completed'
                                     ? 'bg-emerald-500/10 text-emerald-500'
@@ -934,7 +934,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                                   Linked Transactions History
                                 </h4>
                                 {linkedTransactions.length === 0 ? (
-                                  <p className="text-[10px] text-on-surface-variant/60 italic pl-1">No transactions linked to this plan yet.</p>
+                                  <p className="text-[10px] text-on-surface-variant/60 italic pl-1">No transactions linked to this goal yet.</p>
                                 ) : (
                                   <div className="space-y-1.5">
                                     {linkedTransactions.map(t => (

@@ -36,11 +36,11 @@ describe('generatePlanPDF', () => {
     expect(pdf).toContain('data:application/pdf;base64,');
     expect(autoTable).toHaveBeenCalledWith(expect.anything(), expect.objectContaining({
       body: expect.arrayContaining([
-        ['Planned Item', 'Smart TV'],
+        ['Goal Item', 'Smart TV'],
         ['Planned Cost', '$500.00'],
         ['Saved Amount', '$200.00'],
         ['Cash Needed', '$300.00'],
-        ['Plan Length', '6 months'],
+        ['Goal Timeline', '6 months'],
         ['Estimated Monthly Commitment', '$50.00'],
       ]),
     }));

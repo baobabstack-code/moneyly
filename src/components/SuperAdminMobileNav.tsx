@@ -6,7 +6,7 @@ import { createClient } from "@/utils/supabase/client"
 
 const superAdminItems = [
   { name: "Overview",      href: "/super-admin",               icon: "bar_chart" },
-  { name: "Plans",         href: "/super-admin/plans",  icon: "pending_actions" },
+  { name: "Goals",         href: "/super-admin/plans",  icon: "track_changes" },
   { name: "Customers",     href: "/super-admin/customers",     icon: "group" },
 ]
 

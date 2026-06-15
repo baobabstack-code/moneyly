@@ -19,8 +19,8 @@ type Section = 'personal'
 const navItems = [
   { name: "Dashboard",        href: "/dashboard",      icon: "dashboard",       tooltip: "View your account dashboard" },
   { name: "History",          href: "/dashboard/history", icon: "history",       tooltip: "View transaction history" },
-  { name: "New Plan",         href: "/plan/details",   icon: "add_circle",     tooltip: "Create a new spending plan" },
-  { name: "Spending Plans",   href: "/plans",           icon: "pending_actions", tooltip: "View your planned purchases and savings goals" },
+  { name: "New Goal",         href: "/plan/details",   icon: "flag",           tooltip: "Create a new goal or milestone" },
+  { name: "Goals & Milestones", href: "/plans",         icon: "track_changes",   tooltip: "View your financial goals and milestones" },
 ];
 
 export default function DashboardSidebar({ initialUser, profileComplete = true, profile }: Props) {

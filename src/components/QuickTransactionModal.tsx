@@ -180,7 +180,7 @@ export default function QuickTransactionModal({ user_id, isOpen, onClose }: Prop
           {/* Link to Spending Plan */}
           {spendingPlans.length > 0 && (
             <div>
-              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Link to Spending Plan (Optional)</label>
+              <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Link to Goal / Milestone (Optional)</label>
               <select
                 value={selectedPlanId || ''}
                 onChange={(e) => setSelectedPlanId(e.target.value || null)}
