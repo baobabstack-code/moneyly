@@ -21,13 +21,28 @@ export interface Category {
   emoji: string;
   color: string;
   type: 'expense' | 'income' | 'savings';
+  budget_limit?: number;
 }
 
 export interface PendingMutation {
   id: string;
-  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE';
+  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY';
   payload: any;
   timestamp: number;
+}
+
+export interface SpendingPlan {
+  id: string;
+  user_id: string | null;
+  status: 'active' | 'paused' | 'completed' | string;
+  reference: string;
+  created_at: string;
+  store_name?: string | null;
+  product_name: string;
+  planned_cost: number;
+  saved_amount: number;
+  tenure_months: number;
+  file_url?: string | null;
 }
 
 /**
@@ -67,6 +82,7 @@ export interface ApplicationState {
   monthlyBudget: number;
   transactions: Transaction[];
   categories: Category[];
+  spendingPlans: SpendingPlan[];
   pendingMutations: PendingMutation[];
 
   setAccentColor: (color: "green" | "purple" | "blue" | "orange") => void;
@@ -78,6 +94,7 @@ export interface ApplicationState {
   setMonthlyBudget: (budget: number) => void;
   setTransactions: (transactions: Transaction[]) => void;
   setCategories: (categories: Category[]) => void;
+  setSpendingPlans: (plans: SpendingPlan[]) => void;
   
   // Offline-first actions
   syncOfflineData: () => Promise<void>;
@@ -85,6 +102,8 @@ export interface ApplicationState {
   deleteTransactionLocal: (id: string, skipSync?: boolean) => Promise<void>;
   updateTransactionLocal: (id: string, updates: Partial<Transaction>, skipSync?: boolean) => Promise<void>;
   addCategoryLocal: (category: Omit<Category, "id"> & { id?: number }, skipSync?: boolean) => Promise<void>;
+  updateCategoryLocal: (id: number, updates: Partial<Category>, skipSync?: boolean) => Promise<void>;
+  addSpendingPlanLocal: (plan: Omit<SpendingPlan, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
   updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
 
   /** Actions */
@@ -110,6 +129,7 @@ const initialState = {
   monthlyBudget: 0,
   transactions: [],
   categories: [],
+  spendingPlans: [],
   pendingMutations: [],
 };
 
@@ -141,6 +161,7 @@ export const useApplicationStore = create<ApplicationState>()(
       setMonthlyBudget: (monthlyBudget) => set({ monthlyBudget }),
       setTransactions: (transactions) => set({ transactions }),
       setCategories: (categories) => set({ categories }),
+      setSpendingPlans: (spendingPlans) => set({ spendingPlans }),
 
       syncOfflineData: async () => {
         const state = get();
@@ -168,6 +189,12 @@ export const useApplicationStore = create<ApplicationState>()(
               if (error) throw error;
             } else if (mutation.type === 'UPDATE_PROFILE') {
               const { error } = await supabase.from('profiles').update(mutation.payload.updates).eq('id', mutation.payload.id);
+              if (error) throw error;
+            } else if (mutation.type === 'CREATE_SPENDING_PLAN') {
+              const { error } = await supabase.from('spending_plans').insert(mutation.payload);
+              if (error) throw error;
+            } else if (mutation.type === 'UPDATE_CATEGORY') {
+              const { error } = await supabase.from('categories').update(mutation.payload.updates).eq('id', mutation.payload.id);
               if (error) throw error;
             }
           } catch (err) {
@@ -294,6 +321,66 @@ export const useApplicationStore = create<ApplicationState>()(
               id: Math.random().toString(36).substring(7),
               type: 'CREATE_CATEGORY',
               payload: newCat,
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      updateCategoryLocal: async (id, updates, skipSync = false) => {
+        set((state) => ({
+          categories: state.categories.map(c => c.id === id ? { ...c, ...updates } : c),
+        }));
+        
+        if (skipSync) return;
+        
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          const { error } = await supabase.from('categories').update(updates).eq('id', id);
+          if (!error) return;
+          console.error("Failed to update category in DB, queueing offline mutation:", error);
+        }
+        
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'UPDATE_CATEGORY',
+              payload: { id, updates },
+              timestamp: Date.now()
+            }
+          ]
+        }));
+      },
+
+      addSpendingPlanLocal: async (plan, skipSync = false) => {
+        const planId = plan.id || crypto.randomUUID();
+        const createdAt = plan.created_at || new Date().toISOString();
+        const newPlan = { ...plan, id: planId, created_at: createdAt } as SpendingPlan;
+        
+        set((state) => ({
+          spendingPlans: [newPlan, ...state.spendingPlans],
+        }));
+        
+        if (skipSync) return;
+        
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          const { error } = await supabase.from('spending_plans').insert(newPlan);
+          if (!error) return;
+          console.error("Failed to insert plan to DB, queueing offline mutation:", error);
+        }
+        
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            {
+              id: Math.random().toString(36).substring(7),
+              type: 'CREATE_SPENDING_PLAN',
+              payload: newPlan,
               timestamp: Date.now()
             }
           ]

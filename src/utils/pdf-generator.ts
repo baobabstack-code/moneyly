@@ -121,3 +121,115 @@ export async function generatePlanPDF(data: PlanPdfData) {
 
   return pdfDataUri;
 }
+
+export interface StatementPdfData {
+  transactions: Array<{
+    date: string;
+    note?: string | null;
+    category_name?: string | null;
+    type: 'expense' | 'income' | 'savings';
+    amount: number;
+  }>;
+  startingBalance: number;
+  currency: string;
+  customerName?: string;
+}
+
+export async function generateStatementPDF(data: StatementPdfData) {
+  if (!data) {
+    throw new Error('No data provided to PDF generator');
+  }
+
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+
+  // Header
+  doc.setFillColor(15, 23, 42); // Slate 900
+  doc.rect(0, 0, pageWidth, 40, 'F');
+  
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(22);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Moneyly', 15, 18);
+  
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text('Personal Money Manager - Financial Statement', 15, 28);
+  
+  // Date of Generation
+  doc.setFontSize(8);
+  doc.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth - 15, 23, { align: 'right' });
+
+  // Calculate Inflows and Outflows
+  const totalIncome = data.transactions.filter(t => t.type === 'income').reduce((sum, t) => sum + t.amount, 0);
+  const totalExpense = data.transactions.filter(t => t.type === 'expense').reduce((sum, t) => sum + t.amount, 0);
+  const totalSavings = data.transactions.filter(t => t.type === 'savings').reduce((sum, t) => sum + t.amount, 0);
+  const endingBalance = data.startingBalance + totalIncome - totalExpense;
+
+  const currencySymbol = (() => {
+    const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };
+    return map[data.currency || 'USD'] || '$';
+  })();
+
+  const formatVal = (v: number) => `${v < 0 ? '-' : ''}${currencySymbol}${Math.abs(v).toFixed(2)}`;
+
+  let currentY = 55;
+
+  // Render Metadata block
+  doc.setTextColor(15, 23, 42);
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Account Statement Summary', 15, currentY);
+
+  autoTable(doc, {
+    startY: currentY + 4,
+    body: [
+      ['Customer Name', data.customerName || 'N/A'],
+      ['Starting Balance', formatVal(data.startingBalance)],
+      ['Total Income (Inflow)', formatVal(totalIncome)],
+      ['Total Expenses (Outflow)', formatVal(totalExpense)],
+      ['Total Savings Vault Transferred', formatVal(totalSavings)],
+      ['Ending Net Worth Balance', formatVal(endingBalance)],
+    ],
+    theme: 'plain',
+    styles: { fontSize: 9, cellPadding: 2.5 },
+    columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 } },
+    margin: { left: 15, right: 15 }
+  });
+
+  currentY = (doc as JsPdfWithAutoTable).lastAutoTable?.finalY
+    ? (doc as JsPdfWithAutoTable).lastAutoTable!.finalY + 15
+    : currentY + 45;
+
+  // Transaction Ledger Table
+  doc.setFontSize(12);
+  doc.setFont('helvetica', 'bold');
+  doc.text('Transaction History (Ledger)', 15, currentY);
+
+  const ledgerRows = data.transactions.map((t) => [
+    new Date(t.date).toLocaleDateString(),
+    t.note || t.category_name || 'Uncategorized',
+    t.type.toUpperCase(),
+    t.type === 'income' ? `+${formatVal(t.amount)}` : t.type === 'expense' ? `-${formatVal(t.amount)}` : formatVal(t.amount)
+  ]);
+
+  autoTable(doc, {
+    startY: currentY + 4,
+    head: [['Date', 'Description', 'Type', 'Amount']],
+    body: ledgerRows.length > 0 ? ledgerRows : [['-', 'No transactions logged', '-', '-']],
+    theme: 'striped',
+    headStyles: { fillColor: [15, 23, 42], fontSize: 9 }, // Slate 900 header
+    styles: { fontSize: 8, cellPadding: 3 },
+    columnStyles: { 3: { halign: 'right', fontStyle: 'bold' } },
+    margin: { left: 15, right: 15 }
+  });
+
+  // Footer
+  doc.setFontSize(8);
+  doc.setTextColor(150);
+  doc.text('This statement is generated for user reference. Moneyly (c) 2026.', 15, doc.internal.pageSize.getHeight() - 10);
+
+  const pdfDataUri = doc.output('datauristring');
+  return pdfDataUri;
+}
+

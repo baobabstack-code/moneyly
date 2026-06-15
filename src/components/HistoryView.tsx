@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react';
 import { useApplicationStore, Transaction } from '@/lib/store';
+import { generateStatementPDF } from '@/utils/pdf-generator';
 
 export default function HistoryView() {
   const transactions = useApplicationStore(state => state.transactions);
@@ -10,6 +11,7 @@ export default function HistoryView() {
   const updateTransactionLocal = useApplicationStore(state => state.updateTransactionLocal);
   const accentColor = useApplicationStore(state => state.accentColor);
   const currencyCode = useApplicationStore(state => state.currency);
+  const startingBalance = useApplicationStore(state => state.startingBalance);
 
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings'>('all');
@@ -98,6 +100,46 @@ export default function HistoryView() {
     return Array.from(new Set(categories.map(c => c.name)));
   }, [categories]);
 
+  const handleDownloadPDF = async () => {
+    try {
+      let customerName = "Moneyly User";
+      if (typeof window !== "undefined" && navigator.onLine) {
+        const { createClient } = await import("@/utils/supabase/client");
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('full_name, first_name')
+            .eq('id', session.user.id)
+            .single();
+          if (profile) {
+            customerName = profile.first_name || profile.full_name || session.user.email || "Moneyly User";
+          } else {
+            customerName = session.user.email || "Moneyly User";
+          }
+        }
+      }
+      
+      const pdfDataUri = await generateStatementPDF({
+        transactions: filteredTransactions,
+        startingBalance,
+        currency: currencyCode,
+        customerName,
+      });
+
+      const link = document.createElement('a');
+      link.href = pdfDataUri;
+      link.download = `moneyly_statement_${new Date().toISOString().substring(0, 10)}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error("Failed to generate statement PDF:", err);
+      alert("Failed to generate statement PDF.");
+    }
+  };
+
   return (
     <div 
       className="font-manrope min-h-screen bg-slate-950/20 w-full"
@@ -105,12 +147,23 @@ export default function HistoryView() {
     >
       <div className="max-w-4xl mx-auto px-4 py-8 md:px-6">
         {/* Header */}
-        <div className="mb-8">
-          <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Transactions</p>
-          <h1 className="text-3xl font-black text-primary sm:text-4xl">History & Audit</h1>
-          <p className="mt-2 text-sm text-on-surface-variant">
-            Full ledger of your incomes and expenses. Search, filter, and modify transactions inline.
-          </p>
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div>
+            <p className="mb-2 text-xs font-bold uppercase tracking-widest text-secondary">Moneyly Transactions</p>
+            <h1 className="text-3xl font-black text-primary sm:text-4xl">History & Audit</h1>
+            <p className="mt-2 text-sm text-on-surface-variant">
+              Full ledger of your incomes and expenses. Search, filter, and modify transactions inline.
+            </p>
+          </div>
+          <div>
+            <button
+              onClick={handleDownloadPDF}
+              className="rounded-xl bg-secondary px-4 py-2.5 text-xs font-bold text-on-secondary shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5 whitespace-nowrap"
+            >
+              <span className="material-symbols-outlined text-sm font-black">download</span>
+              Download Statement PDF
+            </button>
+          </div>
         </div>
 
         {/* Filter Controls Card */}

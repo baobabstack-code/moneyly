@@ -31,6 +31,7 @@ jest.mock('../utils/pdf-generator', () => ({
 
 describe('SummaryPage submission', () => {
   beforeEach(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = 'https://mock.supabase.co';
     push.mockClear();
     insert.mockClear();
     getUser.mockClear();

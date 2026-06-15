@@ -1,22 +1,9 @@
 'use client'
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
-type SpendingPlan = {
-  id: string;
-  status: string | null;
-  reference: string | null;
-  created_at: string;
-  store_name: string | null;
-  product_name: string | null;
-  planned_cost: string | number | null;
-  saved_amount: string | number | null;
-  tenure_months: number | null;
-  file_url: string | null;
-};
-
-import { useApplicationStore } from "@/lib/store";
+import { useApplicationStore, SpendingPlan } from "@/lib/store";
 
 function parseAmount(n: string | number | null) {
   return typeof n === 'number' ? n : parseFloat(n ?? '');
@@ -71,9 +58,23 @@ interface ApplicationsViewProps {
   profileComplete: boolean;
 }
 
-export default function ApplicationsView({ applications, profileComplete }: ApplicationsViewProps) {
+export default function ApplicationsView({ applications: propApplications, profileComplete }: ApplicationsViewProps) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const currencyCode = useApplicationStore(state => state.currency);
+  const applications = useApplicationStore(state => state.spendingPlans);
+  const setSpendingPlans = useApplicationStore(state => state.setSpendingPlans);
+  
+  useEffect(() => {
+    const loadPlans = async () => {
+      if (typeof window !== "undefined" && navigator.onLine) {
+        const { createClient } = await import("@/utils/supabase/client");
+        const supabase = createClient();
+        const { data: plans } = await supabase.from('spending_plans').select('*').order('created_at', { ascending: false });
+        if (plans) setSpendingPlans(plans);
+      }
+    };
+    loadPlans();
+  }, [setSpendingPlans]);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$' };

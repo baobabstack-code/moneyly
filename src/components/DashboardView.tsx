@@ -3,23 +3,10 @@
 import Link from "next/link";
 import { useMemo, useState, useEffect } from "react";
 import { UserProfile } from "@/lib/profile";
-import { useApplicationStore, Transaction } from "@/lib/store";
+import { useApplicationStore, Transaction, SpendingPlan } from "@/lib/store";
 import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
 import BudgetEditModal from "./BudgetEditModal";
-
-type SpendingPlan = {
-  id: string;
-  status: string | null;
-  reference: string | null;
-  created_at: string;
-  store_name: string | null;
-  product_name: string | null;
-  planned_cost: string | number | null;
-  saved_amount: string | number | null;
-  tenure_months: number | null;
-  file_url: string | null;
-};
 
 interface Props {
   email: string;
@@ -35,6 +22,9 @@ export default function DashboardView({ email, displayName, profile, application
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [txModalOpen, setTxModalOpen] = useState(false);
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; balance: number; date: Date } | null>(null);
+  const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
+  const [editValue, setEditValue] = useState<string>('');
 
   // Zustand Store Hooks
   const setTransactions = useApplicationStore(state => state.setTransactions);
@@ -48,6 +38,7 @@ export default function DashboardView({ email, displayName, profile, application
   const startingBalance = useApplicationStore(state => state.startingBalance);
   const syncOfflineData = useApplicationStore(state => state.syncOfflineData);
   const addNotification = useApplicationStore(state => state.addNotification);
+  const updateCategoryLocal = useApplicationStore(state => state.updateCategoryLocal);
 
   // Sync Supabase categories and transactions on mount
   useEffect(() => {
@@ -202,6 +193,143 @@ export default function DashboardView({ email, displayName, profile, application
   }, [transactions]);
 
   const firstName = profile?.first_name || profile?.full_name?.split(' ')[0] || displayName;
+
+  const netWorthTrend = useMemo(() => {
+    const days = [];
+    const now = new Date();
+    for (let i = 29; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+      d.setHours(23, 59, 59, 999);
+      days.push(d);
+    }
+
+    const firstDayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 29);
+    firstDayStart.setHours(0, 0, 0, 0);
+
+    let baseline = startingBalance;
+    transactions.forEach(t => {
+      const tDate = new Date(t.date);
+      if (tDate < firstDayStart) {
+        if (t.type === 'income') {
+          baseline += t.amount;
+        } else if (t.type === 'expense') {
+          baseline -= t.amount;
+        }
+      }
+    });
+
+    const windowTx = transactions
+      .filter(t => {
+        const tDate = new Date(t.date);
+        return tDate >= firstDayStart;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+    const trendData = days.map(day => {
+      let balance = baseline;
+      windowTx.forEach(t => {
+        const tDate = new Date(t.date);
+        if (tDate <= day) {
+          if (t.type === 'income') {
+            balance += t.amount;
+          } else if (t.type === 'expense') {
+            balance -= t.amount;
+          }
+        }
+      });
+      return {
+        date: day,
+        balance
+      };
+    });
+
+    return trendData;
+  }, [transactions, startingBalance]);
+
+  const { minVal, maxVal } = useMemo(() => {
+    if (netWorthTrend.length === 0) return { minVal: 0, maxVal: 100 };
+    const balances = netWorthTrend.map(d => d.balance);
+    let min = Math.min(...balances);
+    let max = Math.max(...balances);
+    if (min === max) {
+      min -= 100;
+      max += 100;
+    }
+    const padding = (max - min) * 0.1 || 10;
+    return { minVal: min - padding, maxVal: max + padding };
+  }, [netWorthTrend]);
+
+  const chartPoints = useMemo(() => {
+    const width = 500;
+    const height = 180;
+    const paddingX = 20;
+    const paddingY = 20;
+
+    return netWorthTrend.map((d, index) => {
+      const x = paddingX + (index / 29) * (width - 2 * paddingX);
+      const y = height - paddingY - ((d.balance - minVal) / (maxVal - minVal)) * (height - 2 * paddingY);
+      return {
+        x,
+        y,
+        balance: d.balance,
+        date: d.date
+      };
+    });
+  }, [netWorthTrend, minVal, maxVal]);
+
+  const linePath = useMemo(() => {
+    if (chartPoints.length === 0) return "";
+    return chartPoints.map((p, index) => `${index === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ');
+  }, [chartPoints]);
+
+  const areaPath = useMemo(() => {
+    if (chartPoints.length === 0) return "";
+    const startX = chartPoints[0].x;
+    const endX = chartPoints[chartPoints.length - 1].x;
+    const height = 180;
+    const paddingY = 20;
+    const bottomY = height - paddingY;
+    return `${linePath} L ${endX} ${bottomY} L ${startX} ${bottomY} Z`;
+  }, [chartPoints, linePath]);
+
+  const gridLines = useMemo(() => {
+    const height = 180;
+    const paddingY = 20;
+    const range = maxVal - minVal;
+    
+    return [0.25, 0.5, 0.75].map((ratio) => {
+      const val = minVal + ratio * range;
+      const y = height - paddingY - ratio * (height - 2 * paddingY);
+      return { y, val };
+    });
+  }, [minVal, maxVal]);
+
+  const monthlyCategorySpent = useMemo(() => {
+    const map: Record<string, number> = {};
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    
+    transactions
+      .filter(t => t.type === 'expense' && new Date(t.date) >= startOfMonth)
+      .forEach(t => {
+        const key = t.category_id ? String(t.category_id) : (t.category_name || 'Other');
+        map[key] = (map[key] || 0) + t.amount;
+      });
+    return map;
+  }, [transactions]);
+
+  const handleSaveCategoryBudget = async (categoryId: number) => {
+    try {
+      const val = parseFloat(editValue) || 0;
+      await updateCategoryLocal(categoryId, { budget_limit: val });
+      addNotification("Category budget updated!", "success");
+    } catch (err) {
+      console.error(err);
+      addNotification("Failed to update budget.", "error");
+    } finally {
+      setEditingCategoryId(null);
+    }
+  };
 
   return (
     <div 
@@ -485,109 +613,310 @@ export default function DashboardView({ email, displayName, profile, application
             )}
 
             {activeTab === 'analyze' && (
-              <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
-                <div>
-                  <h2 className="text-xl font-black text-primary">Interactive Expenses Distribution</h2>
-                  <p className="text-xs text-on-surface-variant">Hover over bars to inspect detailed spending totals</p>
+              <div className="space-y-6">
+                {/* 1. Net Worth Trend SVG Line Chart */}
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                  <div>
+                    <h2 className="text-xl font-black text-primary">Net Worth Trend</h2>
+                    <p className="text-xs text-on-surface-variant font-medium">30-day cumulative net worth progression</p>
+                  </div>
+                  <div className="relative h-48 w-full bg-slate-950/15 rounded-2xl p-4 border border-outline-variant/30 flex items-center justify-center">
+                    <svg className="w-full h-full" viewBox="0 0 500 180" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="netWorthGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="var(--color-secondary)" stopOpacity="0.35" />
+                          <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity="0.0" />
+                        </linearGradient>
+                      </defs>
+                      
+                      {/* Grid Lines */}
+                      {gridLines.map((line, idx) => (
+                        <g key={idx}>
+                          <line
+                            x1="20"
+                            y1={line.y}
+                            x2="480"
+                            y2={line.y}
+                            stroke="var(--color-outline-variant)"
+                            strokeWidth="1"
+                            strokeDasharray="4 4"
+                            opacity="0.25"
+                          />
+                          <text
+                            x="22"
+                            y={line.y - 4}
+                            fill="var(--color-on-surface-variant)"
+                            fontSize="8"
+                            opacity="0.4"
+                            fontWeight="bold"
+                          >
+                            {formatCurrency(line.val)}
+                          </text>
+                        </g>
+                      ))}
+                      
+                      {/* Area under curve */}
+                      {areaPath && (
+                        <path d={areaPath} fill="url(#netWorthGrad)" />
+                      )}
+                      
+                      {/* Line */}
+                      {linePath && (
+                        <path
+                          d={linePath}
+                          fill="none"
+                          stroke="var(--color-secondary)"
+                          strokeWidth="3.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          style={{ filter: "drop-shadow(0 0 4px var(--color-secondary-glow))" }}
+                        />
+                      )}
+                      
+                      {/* Points */}
+                      {chartPoints.map((p, idx) => (
+                        <circle
+                          key={idx}
+                          cx={p.x}
+                          cy={p.y}
+                          r={hoveredPoint?.date.getTime() === p.date.getTime() ? 5.5 : 2.5}
+                          fill="var(--color-secondary)"
+                          stroke="var(--color-surface)"
+                          strokeWidth={hoveredPoint?.date.getTime() === p.date.getTime() ? 1.5 : 0.5}
+                          className="transition-all duration-150 cursor-pointer"
+                          onMouseEnter={() => setHoveredPoint(p)}
+                          onMouseLeave={() => setHoveredPoint(null)}
+                        />
+                      ))}
+                    </svg>
+                    
+                    {/* Hover Tooltip */}
+                    {hoveredPoint && (
+                      <div 
+                        className="absolute bg-slate-900 border border-outline-variant/65 rounded-xl px-2.5 py-1.5 text-xs text-on-surface shadow-xl pointer-events-none z-10"
+                        style={{ 
+                          left: `${(hoveredPoint.x / 500) * 100}%`, 
+                          top: `${(hoveredPoint.y / 180) * 100 - 32}%`, 
+                          transform: 'translate(-50%, -50%)' 
+                        }}
+                      >
+                        <p className="text-[8px] uppercase tracking-wider text-on-surface-variant/70 font-bold">{hoveredPoint.date.toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
+                        <p className="text-xs font-black text-primary">{formatCurrency(hoveredPoint.balance)}</p>
+                      </div>
+                    )}
+                  </div>
                 </div>
 
-                {stats.expensesByCategory.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
-                    <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">bar_chart</span>
-                    <p className="font-bold text-on-surface text-sm">No expense history</p>
-                    <p className="mt-1 text-xs text-on-surface-variant font-medium">Log expenses to populate analytics visualization.</p>
+                {/* 2. Category Budgets Tracker */}
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                  <div>
+                    <h2 className="text-xl font-black text-primary">Category Budgets</h2>
+                    <p className="text-xs text-on-surface-variant font-medium">Configure and track category-specific monthly spending limits</p>
                   </div>
-                ) : (
-                  <div className="space-y-6">
-                    {/* SVG Bar Chart */}
-                    <div className="relative h-64 w-full bg-slate-950/15 rounded-2xl p-4 border border-outline-variant/30 flex flex-col justify-end">
-                      <svg className="w-full h-48" viewBox="0 0 400 200" preserveAspectRatio="none">
-                        {(() => {
-                          const data = stats.expensesByCategory.slice(0, 5);
-                          const maxAmount = Math.max(...data.map(d => d.amount), 1);
-                          const barWidth = 50;
-                          const gap = 20;
-                          const totalWidth = data.length * barWidth + (data.length - 1) * gap;
-                          const startX = (400 - totalWidth) / 2;
-
-                          return data.map((d, index) => {
-                            const barHeight = (d.amount / maxAmount) * 150;
-                            const x = startX + index * (barWidth + gap);
-                            const y = 170 - barHeight;
-
-                            return (
-                              <g 
-                                key={index}
-                                onMouseEnter={() => setHoveredBar(index)}
-                                onMouseLeave={() => setHoveredBar(null)}
-                                className="cursor-pointer"
-                              >
-                                {/* Glow Filter */}
-                                <rect
-                                  x={x}
-                                  y={y}
-                                  width={barWidth}
-                                  height={barHeight}
-                                  rx={8}
-                                  fill="var(--color-secondary)"
-                                  opacity={hoveredBar === index ? 0.35 : 0.1}
-                                  className="transition-all duration-300"
-                                />
-                                {/* Solid Bar */}
-                                <rect
-                                  x={x}
-                                  y={y}
-                                  width={barWidth}
-                                  height={barHeight}
-                                  rx={8}
-                                  fill="var(--color-secondary)"
-                                  opacity={hoveredBar === index ? 1 : 0.85}
-                                  className="transition-all duration-300"
-                                />
-                                {/* Value Label inside chart when hovered */}
-                                {hoveredBar === index && (
-                                  <text
-                                    x={x + barWidth / 2}
-                                    y={y - 10}
-                                    textAnchor="middle"
-                                    fill="var(--color-on-surface)"
-                                    fontSize="10"
-                                    fontWeight="bold"
+                  
+                  <div className="space-y-4">
+                    {categories.filter(c => c.type === 'expense').length === 0 ? (
+                      <div className="rounded-2xl border border-dashed border-outline p-6 text-center bg-surface-container-low/40">
+                        <span className="material-symbols-outlined mb-2 text-3xl text-on-surface-variant/30">category</span>
+                        <p className="font-bold text-on-surface text-xs">No expense categories</p>
+                        <p className="mt-1 text-[10px] text-on-surface-variant">Create expense categories to track budgets.</p>
+                      </div>
+                    ) : (
+                      categories.filter(c => c.type === 'expense').map((cat) => {
+                        const spent = monthlyCategorySpent[String(cat.id)] || monthlyCategorySpent[cat.name] || 0;
+                        const limit = cat.budget_limit || 0;
+                        const progress = limit > 0 ? Math.min(100, Math.round((spent / limit) * 100)) : 0;
+                        const isOver = limit > 0 && spent > limit;
+                        
+                        return (
+                          <div key={cat.id} className="rounded-2xl bg-surface-container-low/30 p-4 border border-outline-variant/20 hover:border-outline-variant/55 transition-all">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2.5">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-surface-container-highest text-lg">
+                                  {cat.emoji}
+                                </div>
+                                <div>
+                                  <p className="text-sm font-bold text-primary">{cat.name}</p>
+                                  <p className="text-[10px] text-on-surface-variant font-medium">
+                                    Spent this month: <span className="font-bold text-on-surface">{formatCurrency(spent)}</span>
+                                  </p>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right">
+                                {editingCategoryId === cat.id ? (
+                                  <div className="flex items-center gap-1 justify-end">
+                                    <span className="text-xs font-bold text-on-surface-variant">{currencySymbol}</span>
+                                    <input
+                                      type="number"
+                                      step="1"
+                                      min="0"
+                                      value={editValue}
+                                      onChange={(e) => setEditValue(e.target.value)}
+                                      onBlur={() => handleSaveCategoryBudget(cat.id)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') handleSaveCategoryBudget(cat.id);
+                                        if (e.key === 'Escape') setEditingCategoryId(null);
+                                      }}
+                                      autoFocus
+                                      className="w-16 bg-surface-container-high border border-secondary rounded px-1.5 py-0.5 text-xs text-primary font-bold focus:outline-none focus:ring-1 focus:ring-secondary/40"
+                                    />
+                                  </div>
+                                ) : (
+                                  <button
+                                    onClick={() => {
+                                      setEditingCategoryId(cat.id);
+                                      setEditValue(limit > 0 ? String(limit) : '');
+                                    }}
+                                    className="text-xs font-bold text-on-surface hover:text-secondary flex items-center gap-1 ml-auto group transition-all"
+                                    title="Edit Category Budget"
                                   >
-                                    {formatCurrency(d.amount)}
-                                  </text>
+                                    <span className="text-[10px] text-on-surface-variant/70 font-medium mr-0.5">Limit:</span>
+                                    <span className="text-primary font-black underline decoration-dotted decoration-secondary underline-offset-2">
+                                      {limit > 0 ? formatCurrency(limit) : 'Set Limit'}
+                                    </span>
+                                    <span className="material-symbols-outlined text-[13px] opacity-0 group-hover:opacity-100 transition-opacity">edit</span>
+                                  </button>
                                 )}
-                              </g>
-                            );
-                          });
-                        })()}
-                      </svg>
-                      
-                      {/* Bar Labels (Emojis) */}
-                      <div className="flex justify-center gap-[20px] mt-2">
-                        {stats.expensesByCategory.slice(0, 5).map((d, index) => (
-                          <div key={index} className="w-[50px] text-center flex flex-col items-center">
-                            <span className="text-lg">{d.emoji}</span>
-                            <span className="text-[9px] text-on-surface-variant truncate w-full font-bold uppercase mt-0.5">{d.name}</span>
+                                
+                                {limit > 0 && isOver && (
+                                  <span className="text-[9px] text-rose-500 font-bold uppercase tracking-wider block mt-0.5 animate-pulse">
+                                    Over Budget!
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {limit > 0 && (
+                              <div className="mt-3">
+                                <div className="h-1.5 rounded-full bg-surface-container-highest overflow-hidden">
+                                  <div 
+                                    className={`h-full rounded-full transition-all duration-500 ${
+                                      isOver 
+                                        ? 'bg-rose-500 shadow-[0_0_8px_rgba(239,68,68,0.4)]' 
+                                        : 'bg-secondary'
+                                    }`}
+                                    style={{ width: `${progress}%` }}
+                                  />
+                                </div>
+                                <div className="flex justify-between text-[9px] font-bold text-on-surface-variant/60 mt-1">
+                                  <span>{progress}% of limit</span>
+                                  <span>Remaining: {formatCurrency(Math.max(0, limit - spent))}</span>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* 3. Interactive Expenses Distribution */}
+                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6">
+                  <div>
+                    <h2 className="text-xl font-black text-primary">Interactive Expenses Distribution</h2>
+                    <p className="text-xs text-on-surface-variant font-medium">Hover over bars to inspect detailed spending totals</p>
+                  </div>
+
+                  {stats.expensesByCategory.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-outline p-8 text-center bg-surface-container-low/40">
+                      <span className="material-symbols-outlined mb-2 text-4xl text-on-surface-variant/30">bar_chart</span>
+                      <p className="font-bold text-on-surface text-sm">No expense history</p>
+                      <p className="mt-1 text-xs text-on-surface-variant font-medium">Log expenses to populate analytics visualization.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-6">
+                      {/* SVG Bar Chart */}
+                      <div className="relative h-64 w-full bg-slate-950/15 rounded-2xl p-4 border border-outline-variant/30 flex flex-col justify-end">
+                        <svg className="w-full h-48" viewBox="0 0 400 200" preserveAspectRatio="none">
+                          {(() => {
+                            const data = stats.expensesByCategory.slice(0, 5);
+                            const maxAmount = Math.max(...data.map(d => d.amount), 1);
+                            const barWidth = 50;
+                            const gap = 20;
+                            const totalWidth = data.length * barWidth + (data.length - 1) * gap;
+                            const startX = (400 - totalWidth) / 2;
+
+                            return data.map((d, index) => {
+                              const barHeight = (d.amount / maxAmount) * 150;
+                              const x = startX + index * (barWidth + gap);
+                              const y = 170 - barHeight;
+
+                              return (
+                                <g 
+                                  key={index}
+                                  onMouseEnter={() => setHoveredBar(index)}
+                                  onMouseLeave={() => setHoveredBar(null)}
+                                  className="cursor-pointer"
+                                >
+                                  {/* Glow Filter */}
+                                  <rect
+                                    x={x}
+                                    y={y}
+                                    width={barWidth}
+                                    height={barHeight}
+                                    rx={8}
+                                    fill="var(--color-secondary)"
+                                    opacity={hoveredBar === index ? 0.35 : 0.1}
+                                    className="transition-all duration-300"
+                                  />
+                                  {/* Solid Bar */}
+                                  <rect
+                                    x={x}
+                                    y={y}
+                                    width={barWidth}
+                                    height={barHeight}
+                                    rx={8}
+                                    fill="var(--color-secondary)"
+                                    opacity={hoveredBar === index ? 1 : 0.85}
+                                    className="transition-all duration-300"
+                                  />
+                                  {/* Value Label inside chart when hovered */}
+                                  {hoveredBar === index && (
+                                    <text
+                                      x={x + barWidth / 2}
+                                      y={y - 10}
+                                      textAnchor="middle"
+                                      fill="var(--color-on-surface)"
+                                      fontSize="10"
+                                      fontWeight="bold"
+                                    >
+                                      {formatCurrency(d.amount)}
+                                    </text>
+                                  )}
+                                </g>
+                              );
+                            });
+                          })()}
+                        </svg>
+                        
+                        {/* Bar Labels (Emojis) */}
+                        <div className="flex justify-center gap-[20px] mt-2">
+                          {stats.expensesByCategory.slice(0, 5).map((d, index) => (
+                            <div key={index} className="w-[50px] text-center flex flex-col items-center">
+                              <span className="text-lg">{d.emoji}</span>
+                              <span className="text-[9px] text-on-surface-variant truncate w-full font-bold uppercase mt-0.5">{d.name}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Breakdown List */}
+                      <div className="space-y-2.5">
+                        {stats.expensesByCategory.map((cat, idx) => (
+                          <div key={idx} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3.5 border border-outline-variant/20">
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">{cat.emoji}</span>
+                              <span className="text-xs font-bold text-primary">{cat.name}</span>
+                            </div>
+                            <span className="text-xs font-black text-rose-500">{formatCurrency(cat.amount)}</span>
                           </div>
                         ))}
                       </div>
                     </div>
-
-                    {/* Breakdown List */}
-                    <div className="space-y-2.5">
-                      {stats.expensesByCategory.map((cat, idx) => (
-                        <div key={idx} className="flex items-center justify-between rounded-xl bg-surface-container-low p-3.5 border border-outline-variant/20">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">{cat.emoji}</span>
-                            <span className="text-xs font-bold text-primary">{cat.name}</span>
-                          </div>
-                          <span className="text-xs font-black text-rose-500">{formatCurrency(cat.amount)}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             )}
           </div>

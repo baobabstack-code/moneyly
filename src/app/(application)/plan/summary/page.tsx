@@ -38,8 +38,8 @@ export default function SummaryPage() {
 
       const reference = `PLN-${Math.floor(Math.random() * 9000) + 1000}`;
 
-      // Insert into the new spending_plans table
-      const { error: dbError } = await supabase.from('spending_plans').insert({
+      // Insert into local Zustand store (handles offline stashing and syncing)
+      await useApplicationStore.getState().addSpendingPlanLocal({
         user_id:          user?.id ?? null,
         reference,
         status:           'active',
@@ -50,11 +50,6 @@ export default function SummaryPage() {
         tenure_months:    tenureMonths,
         file_url:         fileUrl || null,
       });
-
-      if (dbError) {
-        console.error('Supabase save error:', dbError);
-        throw new Error(`Failed to save spending plan: ${dbError.message}`);
-      }
 
       // Generate PDF with simplified personal finance details
       const planData = {
