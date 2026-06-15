@@ -40,6 +40,11 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   const url = new URL(request.url);
 
+  // Ignore non-http/https requests (e.g., chrome-extension, data URIs)
+  if (!url.protocol.startsWith('http')) {
+    return;
+  }
+
   // Ignore non-GET requests and Supabase API/Auth calls or Next.js dev server HMR requests
   if (
     request.method !== 'GET' || 
