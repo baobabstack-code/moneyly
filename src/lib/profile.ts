@@ -24,6 +24,7 @@ export interface UserProfile {
 
   // NOTIFICATIONS
   reminder_email_enabled?: boolean;
+  budget_alerts_sent?: string;
 }
 
 /**

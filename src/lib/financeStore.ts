@@ -326,7 +326,17 @@ export const useFinanceStore = create<FinanceState>()(
           const supabase = createClient();
           if (supabase) {
             const { error } = await supabase.from('transactions').insert(newTx);
-            if (!error) return;
+            if (!error) {
+              // Fire-and-forget: check if this expense crossed a budget threshold
+              if (newTx.type === 'expense' && newTx.user_id) {
+                fetch('/api/budget-alert', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ user_id: newTx.user_id }),
+                }).catch(() => {}); // non-blocking — never breaks the transaction flow
+              }
+              return;
+            }
             console.error("Failed to insert transaction to DB, queueing offline mutation:", error);
           }
         }
