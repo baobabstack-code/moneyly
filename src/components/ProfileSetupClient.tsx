@@ -16,6 +16,9 @@ function ProfileSetupContent({
   const [lastName, setLastName] = useState(initialProfile?.last_name || "");
   const [username, setUsername] = useState(initialProfile?.username || "");
   const [monthlyIncome, setMonthlyIncome] = useState(initialProfile?.monthly_income || "");
+  const [reminderEnabled, setReminderEnabled] = useState(
+    initialProfile?.reminder_email_enabled ?? true
+  );
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -33,6 +36,7 @@ function ProfileSetupContent({
         last_name: lastName.trim(),
         username: username.trim() || null,
         monthly_income: monthlyIncome ? String(parseFloat(monthlyIncome)) : null,
+        reminder_email_enabled: reminderEnabled,
       });
 
       if (result) {
@@ -142,6 +146,32 @@ function ProfileSetupContent({
               <p className="mt-1 text-xs text-on-surface-variant/60">
                 Used to compute budget load and cash flow.
               </p>
+            </div>
+
+            {/* ── Daily reminder toggle ── */}
+            <div className="flex items-center justify-between gap-4 rounded-xl border border-outline-variant bg-surface px-4 py-3.5">
+              <div>
+                <p className="text-sm font-bold text-on-surface">📬 Daily money reminder</p>
+                <p className="text-xs text-on-surface-variant mt-0.5">
+                  Get a daily email nudge to log your spending.
+                </p>
+              </div>
+              <button
+                id="reminder-toggle"
+                type="button"
+                role="switch"
+                aria-checked={reminderEnabled}
+                onClick={() => setReminderEnabled((v) => !v)}
+                className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary/40 ${
+                  reminderEnabled ? 'bg-secondary' : 'bg-outline-variant'
+                }`}
+              >
+                <span
+                  className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ${
+                    reminderEnabled ? 'translate-x-5' : 'translate-x-0'
+                  }`}
+                />
+              </button>
             </div>
           </div>
 

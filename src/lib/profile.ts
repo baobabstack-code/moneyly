@@ -21,6 +21,9 @@ export interface UserProfile {
   
   // ROLE
   role: string;
+
+  // NOTIFICATIONS
+  reminder_email_enabled?: boolean;
 }
 
 /**
