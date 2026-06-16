@@ -28,6 +28,8 @@ export interface UserProfile {
 
   // NOTIFICATIONS
   reminder_email_enabled?: boolean;
+  reminder_sms_enabled?: boolean;
+  phone_number?: string | null;
   budget_alerts_sent?: string;
 }
 

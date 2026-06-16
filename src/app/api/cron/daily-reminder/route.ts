@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createAdminClient } from '@/utils/supabase/admin';
+import twilio from 'twilio';
 
 /**
  * @openapi
@@ -50,9 +51,8 @@ export async function GET(req: Request) {
 
   const { data: profiles, error: dbError } = await supabase
     .from('profiles')
-    .select('id, first_name, full_name, email_address, monthly_budget, currency')
-    .eq('reminder_email_enabled', true)
-    .not('email_address', 'is', null);
+    .select('id, first_name, full_name, email_address, monthly_budget, currency, phone_number, reminder_email_enabled, reminder_sms_enabled')
+    .or('reminder_email_enabled.eq.true,reminder_sms_enabled.eq.true');
 
   if (dbError) {
     console.error('[daily-reminder] DB error:', dbError.message);
@@ -117,25 +117,50 @@ export async function GET(req: Request) {
     })
   );
 
-  // ── 5. Send emails ────────────────────────────────────────────────────────────
-  if (!process.env.RESEND_API_KEY) {
-    console.warn('[daily-reminder] RESEND_API_KEY missing — mocking sends.');
+  // ── 5. Send emails & SMS ────────────────────────────────────────────────────────────
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const twilioClient = (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN)
+    ? twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN)
+    : null;
+
+  if (!resendApiKey && !twilioClient) {
+    console.warn('[daily-reminder] Both RESEND_API_KEY and TWILIO missing — mocking sends.');
     return NextResponse.json({ sent: profiles.length, skipped: 0, errors: 0, mocked: true });
   }
 
-  const resend = new Resend(process.env.RESEND_API_KEY);
+  const resend = resendApiKey ? new Resend(resendApiKey) : null;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? 'https://moneyly.app';
 
   const results = await Promise.allSettled(
-    spendingByUser.map(({ profile, spending }) => {
+    spendingByUser.flatMap(({ profile, spending }) => {
       const name = profile.first_name || profile.full_name?.split(' ')[0] || 'there';
-      return resend.emails.send({
-        from: 'Moneyly <notifications@moneyly.app>',
-        to: profile.email_address!,
-        subject: buildSubject(name, spending),
-        html: buildReminderEmail(name, appUrl, spending),
-      });
-    })
+      const promises = [];
+
+      // Email
+      if (profile.reminder_email_enabled && profile.email_address) {
+        if (resend) {
+          promises.push(resend.emails.send({
+            from: 'Moneyly <notifications@moneyly.app>',
+            to: profile.email_address,
+            subject: buildSubject(name, spending),
+            html: buildReminderEmail(name, appUrl, spending),
+          }));
+        }
+      }
+
+      // SMS
+      if (profile.reminder_sms_enabled && profile.phone_number) {
+        if (twilioClient && process.env.TWILIO_PHONE_NUMBER) {
+          promises.push(twilioClient.messages.create({
+            body: buildSmsBody(name, spending),
+            from: process.env.TWILIO_PHONE_NUMBER,
+            to: profile.phone_number
+          }));
+        }
+      }
+
+      return promises;
+    }).flat()
   );
 
   // ── 6. Tally results ──────────────────────────────────────────────────────────
@@ -174,6 +199,23 @@ function buildSubject(name: string, s: UserSpendingData): string {
   if (s.budgetPercent >= 90) return `\u26A0\uFE0F ${name}, you've used ${s.budgetPercent}% of your monthly budget`;
   if (s.todaySpent === 0)    return `\uD83D\uDCB0 ${name}, nothing logged today — quick check-in?`;
   return `\uD83D\uDCCA ${name}, your Moneyly daily snapshot`;
+}
+
+function buildSmsBody(name: string, s: UserSpendingData): string {
+  const isOverBudget = s.budgetPercent >= 100;
+  const isNearBudget = s.budgetPercent >= 80 && s.budgetPercent < 100;
+  const nothingToday = s.todaySpent === 0;
+
+  let msg = `Moneyly Snapshot for ${name}:\n`;
+  msg += `Today: ${fmt(s.todaySpent, s.currency)}\n`;
+  msg += `Month: ${fmt(s.monthlySpent, s.currency)}`;
+  if (s.monthlyBudget > 0) msg += ` / ${fmt(s.monthlyBudget, s.currency)}`;
+
+  if (isOverBudget) msg += `\n⚠️ Over budget!`;
+  else if (isNearBudget) msg += `\n⚠️ Near limit (${s.budgetPercent}% used).`;
+  else if (nothingToday) msg += `\nNothing logged today!`;
+
+  return msg;
 }
 
 function buildBudgetBar(percent: number): string {

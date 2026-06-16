@@ -47,6 +47,8 @@ export default function SettingsClient({ profile, userId, email }: Props) {
     currency: profile?.currency || 'USD',
     accent_color: (profile?.accent_color || 'green') as 'green' | 'purple' | 'blue' | 'orange',
     reminder_email_enabled: profile?.reminder_email_enabled ?? true,
+    reminder_sms_enabled: profile?.reminder_sms_enabled ?? false,
+    phone_number: profile?.phone_number || '',
   });
 
   const [saving, setSaving] = useState(false);
@@ -77,6 +79,8 @@ export default function SettingsClient({ profile, userId, email }: Props) {
         username: form.username.trim() || null,
         monthly_income: form.monthly_income ? String(parseFloat(form.monthly_income)) : null,
         reminder_email_enabled: form.reminder_email_enabled,
+        reminder_sms_enabled: form.reminder_sms_enabled,
+        phone_number: form.phone_number.trim() || null,
         daily_budget: parseFloat(form.daily_budget) || 0,
         weekly_budget: parseFloat(form.weekly_budget) || 0,
         monthly_budget: parseFloat(form.monthly_budget) || 0,
@@ -199,6 +203,20 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                     value={email}
                     className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container/30 text-on-surface-variant/60 font-semibold cursor-not-allowed"
                     title="Account email address cannot be changed."
+                  />
+                </div>
+
+                <div>
+                  <label htmlFor="phone_number" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-1.5">
+                    Phone Number (for SMS Alerts)
+                  </label>
+                  <input
+                    id="phone_number"
+                    type="tel"
+                    value={form.phone_number}
+                    onChange={e => handleFieldChange('phone_number', e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-semibold"
+                    placeholder="+1234567890"
                   />
                 </div>
               </div>
@@ -385,6 +403,33 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                     <span
                       className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ${
                         form.reminder_email_enabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between gap-4 rounded-2xl border border-outline-variant bg-surface-container-low/40 p-4 transition-all">
+                  <div className="flex flex-col flex-1">
+                    <p className="text-sm font-bold text-on-surface flex items-center gap-1.5">
+                      <span className="material-symbols-outlined text-sm text-secondary font-black">sms</span>
+                      Daily SMS Reminder
+                    </p>
+                    <p className="text-[11px] text-on-surface-variant mt-0.5 leading-relaxed">
+                      Receive a daily text message nudge. Requires phone number in Profile.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={form.reminder_sms_enabled}
+                    onClick={() => handleFieldChange('reminder_sms_enabled', !form.reminder_sms_enabled)}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-secondary/40 ${
+                      form.reminder_sms_enabled ? 'bg-secondary' : 'bg-outline-variant'
+                    }`}
+                  >
+                    <span
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition-transform duration-200 ${
+                        form.reminder_sms_enabled ? 'translate-x-5' : 'translate-x-0'
                       }`}
                     />
                   </button>
