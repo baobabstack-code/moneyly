@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useFinanceStore } from '@/lib/financeStore';
 import { saveProfile, type UserProfile } from '@/lib/profile';
+import Papa from 'papaparse';
+import { useRef } from 'react';
 
 interface Props {
   profile: UserProfile | null;
@@ -34,6 +36,8 @@ export default function SettingsClient({ profile, userId, email }: Props) {
   // Store actions
   const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
   const addNotification = useFinanceStore(state => state.addNotification);
+  const transactions = useFinanceStore(state => state.transactions);
+  const addTransactionLocal = useFinanceStore(state => state.addTransactionLocal);
 
   // Form State
   const [form, setForm] = useState({
@@ -110,6 +114,62 @@ export default function SettingsClient({ profile, userId, email }: Props) {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleExportCSV = () => {
+    const csv = Papa.unparse(transactions.map(t => ({
+      id: t.id,
+      amount: t.amount,
+      type: t.type,
+      category_name: t.category_name || '',
+      note: t.note || '',
+      date: t.date
+    })));
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `moneyly_transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    addNotification('Transactions exported successfully!', 'success');
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImportCSV = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    Papa.parse(file, {
+      header: true,
+      skipEmptyLines: true,
+      complete: async (results) => {
+        const rows = results.data as any[];
+        let imported = 0;
+        for (const row of rows) {
+          const amount = parseFloat(row.amount);
+          if (isNaN(amount) || !row.type || !row.date) continue;
+          
+          await addTransactionLocal({
+            amount,
+            type: row.type as any,
+            category_name: row.category_name || null,
+            note: row.note || null,
+            date: row.date,
+            user_id: profile?.id || '',
+          }, true); // pass skipSync=true to avoid rate limits if many
+          imported++;
+        }
+        // Then trigger sync once
+        useFinanceStore.getState().syncOfflineData();
+        addNotification(`Imported ${imported} transactions!`, 'success');
+        if (fileInputRef.current) fileInputRef.current.value = '';
+      },
+      error: (error: any) => {
+        addNotification(`Error parsing CSV: ${error.message}`, 'error');
+      }
+    });
   };
 
   const currentCurrencySymbol = CURRENCY_MAP[form.currency] || '$';
@@ -448,6 +508,46 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                   <span className="text-[10px] bg-secondary/15 text-secondary border border-secondary/25 px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">
                     Always On
                   </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Card 5: Data Management */}
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4 md:col-span-2">
+              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+                <span className="material-symbols-outlined text-secondary font-black">database</span>
+                <h2 className="text-lg font-black text-primary">Data Management</h2>
+              </div>
+              <p className="text-sm text-on-surface-variant">
+                Take control of your data. Export your transactions as a CSV for use in spreadsheets, or import transactions from a previous export.
+              </p>
+              
+              <div className="flex flex-wrap gap-4 pt-2">
+                <button
+                  type="button"
+                  onClick={handleExportCSV}
+                  className="px-6 py-3 rounded-xl bg-secondary/10 text-secondary font-bold text-sm hover:bg-secondary/20 transition-all flex items-center gap-2"
+                >
+                  <span className="material-symbols-outlined text-sm">download</span>
+                  Export as CSV
+                </button>
+                
+                <div>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    ref={fileInputRef}
+                    onChange={handleImportCSV}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="px-6 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all flex items-center gap-2"
+                  >
+                    <span className="material-symbols-outlined text-sm">upload</span>
+                    Import from CSV
+                  </button>
                 </div>
               </div>
             </div>

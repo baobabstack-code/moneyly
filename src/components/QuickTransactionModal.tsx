@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useFinanceStore, Category } from '@/lib/financeStore';
 
 interface Props {
@@ -46,6 +46,54 @@ export default function QuickTransactionModal({
   const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [selectedToAccountId, setSelectedToAccountId] = useState<string | null>(null);
+  const [isScanning, setIsScanning] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setIsScanning(true);
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Data = (reader.result as string).split(',')[1];
+        const res = await fetch('/api/parse-receipt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageBase64: base64Data, mimeType: file.type }),
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && !data.error) {
+          if (data.amount) setAmount(data.amount.toString());
+          if (data.merchant) setNote(data.merchant);
+          if (data.date) setDate(data.date);
+          // Attempt to match category
+          if (data.category && categories.length > 0) {
+            const matchedCat = categories.find(c => 
+              c.name.toLowerCase().includes(data.category.toLowerCase()) || 
+              data.category.toLowerCase().includes(c.name.toLowerCase())
+            );
+            if (matchedCat) {
+              setType(matchedCat.type);
+              setSelectedCategoryId(matchedCat.id);
+            }
+          }
+        } else {
+          alert('Could not parse receipt: ' + (data.error || 'Unknown error. Make sure GEMINI_API_KEY is set.'));
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error(error);
+      alert('Error scanning receipt.');
+    } finally {
+      setIsScanning(false);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+    }
+  };
 
   // Filter categories by type
   const filteredCategories = categories.filter(c => c.type === (type === 'transfer' ? 'expense' : type));
@@ -148,13 +196,25 @@ export default function QuickTransactionModal({
             <span className="material-symbols-outlined text-secondary">add_circle</span>
             Add Transaction
           </h2>
-          <button 
-            type="button" 
-            onClick={onClose} 
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors"
-          >
-            <span className="material-symbols-outlined text-on-surface-variant">close</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/*" capture="environment" className="hidden" ref={fileInputRef} onChange={handleFileChange} />
+            <button 
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isScanning}
+              className="px-3 py-1.5 rounded-lg bg-surface-container hover:bg-surface-container-high transition-colors text-xs font-bold flex items-center gap-1.5 border border-outline-variant/50"
+            >
+              <span className="material-symbols-outlined text-sm">{isScanning ? 'hourglass_top' : 'document_scanner'}</span>
+              {isScanning ? 'Scanning...' : 'Scan'}
+            </button>
+            <button 
+              type="button" 
+              onClick={onClose} 
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors"
+            >
+              <span className="material-symbols-outlined text-on-surface-variant">close</span>
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-5">

@@ -1432,44 +1432,47 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
                       return (
                         <div key={plan.id} className="overflow-hidden rounded-2xl border border-outline-variant bg-surface-container-low/30">
-                          <div className="flex items-center justify-between p-4">
-                            <div>
-                              <div className="flex items-center gap-2">
-                                <p className="font-black text-primary text-sm">{plan.product_name || 'Goal / Milestone'}</p>
-                                <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${
-                                  plan.status === 'completed'
-                                    ? 'bg-emerald-500/10 text-emerald-500'
-                                    : plan.status === 'paused'
-                                    ? 'bg-rose-500/10 text-rose-500'
-                                    : 'bg-blue-500/10 text-blue-500'
-                                }`}>
-                                  {plan.status}
-                                </span>
+                          <div className="p-4 space-y-3">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <p className="font-black text-primary text-sm">{plan.product_name || 'Goal / Milestone'}</p>
+                                  <span className={`rounded-full px-2 py-0.5 text-[8px] font-black uppercase ${
+                                    plan.status === 'completed'
+                                      ? 'bg-emerald-500/10 text-emerald-500'
+                                      : plan.status === 'paused'
+                                      ? 'bg-rose-500/10 text-rose-500'
+                                      : 'bg-blue-500/10 text-blue-500'
+                                  }`}>
+                                    {plan.status}
+                                  </span>
+                                </div>
+                                <p className="text-[10px] text-on-surface-variant mt-0.5">Budget: {formatCurrency(cost)} | Saved: {formatCurrency(saved)}</p>
                               </div>
-                              <p className="text-[10px] text-on-surface-variant mt-0.5">Budget: {formatCurrency(cost)} | Saved: {formatCurrency(saved)}</p>
+                              <button
+                                onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}
+                                className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
+                              >
+                                {isExpanded ? 'Hide' : 'Details'}
+                              </button>
                             </div>
-                            <button
-                              onClick={() => setExpandedPlan(isExpanded ? null : plan.id)}
-                              className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all"
-                            >
-                              {isExpanded ? 'Hide' : 'Details'}
-                            </button>
+
+                            {/* Always visible progress bar */}
+                            <div>
+                              <div className="flex items-center justify-between text-[10px] font-bold text-on-surface-variant/80 mb-1.5">
+                                <span>Goal Progress</span>
+                                <span>{progress}%</span>
+                              </div>
+                              <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
+                                <div className="h-full bg-secondary rounded-full transition-all duration-500" style={{ width: `${progress}%` }} />
+                              </div>
+                            </div>
                           </div>
 
                           {isExpanded && (
                             <div className="border-t border-outline-variant/35 bg-surface-container-low/60 p-4 space-y-3.5 animate-in fade-in duration-200">
-                              <div>
-                                <div className="flex items-center justify-between text-xs font-bold text-on-surface-variant/80 mb-1.5">
-                                  <span>Goal Progress</span>
-                                  <span>{progress}%</span>
-                                </div>
-                                <div className="h-2 rounded-full bg-surface-container-highest overflow-hidden">
-                                  <div className="h-full bg-secondary rounded-full" style={{ width: `${progress}%` }} />
-                                </div>
-                              </div>
-
                               {/* Linked Transactions Section */}
-                              <div className="border-t border-outline-variant/30 pt-3">
+                              <div>
                                 <h4 className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/75 mb-2 flex items-center gap-1">
                                   <span className="material-symbols-outlined text-xs font-black">link</span>
                                   Linked Transactions History
