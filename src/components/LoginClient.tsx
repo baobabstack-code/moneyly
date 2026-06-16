@@ -118,10 +118,12 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
             {/* Email Form */}
             <form onSubmit={handleEmailAuth} className="space-y-4">
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Email Address</label>
+                <label htmlFor="email" className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Email Address</label>
                 <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40 group-focus-within:text-primary transition-colors">mail</span>
                   <input 
+                    id="email"
+                    name="email"
                     type="email"
                     required
                     value={email}
@@ -133,10 +135,12 @@ export default function LoginClient({ next = '/dashboard' }: { next?: string }) 
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Password</label>
+                <label htmlFor="password" className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant ml-1">Password</label>
                 <div className="relative group">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40 group-focus-within:text-primary transition-colors">lock</span>
                   <input 
+                    id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
                     required
                     value={password}

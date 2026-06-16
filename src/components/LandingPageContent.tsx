@@ -4,7 +4,7 @@ import Link from "next/link";
 import { PWAInstallButton } from "@/components/pwa-install-button";
 
 const heroImage =
-  "https://images.unsplash.com/photo-1554224154-26032fced8bd?auto=format&fit=crop&w=1800&q=80";
+  "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=1800&q=80";
 
 export default function LandingPageContent() {
   return (

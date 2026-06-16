@@ -55,6 +55,7 @@ export async function updateSession(request: NextRequest) {
   const { pathname } = request.nextUrl
   const isPublicAsset =
     pathname === '/manifest.json' ||
+    pathname === '/sw.js' ||
     pathname.startsWith('/icons/') ||
     pathname.startsWith('/_next/')
 
