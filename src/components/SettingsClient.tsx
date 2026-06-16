@@ -6,6 +6,7 @@ import { useFinanceStore } from '@/lib/financeStore';
 import { saveProfile, type UserProfile } from '@/lib/profile';
 import Papa from 'papaparse';
 import { useRef } from 'react';
+import { createClient } from '@/utils/supabase/client';
 
 interface Props {
   profile: UserProfile | null;
@@ -57,6 +58,69 @@ export default function SettingsClient({ profile, userId, email }: Props) {
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Invitations State
+  const [invitations, setInvitations] = useState<any[]>([]);
+  const [loadingInvites, setLoadingInvites] = useState(false);
+
+  useEffect(() => {
+    async function fetchInvites() {
+      if (!email) return;
+      const supabase = createClient();
+      if (!supabase) return;
+      setLoadingInvites(true);
+      const { data } = await supabase
+        .from('account_invitations')
+        .select(`
+          id,
+          account_id,
+          status,
+          created_at,
+          inviter:inviter_id(first_name, full_name, email),
+          account:account_id(name)
+        `)
+        .eq('invitee_email', email)
+        .eq('status', 'pending');
+      if (data) setInvitations(data);
+      setLoadingInvites(false);
+    }
+    fetchInvites();
+  }, [email]);
+
+  const handleAcceptInvite = async (inviteId: string, accountId: string) => {
+    if (!profile?.id) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('shared_accounts').insert({
+        account_id: accountId,
+        user_id: profile.id,
+        role: 'member'
+      });
+      await supabase.from('account_invitations').update({ status: 'accepted' }).eq('id', inviteId);
+      
+      setInvitations(prev => prev.filter(i => i.id !== inviteId));
+      addNotification("Wallet invitation accepted! Shared account added.", "success");
+      // Force sync
+      useFinanceStore.getState().syncOfflineData();
+      window.location.reload();
+    } catch (err: any) {
+      console.error(err);
+      addNotification("Failed to accept invite: " + err.message, "error");
+    }
+  };
+
+  const handleDeclineInvite = async (inviteId: string) => {
+    const supabase = createClient();
+    if (!supabase) return;
+    try {
+      await supabase.from('account_invitations').update({ status: 'rejected' }).eq('id', inviteId);
+      setInvitations(prev => prev.filter(i => i.id !== inviteId));
+      addNotification("Invitation declined", "info");
+    } catch (err) {
+      console.error(err);
+    }
+  };
 
   // Synchronize dynamic preview of accent theme on selection change
   const activeAccent = form.accent_color;
@@ -509,6 +573,62 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                     Always On
                   </span>
                 </div>
+              </div>
+            </div>
+
+            {/* Card: Wallet Invitations */}
+            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4 md:col-span-2">
+              <div className="flex items-center justify-between border-b border-outline-variant/30 pb-3">
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-secondary font-black">mark_email_unread</span>
+                  <h2 className="text-lg font-black text-primary">Wallet Invitations</h2>
+                </div>
+                {invitations.length > 0 && (
+                  <span className="bg-secondary text-on-secondary text-xs font-bold px-2 py-0.5 rounded-full">
+                    {invitations.length} Pending
+                  </span>
+                )}
+              </div>
+              
+              <div className="space-y-3">
+                {loadingInvites ? (
+                  <p className="text-sm text-on-surface-variant animate-pulse">Loading invitations...</p>
+                ) : invitations.length === 0 ? (
+                  <div className="rounded-2xl border border-dashed border-outline p-6 text-center bg-surface-container-low/20">
+                    <span className="material-symbols-outlined mb-2 text-3xl text-on-surface-variant/45">drafts</span>
+                    <p className="text-xs text-on-surface-variant font-bold">No pending invitations.</p>
+                  </div>
+                ) : (
+                  invitations.map((inv) => (
+                    <div key={inv.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low p-4 border border-outline-variant/40">
+                      <div>
+                        <p className="text-sm font-bold text-primary flex items-center gap-1.5">
+                          <span className="material-symbols-outlined text-secondary text-sm">account_balance_wallet</span>
+                          {inv.account?.name || 'Shared Wallet'}
+                        </p>
+                        <p className="text-xs text-on-surface-variant mt-0.5">
+                          Invited by <span className="font-semibold text-on-surface">{inv.inviter?.first_name || inv.inviter?.email || 'Someone'}</span>
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => handleDeclineInvite(inv.id)}
+                          className="px-3 py-1.5 rounded-lg border border-outline-variant text-on-surface-variant hover:text-red-500 hover:bg-red-500/10 text-xs font-bold transition-colors"
+                        >
+                          Decline
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleAcceptInvite(inv.id, inv.account_id)}
+                          className="px-3 py-1.5 rounded-lg bg-secondary text-on-secondary text-xs font-bold shadow-md hover:opacity-90 active:scale-95 transition-all"
+                        >
+                          Accept
+                        </button>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
 

@@ -7,6 +7,7 @@ import { useFinanceStore, Transaction, SpendingPlan, Account } from "@/lib/finan
 import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
 import BudgetEditModal from "./BudgetEditModal";
+import { createClient } from "@/utils/supabase/client";
 
 interface Props {
   email: string;
@@ -95,6 +96,52 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountColor, setAccountColor] = useState('blue');
   const [walletProvider, setWalletProvider] = useState<string>('');
   const [hideCardBalances, setHideCardBalances] = useState(false);
+
+  // Multiplayer Shared Wallets State
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviting, setInviting] = useState(false);
+  const [sharedAccountsMap, setSharedAccountsMap] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    async function fetchSharedAccounts() {
+      if (!profile?.id) return;
+      const supabase = createClient();
+      if (!supabase) return;
+      const { data } = await supabase
+        .from('shared_accounts')
+        .select('account_id, role, user_id');
+      if (data) {
+        const map: Record<string, any> = {};
+        data.forEach((d: any) => {
+          map[d.account_id] = true;
+        });
+        setSharedAccountsMap(map);
+      }
+    }
+    fetchSharedAccounts();
+  }, [profile?.id]);
+
+  const handleInviteToAccount = async (accountId: string) => {
+    if (!profile?.id || !inviteEmail.trim()) return;
+    const supabase = createClient();
+    if (!supabase) return;
+    setInviting(true);
+    try {
+      const { error } = await supabase.from('account_invitations').insert({
+        account_id: accountId,
+        inviter_id: profile.id,
+        invitee_email: inviteEmail.trim().toLowerCase(),
+        status: 'pending'
+      });
+      if (error) throw error;
+      addNotification("Invitation sent successfully!", "success");
+      setInviteEmail('');
+    } catch (err: any) {
+      addNotification("Failed to send invite: " + err.message, "error");
+    } finally {
+      setInviting(false);
+    }
+  };
 
   useEffect(() => {
     const val = typeof window !== 'undefined' ? localStorage.getItem('moneyly_hide_card_balances') : null;
@@ -759,8 +806,14 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                     <div>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">
+                          <p className="text-[9px] uppercase tracking-widest opacity-75 font-black flex items-center gap-1">
                             {acc.type === 'mobile' ? (acc.provider ? `Mobile • ${getProviderName(acc.provider)}` : 'Mobile Wallet') : acc.type}
+                            {sharedAccountsMap[acc.id] && (
+                              <span className="bg-white/20 px-1.5 py-0.5 rounded-full flex items-center gap-0.5 text-[8px]" title="This is a shared wallet">
+                                <span className="material-symbols-outlined text-[10px]">group</span>
+                                Shared
+                              </span>
+                            )}
                           </p>
                           <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[180px]">{acc.name}</h4>
                         </div>
@@ -2190,6 +2243,34 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   ))}
                 </div>
               </div>
+
+              {/* Manage Sharing (Only for existing accounts) */}
+              {editingAccount && (
+                <div className="pt-4 mt-2 border-t border-outline-variant/30">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-2 flex items-center gap-1.5">
+                    <span className="material-symbols-outlined text-sm">group</span>
+                    Manage Sharing
+                  </label>
+                  <p className="text-[10px] text-on-surface-variant mb-2">Invite someone to collaborate on this wallet. They will receive an email invitation.</p>
+                  <div className="flex gap-2">
+                    <input
+                      type="email"
+                      placeholder="Partner's email address"
+                      className="flex-1 px-4 py-2.5 rounded-xl border border-outline-variant bg-surface-container-low text-sm text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                      value={inviteEmail}
+                      onChange={(e) => setInviteEmail(e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleInviteToAccount(editingAccount.id)}
+                      disabled={!inviteEmail || inviting}
+                      className="px-4 py-2.5 rounded-xl bg-secondary text-on-secondary font-bold text-xs hover:opacity-90 shadow-md transition-all disabled:opacity-50 flex items-center gap-1"
+                    >
+                      {inviting ? 'Sending...' : 'Invite'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* Action Buttons */}
               <div className="pt-4 border-t border-outline-variant/30 flex flex-col gap-2 sm:flex-row sm:justify-end">

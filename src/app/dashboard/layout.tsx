@@ -5,6 +5,7 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import GlobalFAB from "@/components/GlobalFAB";
+import RealtimeSyncProvider from "@/components/RealtimeSyncProvider";
 import { createClient } from "@/utils/supabase/server";
 import { isProfileComplete, type UserProfile } from "@/lib/profile";
 import { IMPERSONATE_COOKIE, parseImpersonationCookie } from "@/lib/impersonate";
@@ -70,6 +71,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </div>
       <MobileBottomNav />
       <GlobalFAB />
+      <RealtimeSyncProvider userId={viewUserId} />
     </div>
   );
 }

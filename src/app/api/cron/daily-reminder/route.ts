@@ -168,14 +168,14 @@ export async function GET(req: Request) {
   let errors = 0;
 
   for (const result of results) {
-    if (result.status === 'fulfilled' && !result.value.error) {
+    if (result.status === 'fulfilled' && !((result.value as any)?.error)) {
       sent++;
     } else {
       errors++;
       if (result.status === 'rejected') {
         console.error('[daily-reminder] Send failed:', result.reason);
-      } else if (result.value.error) {
-        console.error('[daily-reminder] Resend error:', result.value.error);
+      } else if ((result.value as any)?.error) {
+        console.error('[daily-reminder] Resend error:', (result.value as any).error);
       }
     }
   }
