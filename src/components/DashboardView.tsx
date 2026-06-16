@@ -8,6 +8,7 @@ import OnboardingModal from "./OnboardingModal";
 import QuickTransactionModal from "./QuickTransactionModal";
 import BudgetEditModal from "./BudgetEditModal";
 import { createClient } from "@/utils/supabase/client";
+import CalendarWidget from "./CalendarWidget";
 
 interface Props {
   email: string;
@@ -18,7 +19,7 @@ interface Props {
 }
 
 export default function DashboardView({ email, displayName, profile, initialSpendingPlans }: Props) {
-  const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze'>('expenses');
+  const [activeTab, setActiveTab] = useState<'expenses' | 'balance' | 'control' | 'analyze' | 'calendar'>('expenses');
   const [isPendingTab, startTabTransition] = useTransition();
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
@@ -956,7 +957,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
         {/* Tab Filters */}
         <div className="mb-6 flex gap-2 border-b border-outline-variant/30 pb-3 overflow-x-auto scrollbar-hide">
-          {(['expenses', 'balance', 'control', 'analyze'] as const).map((tab) => (
+          {(['expenses', 'balance', 'control', 'analyze', 'calendar'] as const).map((tab) => (
             <button
               key={tab}
               onClick={() => {
@@ -1886,6 +1887,10 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   )}
                 </div>
               </div>
+            )}
+
+            {activeTab === 'calendar' && (
+              <CalendarWidget />
             )}
           </div>
 

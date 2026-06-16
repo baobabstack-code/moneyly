@@ -38,9 +38,25 @@ export interface Category {
   budget_limit?: number;
 }
 
+export interface RecurringBill {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  type: 'expense' | 'income';
+  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
+  next_due_date: string;
+  category_id?: number | null;
+  category_name?: string | null;
+  category_emoji?: string | null;
+  account_id?: string | null;
+  is_active: boolean;
+  created_at?: string;
+}
+
 export interface PendingMutation {
   id: string;
-  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN' | 'CREATE_ACCOUNT' | 'UPDATE_ACCOUNT' | 'DELETE_ACCOUNT';
+  type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN' | 'CREATE_ACCOUNT' | 'UPDATE_ACCOUNT' | 'DELETE_ACCOUNT' | 'CREATE_RECURRING_BILL' | 'UPDATE_RECURRING_BILL' | 'DELETE_RECURRING_BILL';
   payload: any;
   timestamp: number;
 }
@@ -102,6 +118,7 @@ export interface FinanceState {
   categories: Category[];
   spendingPlans: SpendingPlan[];
   accounts: Account[];
+  recurringBills: RecurringBill[];
   pendingMutations: PendingMutation[];
 
   setAccentColor: (color: "green" | "purple" | "blue" | "orange") => void;
@@ -115,6 +132,7 @@ export interface FinanceState {
   setCategories: (categories: Category[]) => void;
   setSpendingPlans: (plans: SpendingPlan[]) => void;
   setAccounts: (accounts: Account[]) => void;
+  setRecurringBills: (bills: RecurringBill[]) => void;
   
   // Offline-first actions
   syncOfflineData: () => Promise<void>;
@@ -129,6 +147,9 @@ export interface FinanceState {
   addAccountLocal: (account: Omit<Account, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
   deleteAccountLocal: (id: string, skipSync?: boolean) => Promise<void>;
   updateAccountLocal: (id: string, updates: Partial<Account>, skipSync?: boolean) => Promise<void>;
+  addRecurringBillLocal: (bill: Omit<RecurringBill, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
+  updateRecurringBillLocal: (id: string, updates: Partial<RecurringBill>, skipSync?: boolean) => Promise<void>;
+  deleteRecurringBillLocal: (id: string, skipSync?: boolean) => Promise<void>;
   updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
 
   /** Actions */
@@ -158,6 +179,7 @@ const initialState = {
   categories: [],
   spendingPlans: [],
   accounts: [],
+  recurringBills: [],
   pendingMutations: [],
 };
 
@@ -196,6 +218,7 @@ export const useFinanceStore = create<FinanceState>()(
       setCategories: (categories) => set({ categories }),
       setSpendingPlans: (spendingPlans) => set({ spendingPlans }),
       setAccounts: (accounts) => set({ accounts }),
+      setRecurringBills: (recurringBills) => set({ recurringBills }),
 
       syncOfflineData: async () => {
         const state = get();
@@ -245,6 +268,15 @@ export const useFinanceStore = create<FinanceState>()(
               if (error) throw error;
             } else if (mutation.type === 'DELETE_ACCOUNT') {
               const { error } = await supabase.from('accounts').delete().eq('id', mutation.payload.id);
+              if (error) throw error;
+            } else if (mutation.type === 'CREATE_RECURRING_BILL') {
+              const { error } = await supabase.from('recurring_bills').insert(mutation.payload);
+              if (error) throw error;
+            } else if (mutation.type === 'UPDATE_RECURRING_BILL') {
+              const { error } = await supabase.from('recurring_bills').update(mutation.payload.updates).eq('id', mutation.payload.id);
+              if (error) throw error;
+            } else if (mutation.type === 'DELETE_RECURRING_BILL') {
+              const { error } = await supabase.from('recurring_bills').delete().eq('id', mutation.payload.id);
               if (error) throw error;
             }
           } catch (err) {
@@ -891,6 +923,69 @@ export const useFinanceStore = create<FinanceState>()(
             }
           }
         }
+      },
+
+      addRecurringBillLocal: async (bill, skipSync = false) => {
+        const id = bill.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36));
+        const newBill = { ...bill, id } as RecurringBill;
+        set((state) => ({ recurringBills: [...state.recurringBills, newBill] }));
+        if (skipSync) return;
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('recurring_bills').insert(newBill);
+            if (!error) return;
+          }
+        }
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            { id: Math.random().toString(36).substring(7), type: 'CREATE_RECURRING_BILL', payload: newBill, timestamp: Date.now() }
+          ]
+        }));
+      },
+
+      updateRecurringBillLocal: async (id, updates, skipSync = false) => {
+        set((state) => ({
+          recurringBills: state.recurringBills.map(b => b.id === id ? { ...b, ...updates } : b)
+        }));
+        if (skipSync) return;
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('recurring_bills').update(updates).eq('id', id);
+            if (!error) return;
+          }
+        }
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            { id: Math.random().toString(36).substring(7), type: 'UPDATE_RECURRING_BILL', payload: { id, updates }, timestamp: Date.now() }
+          ]
+        }));
+      },
+
+      deleteRecurringBillLocal: async (id, skipSync = false) => {
+        set((state) => ({
+          recurringBills: state.recurringBills.filter(b => b.id !== id)
+        }));
+        if (skipSync) return;
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { error } = await supabase.from('recurring_bills').delete().eq('id', id);
+            if (!error) return;
+          }
+        }
+        set((state) => ({
+          pendingMutations: [
+            ...state.pendingMutations,
+            { id: Math.random().toString(36).substring(7), type: 'DELETE_RECURRING_BILL', payload: { id }, timestamp: Date.now() }
+          ]
+        }));
       },
 
       resetStore: () => set(initialState),
