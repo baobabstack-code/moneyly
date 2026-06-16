@@ -782,14 +782,14 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       </div>
                     </div>
 
-                    <div className="mt-4 pt-3 border-t border-white/10 flex justify-end gap-1.5 z-10">
+                    <div className="mt-4 pt-3 border-t border-white/10 flex justify-center sm:justify-end gap-1.5 z-10 w-full">
                       <button 
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleOpenTxModalWithDefaults('income', acc.id);
                         }}
-                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-1.5 rounded-lg flex items-center justify-center gap-0.5 transition-all text-[8px] sm:text-[9px] font-black tracking-wider uppercase flex-1 text-center truncate"
                         title={`Deposit money directly into ${acc.name}`}
                       >
                         <span className="material-symbols-outlined text-[11px] font-black">arrow_downward</span>
@@ -801,7 +801,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                           e.stopPropagation();
                           handleOpenTxModalWithDefaults('expense', acc.id);
                         }}
-                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-1.5 rounded-lg flex items-center justify-center gap-0.5 transition-all text-[8px] sm:text-[9px] font-black tracking-wider uppercase flex-1 text-center truncate"
                         title={`Withdraw money directly from ${acc.name}`}
                       >
                         <span className="material-symbols-outlined text-[11px] font-black">arrow_upward</span>
@@ -814,7 +814,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                             e.stopPropagation();
                             handleOpenTxModalWithDefaults('transfer', acc.id);
                           }}
-                          className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                          className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-1.5 rounded-lg flex items-center justify-center gap-0.5 transition-all text-[8px] sm:text-[9px] font-black tracking-wider uppercase flex-1 text-center truncate"
                           title={`Transfer money from ${acc.name} to another account`}
                         >
                           <span className="material-symbols-outlined text-[11px] font-black">sync</span>

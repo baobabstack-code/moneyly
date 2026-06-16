@@ -5,9 +5,10 @@ import { ThemeToggle } from "../theme-toggle";
 import { createClient } from "@/utils/supabase/client";
 import { useEffect, useMemo, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { getMyProfile, UserProfile } from "@/lib/profile";
 import { useFinanceStore } from "@/lib/financeStore";
+import ProfileEditModal from "@/components/ProfileEditModal";
 
 interface NavbarProps {
   initialUser?: { email: string; displayName: string; avatarUrl?: string } | null;
@@ -19,6 +20,8 @@ export default function Navbar({ initialUser }: NavbarProps) {
   const [authChanged, setAuthChanged] = useState(false);
   const supabase = useMemo(() => createClient(), []);
   const pathname = usePathname();
+  const router = useRouter();
+  const [editSection, setEditSection] = useState<'personal' | null>(null);
 
   const pendingMutations = useFinanceStore(state => state.pendingMutations);
   const syncOfflineData = useFinanceStore(state => state.syncOfflineData);
@@ -139,6 +142,14 @@ export default function Navbar({ initialUser }: NavbarProps) {
               )}
               <button
                 type="button"
+                onClick={() => setEditSection("personal")}
+                className="bg-surface-container-highest text-on-surface p-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center justify-center"
+                title="Profile Settings"
+              >
+                <span className="material-symbols-outlined text-[18px]">settings</span>
+              </button>
+              <button
+                type="button"
                 onClick={handleLogout}
                 className="bg-surface-container-highest text-on-surface px-4 py-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center gap-2"
               >
@@ -164,6 +175,14 @@ export default function Navbar({ initialUser }: NavbarProps) {
           )}
         </div>
       </div>
+      {editSection && (
+        <ProfileEditModal
+          section={editSection}
+          profile={profile ?? null}
+          onClose={() => setEditSection(null)}
+          onSaved={() => { setEditSection(null); router.refresh(); }}
+        />
+      )}
     </nav>
   );
 }
