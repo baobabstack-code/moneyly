@@ -25,6 +25,7 @@ export interface Account {
   balance: number;
   color: string;
   created_at?: string;
+  provider?: string | null;
 }
 
 export interface Category {

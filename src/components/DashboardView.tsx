@@ -93,6 +93,26 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountType, setAccountType] = useState<'checking' | 'savings' | 'credit' | 'cash' | 'mobile'>('checking');
   const [accountBalance, setAccountBalance] = useState('');
   const [accountColor, setAccountColor] = useState('blue');
+  const [walletProvider, setWalletProvider] = useState<string>('');
+
+  const handleProviderChange = (prov: string) => {
+    setWalletProvider(prov);
+    if (prov === 'mpesa') {
+      setAccountColor('red');
+    } else if (prov === 'mtn') {
+      setAccountColor('orange');
+    } else if (prov === 'airtel') {
+      setAccountColor('red');
+    } else if (prov === 'orange') {
+      setAccountColor('orange');
+    } else if (prov === 'ecocash') {
+      setAccountColor('blue');
+    } else if (prov === 'gcash') {
+      setAccountColor('blue');
+    } else if (prov === 'bkash') {
+      setAccountColor('purple');
+    }
+  };
 
   const handleOpenAccountModal = (acc: Account | null = null) => {
     if (acc) {
@@ -101,12 +121,14 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       setAccountType(acc.type);
       setAccountBalance(acc.balance.toString());
       setAccountColor(acc.color);
+      setWalletProvider(acc.provider || '');
     } else {
       setEditingAccount(null);
       setAccountName('');
       setAccountType('checking');
       setAccountBalance('');
       setAccountColor('blue');
+      setWalletProvider('');
     }
     setAccountModalOpen(true);
   };
@@ -122,6 +144,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         type: accountType,
         balance: balanceNum,
         color: accountColor,
+        provider: accountType === 'mobile' ? (walletProvider || null) : null,
       });
     } else {
       await addAccountLocal({
@@ -130,6 +153,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         type: accountType,
         balance: balanceNum,
         color: accountColor,
+        provider: accountType === 'mobile' ? (walletProvider || null) : null,
       });
     }
     setAccountModalOpen(false);
@@ -218,6 +242,20 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       maximumFractionDigits: 2,
     });
     return `${n < 0 ? '-' : ''}${currencySymbol}${v}`;
+  };
+
+  const getProviderName = (p?: string | null) => {
+    const map: Record<string, string> = {
+      mpesa: 'M-Pesa',
+      mtn: 'MTN MoMo',
+      airtel: 'Airtel Money',
+      orange: 'Orange Money',
+      ecocash: 'EcoCash',
+      gcash: 'GCash',
+      bkash: 'bKash',
+      other: 'Mobile Wallet'
+    };
+    return map[p || ''] || '';
   };
 
   const stats = useMemo(() => {
@@ -682,7 +720,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                     <div>
                       <div className="flex justify-between items-start">
                         <div>
-                          <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">{acc.type}</p>
+                          <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">
+                            {acc.type === 'mobile' ? (acc.provider ? `Mobile • ${getProviderName(acc.provider)}` : 'Mobile Wallet') : acc.type}
+                          </p>
                           <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[180px]">{acc.name}</h4>
                         </div>
                         <span className="material-symbols-outlined text-lg opacity-85">
@@ -1204,7 +1244,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                                 <div className="h-2 w-2 rounded-full" style={{ backgroundColor: acc.color === 'blue' ? '#2563eb' : acc.color === 'green' ? '#10b981' : acc.color === 'purple' ? '#9333ea' : acc.color === 'orange' ? '#d97706' : '#e11d48' }} />
                                 {acc.name}
                               </td>
-                              <td className="py-3 font-semibold uppercase tracking-wider text-[10px] text-on-surface-variant">{acc.type}</td>
+                              <td className="py-3 font-semibold uppercase tracking-wider text-[10px] text-on-surface-variant">
+                                {acc.type === 'mobile' ? (acc.provider ? `${acc.type} (${getProviderName(acc.provider)})` : acc.type) : acc.type}
+                              </td>
                               <td className="py-3 font-black text-right">{formatCurrency(acc.balance)}</td>
                               <td className="py-3 font-bold text-right text-on-surface-variant/80">
                                 {transactions.filter(t => t.account_id === acc.id).length} items
@@ -2036,6 +2078,30 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   <option value="mobile">Mobile Wallet (e.g. EcoCash, M-Pesa)</option>
                 </select>
               </div>
+
+              {accountType === 'mobile' && (
+                <div className="animate-in slide-in-from-top-3 duration-250">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                    Mobile Wallet Provider <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    required
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                    value={walletProvider}
+                    onChange={(e) => handleProviderChange(e.target.value)}
+                  >
+                    <option value="">Select Provider</option>
+                    <option value="mpesa">M-Pesa</option>
+                    <option value="mtn">MTN MoMo</option>
+                    <option value="airtel">Airtel Money</option>
+                    <option value="orange">Orange Money</option>
+                    <option value="ecocash">EcoCash</option>
+                    <option value="gcash">GCash</option>
+                    <option value="bkash">bKash</option>
+                    <option value="other">Other / General Wallet</option>
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
