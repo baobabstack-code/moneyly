@@ -95,7 +95,7 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
   return (
     <div className="fixed inset-0 z-100 flex items-center justify-center bg-slate-950/70 p-4 backdrop-blur-md">
       <div 
-        className="w-full max-w-lg overflow-hidden rounded-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 md:p-8"
+        className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 md:p-8"
         data-accent={selectedTheme}
       >
         {/* Progress Header */}

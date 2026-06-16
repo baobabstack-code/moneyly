@@ -188,10 +188,10 @@ export default function QuickTransactionModal({
   return (
     <div className="fixed inset-0 z-100 flex items-end justify-center bg-slate-950/70 p-0 backdrop-blur-md sm:items-center sm:p-4">
       <div 
-        className="w-full rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl"
+        className="w-full max-h-[90vh] flex flex-col rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl"
         data-accent={accentColor}
       >
-        <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+        <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4 shrink-0">
           <h2 className="text-xl font-black text-primary flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary">add_circle</span>
             Add Transaction
@@ -217,7 +217,8 @@ export default function QuickTransactionModal({
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+        <div className="overflow-y-auto flex-1 mt-6 pr-1">
+          <form onSubmit={handleSubmit} className="space-y-5">
           {/* Income / Expense / Savings / Transfer Toggle */}
           <div className="grid grid-cols-4 gap-1.5 rounded-2xl bg-surface-container-low p-1 border border-outline-variant/40" title="Expense logs cash outflows, Income logs inflows, Savings logs funds put aside, and Transfer moves money between accounts.">
             <button
@@ -406,7 +407,8 @@ export default function QuickTransactionModal({
               <span className="material-symbols-outlined text-sm">done</span>
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );

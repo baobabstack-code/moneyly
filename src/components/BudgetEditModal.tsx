@@ -68,10 +68,10 @@ export default function BudgetEditModal({ isOpen, onClose }: Props) {
       onClick={e => { if (e.target === e.currentTarget) onClose() }}
     >
       <div 
-        className="w-full rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl"
+        className="w-full max-h-[90vh] flex flex-col rounded-t-3xl border border-outline-variant bg-surface p-6 shadow-2xl transition-all duration-300 sm:max-w-md sm:rounded-3xl"
         data-accent={accentColor}
       >
-        <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4">
+        <div className="flex items-center justify-between border-b border-outline-variant/30 pb-4 shrink-0">
           <h2 className="text-xl font-black text-primary flex items-center gap-2">
             <span className="material-symbols-outlined text-secondary">tune</span>
             Set Budget Limits
@@ -85,7 +85,8 @@ export default function BudgetEditModal({ isOpen, onClose }: Props) {
           </button>
         </div>
 
-        <form onSubmit={handleSave} className="mt-6 space-y-5">
+        <div className="overflow-y-auto flex-1 mt-6 pr-1">
+          <form onSubmit={handleSave} className="space-y-5">
           <p className="text-xs text-on-surface-variant leading-relaxed">
             Specify spending thresholds. When your expenses exceed these limits in their respective periods, indicators on your dashboard will turn red.
           </p>
@@ -164,7 +165,8 @@ export default function BudgetEditModal({ isOpen, onClose }: Props) {
               <span className="material-symbols-outlined text-sm">done</span>
             </button>
           </div>
-        </form>
+          </form>
+        </div>
       </div>
     </div>
   );
