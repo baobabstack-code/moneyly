@@ -51,7 +51,7 @@ function ProfileSetupContent({
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 py-12 sm:px-6 lg:px-8 font-manrope">
-      <div className="w-full max-w-md space-y-8 bg-surface border border-outline-variant p-8 rounded-3xl shadow-xl">
+      <div className="w-full max-w-md space-y-8 bg-surface border border-outline-variant p-6 sm:p-8 rounded-3xl shadow-xl">
         <div className="text-center">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-secondary/15 text-secondary">
             <span className="material-symbols-outlined text-3xl">account_balance_wallet</span>

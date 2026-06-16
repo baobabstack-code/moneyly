@@ -288,7 +288,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                         </div>
                       </div>
                       
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
                         <div>
                           <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">Budget Cost</label>
                           <input
@@ -448,11 +448,11 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                         </div>
 
                         {/* Management Controls */}
-                        <div className="border-t border-outline-variant/30 pt-4 mt-5 flex justify-end gap-3">
+                        <div className="border-t border-outline-variant/30 pt-4 mt-5 flex flex-col gap-2 sm:flex-row sm:justify-end">
                           <button
                             type="button"
                             onClick={() => handleStartEdit(plan)}
-                            className="rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-secondary flex items-center gap-1.5 hover:bg-surface-container transition-all"
+                            className="w-full sm:w-auto rounded-xl border border-outline-variant px-4 py-2 text-xs font-bold text-secondary flex items-center justify-center gap-1.5 hover:bg-surface-container transition-all"
                           >
                             <span className="material-symbols-outlined text-sm">edit</span>
                             Edit Goal Details
@@ -460,7 +460,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                           <button
                             type="button"
                             onClick={() => handleDelete(plan.id)}
-                            className="rounded-xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 text-xs font-bold text-red-500 flex items-center gap-1.5 transition-all"
+                            className="w-full sm:w-auto rounded-xl border border-red-500/30 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 text-xs font-bold text-red-500 flex items-center justify-center gap-1.5 transition-all"
                           >
                             <span className="material-symbols-outlined text-sm">delete</span>
                             Delete Goal

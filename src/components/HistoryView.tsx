@@ -481,7 +481,7 @@ export default function HistoryView() {
                     }
 
                     return (
-                      <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/40 p-4 border border-outline-variant/20 hover:border-outline-variant/55 transition-all group">
+                      <div key={t.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-surface-container-low/40 p-4 border border-outline-variant/20 hover:border-outline-variant/55 transition-all group">
                         <div className="flex items-center gap-3">
                           <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
                             {t.category_emoji || '🛒'}
@@ -535,8 +535,8 @@ export default function HistoryView() {
                           </div>
                         </div>
 
-                        <div className="flex items-center gap-4">
-                          <div className="text-right">
+                        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t border-outline-variant/10 pt-3 sm:border-t-0 sm:pt-0">
+                          <div className="text-left sm:text-right">
                             <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : t.type === 'transfer' ? 'text-secondary' : 'text-rose-500'}`}>
                               {t.type === 'income' ? '+' : t.type === 'savings' ? '' : t.type === 'transfer' ? '🔄 ' : '-'}{formatCurrency(t.amount)}
                             </p>

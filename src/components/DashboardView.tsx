@@ -1142,7 +1142,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       }
 
                       return (
-                        <div key={t.id} className="flex items-center justify-between rounded-2xl bg-surface-container-low/45 p-4 border border-outline-variant/20 hover:border-outline-variant/60 transition-all group">
+                        <div key={t.id} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl bg-surface-container-low/45 p-4 border border-outline-variant/20 hover:border-outline-variant/60 transition-all group">
                           <div className="flex items-center gap-3">
                             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-surface-container-highest text-xl">
                               {t.category_emoji || '🛒'}
@@ -1196,8 +1196,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                             </div>
                           </div>
                           
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
+                          <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto border-t border-outline-variant/10 pt-3 sm:border-t-0 sm:pt-0">
+                            <div className="text-left sm:text-right">
                               <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : t.type === 'transfer' ? 'text-secondary' : 'text-rose-500'}`}>
                                 {t.type === 'income' ? '+' : t.type === 'savings' ? '' : t.type === 'transfer' ? '🔄 ' : '-'}{formatCurrency(t.amount)}
                               </p>
@@ -2189,30 +2189,32 @@ export default function DashboardView({ email, displayName, profile, initialSpen
               </div>
 
               {/* Action Buttons */}
-              <div className="pt-4 border-t border-outline-variant/30 flex gap-2">
+              <div className="pt-4 border-t border-outline-variant/30 flex flex-col gap-2 sm:flex-row sm:justify-end">
                 {editingAccount && (
                   <button
                     type="button"
                     onClick={() => handleDeleteAccount(editingAccount.id)}
-                    className="px-4 py-3 rounded-xl border border-rose-500/35 hover:bg-rose-500/10 text-rose-500 font-bold text-sm transition-all"
+                    className="w-full sm:w-auto px-4 py-3 rounded-xl border border-rose-500/35 hover:bg-rose-500/10 text-rose-500 font-bold text-sm transition-all"
                   >
                     Delete Card
                   </button>
                 )}
-                <button
-                  type="button"
-                  onClick={() => setAccountModalOpen(false)}
-                  className="px-4 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="flex-grow flex items-center justify-center gap-2 rounded-xl bg-secondary py-3 font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
-                >
-                  {editingAccount ? 'Save Changes' : 'Create Card'}
-                  <span className="material-symbols-outlined text-sm">done</span>
-                </button>
+                <div className="flex gap-2 sm:flex-grow">
+                  <button
+                    type="button"
+                    onClick={() => setAccountModalOpen(false)}
+                    className="flex-1 sm:flex-initial px-4 py-3 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="flex-grow flex items-center justify-center gap-2 rounded-xl bg-secondary py-3 font-bold text-on-secondary shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95"
+                  >
+                    {editingAccount ? 'Save Changes' : 'Create Card'}
+                    <span className="material-symbols-outlined text-sm">done</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

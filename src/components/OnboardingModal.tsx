@@ -288,53 +288,57 @@ export default function OnboardingModal({ user_id }: { user_id: string }) {
             {/* Custom Category Adder */}
             <div className="mt-4 rounded-2xl border border-outline-variant/60 bg-surface-container/50 p-4">
               <p className="text-xs font-black uppercase tracking-wider text-on-surface-variant/80">Add Custom Category</p>
-              <div className="mt-3 flex gap-2">
-                <select
-                  value={customEmoji}
-                  onChange={(e) => setCustomEmoji(e.target.value)}
-                  className="rounded-xl border border-outline-variant bg-surface px-2.5 py-2 text-lg focus:outline-none focus:border-secondary"
-                >
-                  <option value="💰">💰</option>
-                  <option value="🍔">🍔</option>
-                  <option value="🛍️">🛍️</option>
-                  <option value="🚗">🚗</option>
-                  <option value="💡">💡</option>
-                  <option value="🎬">🎬</option>
-                  <option value="🏥">🏥</option>
-                  <option value="💻">💻</option>
-                  <option value="📈">📈</option>
-                  <option value="🎁">🎁</option>
-                  <option value="✈️">✈️</option>
-                  <option value="📚">📚</option>
-                  <option value="🏠">🏠</option>
-                  <option value="🏋️">🏋️</option>
-                </select>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:flex sm:gap-2">
+                <div className="flex gap-2 col-span-2 sm:col-span-auto sm:flex-1">
+                  <select
+                    value={customEmoji}
+                    onChange={(e) => setCustomEmoji(e.target.value)}
+                    className="rounded-xl border border-outline-variant bg-surface px-2.5 py-2 text-lg focus:outline-none focus:border-secondary"
+                  >
+                    <option value="💰">💰</option>
+                    <option value="🍔">🍔</option>
+                    <option value="🛍️">🛍️</option>
+                    <option value="🚗">🚗</option>
+                    <option value="💡">💡</option>
+                    <option value="🎬">🎬</option>
+                    <option value="🏥">🏥</option>
+                    <option value="💻">💻</option>
+                    <option value="📈">📈</option>
+                    <option value="🎁">🎁</option>
+                    <option value="✈️">✈️</option>
+                    <option value="📚">📚</option>
+                    <option value="🏠">🏠</option>
+                    <option value="🏋️">🏋️</option>
+                  </select>
 
-                <input
-                  type="text"
-                  placeholder="Category Name"
-                  value={customName}
-                  onChange={(e) => setCustomName(e.target.value)}
-                  className="flex-1 rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:border-secondary"
-                />
+                  <input
+                    type="text"
+                    placeholder="Category Name"
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    className="flex-1 min-w-0 rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none focus:border-secondary"
+                  />
+                </div>
 
-                <select
-                  value={customType}
-                  onChange={(e) => setCustomType(e.target.value as any)}
-                  className="rounded-xl border border-outline-variant bg-surface px-2.5 py-2 text-xs font-bold text-on-surface-variant focus:outline-none focus:border-secondary"
-                >
-                  <option value="expense">Expense</option>
-                  <option value="income">Income</option>
-                  <option value="savings">Savings</option>
-                </select>
+                <div className="flex gap-2 col-span-2 sm:col-span-auto">
+                  <select
+                    value={customType}
+                    onChange={(e) => setCustomType(e.target.value as any)}
+                    className="flex-1 sm:flex-initial rounded-xl border border-outline-variant bg-surface px-2.5 py-2 text-xs font-bold text-on-surface-variant focus:outline-none focus:border-secondary"
+                  >
+                    <option value="expense">Expense</option>
+                    <option value="income">Income</option>
+                    <option value="savings">Savings</option>
+                  </select>
 
-                <button
-                  type="button"
-                  onClick={handleAddCustomCategory}
-                  className="rounded-xl bg-secondary px-3 text-on-secondary font-bold hover:opacity-90 active:scale-95"
-                >
-                  Add
-                </button>
+                  <button
+                    type="button"
+                    onClick={handleAddCustomCategory}
+                    className="px-4 py-2 rounded-xl bg-secondary text-on-secondary font-bold hover:opacity-90 active:scale-95"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
             </div>
 

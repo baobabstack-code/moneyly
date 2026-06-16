@@ -163,7 +163,7 @@ export default function QuickTransactionModal({
             <button
               type="button"
               onClick={() => setType('expense')}
-              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+              className={`rounded-xl py-2.5 text-[10px] sm:text-xs font-black transition-all ${
                 type === 'expense'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
@@ -174,7 +174,7 @@ export default function QuickTransactionModal({
             <button
               type="button"
               onClick={() => setType('income')}
-              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+              className={`rounded-xl py-2.5 text-[10px] sm:text-xs font-black transition-all ${
                 type === 'income'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
@@ -185,7 +185,7 @@ export default function QuickTransactionModal({
             <button
               type="button"
               onClick={() => setType('savings')}
-              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+              className={`rounded-xl py-2.5 text-[10px] sm:text-xs font-black transition-all ${
                 type === 'savings'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
@@ -196,7 +196,7 @@ export default function QuickTransactionModal({
             <button
               type="button"
               onClick={() => setType('transfer')}
-              className={`rounded-xl py-2.5 text-xs font-black transition-all ${
+              className={`rounded-xl py-2.5 text-[10px] sm:text-xs font-black transition-all ${
                 type === 'transfer'
                   ? 'bg-secondary text-on-secondary shadow-md'
                   : 'text-on-surface-variant hover:text-primary'
