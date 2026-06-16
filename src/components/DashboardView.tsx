@@ -24,7 +24,28 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [txModalOpen, setTxModalOpen] = useState(false);
-  const [quickFilter, setQuickFilter] = useState<'all' | 'expense' | 'income' | 'savings'>('all');
+  const [txModalDefaultType, setTxModalDefaultType] = useState<'expense' | 'income' | 'savings' | 'transfer' | undefined>(undefined);
+  const [txModalDefaultAccountId, setTxModalDefaultAccountId] = useState<string | undefined>(undefined);
+  const [txModalDefaultToAccountId, setTxModalDefaultToAccountId] = useState<string | undefined>(undefined);
+
+  const handleOpenTxModalWithDefaults = (
+    type?: 'expense' | 'income' | 'savings' | 'transfer',
+    accountId?: string,
+    toAccountId?: string
+  ) => {
+    setTxModalDefaultType(type);
+    setTxModalDefaultAccountId(accountId);
+    setTxModalDefaultToAccountId(toAccountId);
+    setTxModalOpen(true);
+  };
+
+  const handleCloseTxModal = () => {
+    setTxModalOpen(false);
+    setTxModalDefaultType(undefined);
+    setTxModalDefaultAccountId(undefined);
+    setTxModalDefaultToAccountId(undefined);
+  };
+  const [quickFilter, setQuickFilter] = useState<'all' | 'expense' | 'income' | 'savings' | 'transfer'>('all');
   const [hoveredPoint, setHoveredPoint] = useState<{ x: number; y: number; balance: number; date: Date } | null>(null);
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [editValue, setEditValue] = useState<string>('');
@@ -33,6 +54,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [editTxNote, setEditTxNote] = useState('');
   const [editTxCategoryId, setEditTxCategoryId] = useState<number | null>(null);
   const [editTxDate, setEditTxDate] = useState('');
+  const [editTxAccountId, setEditTxAccountId] = useState<string | null>(null);
+  const [editTxToAccountId, setEditTxToAccountId] = useState<string | null>(null);
 
   // Zustand Store Hooks
   const setTransactions = useFinanceStore(state => state.setTransactions);
@@ -507,22 +530,40 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     setEditTxCategoryId(t.category_id || null);
     setEditTxDate(new Date(t.date).toISOString().substring(0, 10));
     setEditTxSpendingPlanId(t.spending_plan_id || null);
+    setEditTxAccountId(t.account_id || null);
+    setEditTxToAccountId(t.to_account_id || null);
   };
 
   const handleSaveEditTx = async (id: string) => {
     const amountNum = parseFloat(editTxAmount);
     if (isNaN(amountNum) || amountNum <= 0) return;
 
+    const tx = transactions.find(t => t.id === id);
+    const isTransfer = tx?.type === 'transfer';
+
+    if (isTransfer) {
+      if (!editTxAccountId || !editTxToAccountId) {
+        addNotification("Please select both source and destination accounts for the transfer.", "error");
+        return;
+      }
+      if (editTxAccountId === editTxToAccountId) {
+        addNotification("From and To accounts must be different.", "error");
+        return;
+      }
+    }
+
     const selectedCategory = categories.find(c => c.id === editTxCategoryId);
 
     await updateTransactionLocal(id, {
       amount: amountNum,
       note: editTxNote.trim() || null,
-      category_id: editTxCategoryId,
-      category_name: selectedCategory?.name || null,
-      category_emoji: selectedCategory?.emoji || null,
+      category_id: isTransfer ? null : editTxCategoryId,
+      category_name: isTransfer ? 'Transfer' : (selectedCategory?.name || null),
+      category_emoji: isTransfer ? '🔄' : (selectedCategory?.emoji || null),
       date: new Date(editTxDate).toISOString(),
-      spending_plan_id: editTxSpendingPlanId || null,
+      spending_plan_id: isTransfer ? null : (editTxSpendingPlanId || null),
+      account_id: editTxAccountId || null,
+      to_account_id: isTransfer ? editTxToAccountId : null,
     });
 
     setEditingTxId(null);
@@ -629,33 +670,76 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   mobile: 'phone_android'
                 };
 
-                return (
+                 return (
                   <div 
                     key={acc.id}
                     onClick={() => handleOpenAccountModal(acc)}
-                    className={`relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border ${theme.border} ${theme.bg} ${theme.text} shadow-lg ${theme.shadow} transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden snap-start`}
+                    className={`relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border ${theme.border} ${theme.bg} ${theme.text} shadow-lg ${theme.shadow} transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden snap-start flex flex-col justify-between min-h-[175px]`}
                   >
                     <div className="absolute right-0 bottom-0 translate-x-1/4 translate-y-1/4 h-24 w-24 rounded-full bg-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
                     <div className="absolute left-0 top-0 -translate-x-1/4 -translate-y-1/4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
 
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">{acc.type}</p>
-                        <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[180px]">{acc.name}</h4>
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">{acc.type}</p>
+                          <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[180px]">{acc.name}</h4>
+                        </div>
+                        <span className="material-symbols-outlined text-lg opacity-85">
+                          {typeIconMap[acc.type] || 'credit_card'}
+                        </span>
                       </div>
-                      <span className="material-symbols-outlined text-lg opacity-85">
-                        {typeIconMap[acc.type] || 'credit_card'}
-                      </span>
+
+                      <div className="mt-4 flex justify-between items-end">
+                        <div>
+                          <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
+                          <p className="text-base font-black tracking-tight mt-0.5">{formatCurrency(acc.balance)}</p>
+                        </div>
+                        <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
+                          <span className="material-symbols-outlined text-xs text-amber-200 opacity-60">grid_3x3</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-5 flex justify-between items-end">
-                      <div>
-                        <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
-                        <p className="text-lg font-black tracking-tight mt-0.5">{formatCurrency(acc.balance)}</p>
-                      </div>
-                      <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
-                        <span className="material-symbols-outlined text-xs text-amber-200 opacity-60">grid_3x3</span>
-                      </div>
+                    <div className="mt-4 pt-3 border-t border-white/10 flex justify-end gap-1.5 z-10">
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenTxModalWithDefaults('income', acc.id);
+                        }}
+                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                        title={`Deposit money directly into ${acc.name}`}
+                      >
+                        <span className="material-symbols-outlined text-[11px] font-black">arrow_downward</span>
+                        Deposit
+                      </button>
+                      <button 
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleOpenTxModalWithDefaults('expense', acc.id);
+                        }}
+                        className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                        title={`Withdraw money directly from ${acc.name}`}
+                      >
+                        <span className="material-symbols-outlined text-[11px] font-black">arrow_upward</span>
+                        Withdraw
+                      </button>
+                      {accounts.length > 1 && (
+                        <button 
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleOpenTxModalWithDefaults('transfer', acc.id);
+                          }}
+                          className="backdrop-blur-md bg-white/10 border border-white/15 text-white/95 hover:text-white hover:bg-white/20 hover:border-white/25 active:scale-95 py-1 px-2 rounded-lg flex items-center gap-0.5 transition-all text-[9px] font-black tracking-wider uppercase"
+                          title={`Transfer money from ${acc.name} to another account`}
+                        >
+                          <span className="material-symbols-outlined text-[11px] font-black">sync</span>
+                          Transfer
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -664,7 +748,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
               {/* Add Card horizontal card placeholder */}
               <div 
                 onClick={() => handleOpenAccountModal()}
-                className="relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border-2 border-dashed border-outline-variant/60 bg-surface/30 hover:bg-surface/50 hover:border-secondary/50 text-on-surface-variant hover:text-primary transition-all duration-300 flex flex-col items-center justify-center cursor-pointer snap-start min-h-[140px] group"
+                className="relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border-2 border-dashed border-outline-variant/60 bg-surface/30 hover:bg-surface/50 hover:border-secondary/50 text-on-surface-variant hover:text-primary transition-all duration-300 flex flex-col items-center justify-center cursor-pointer snap-start min-h-[175px] group"
               >
                 <span className="material-symbols-outlined text-3xl mb-1 text-on-surface-variant/45 group-hover:scale-110 transition-transform">add_circle</span>
                 <span className="text-xs font-bold">Link New Card</span>
@@ -772,7 +856,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   </div>
                   {profile?.id && (
                     <button
-                      onClick={() => setTxModalOpen(true)}
+                      onClick={() => handleOpenTxModalWithDefaults()}
                       className="rounded-xl bg-secondary px-4 py-2 text-xs font-bold text-on-secondary shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center gap-1.5"
                     >
                       <span className="material-symbols-outlined text-sm font-black">add</span>
@@ -781,10 +865,10 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   )}
                 </div>
 
-                {/* Quick Filter Toggle */}
+                 {/* Quick Filter Toggle */}
                 {sortedTransactions.length > 0 && (
-                  <div className="mb-4 flex gap-1 rounded-xl bg-surface-container-low p-0.5 border border-outline-variant/30 w-fit">
-                    {(['all', 'expense', 'income', 'savings'] as const).map((filter) => (
+                  <div className="mb-4 flex gap-1 rounded-xl bg-surface-container-low p-0.5 border border-outline-variant/30 w-fit flex-wrap">
+                    {(['all', 'expense', 'income', 'savings', 'transfer'] as const).map((filter) => (
                       <button
                         key={filter}
                         type="button"
@@ -795,7 +879,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                             : 'text-on-surface-variant hover:text-primary'
                         }`}
                       >
-                        {filter === 'expense' ? 'Expenses' : filter === 'income' ? 'Income' : filter === 'savings' ? 'Savings' : 'All'}
+                        {filter === 'expense' ? 'Expenses' : filter === 'income' ? 'Income' : filter === 'savings' ? 'Savings' : filter === 'transfer' ? 'Transfers' : 'All'}
                       </button>
                     ))}
                   </div>
@@ -839,48 +923,120 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                               </div>
                             </div>
 
-                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                              {/* Memo */}
-                              <div>
+                            {/* Transfer Accounts */}
+                            {t.type === 'transfer' ? (
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">From Account / Card</label>
+                                  <select
+                                    value={editTxAccountId || ''}
+                                    onChange={(e) => setEditTxAccountId(e.target.value || null)}
+                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                  >
+                                    <option value="">Select From Account</option>
+                                    {accounts.map((acc) => (
+                                      <option key={acc.id} value={acc.id}>
+                                        {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                                <div>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">To Account / Card</label>
+                                  <select
+                                    value={editTxToAccountId || ''}
+                                    onChange={(e) => setEditTxToAccountId(e.target.value || null)}
+                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                  >
+                                    <option value="">Select To Account</option>
+                                    {accounts.map((acc) => (
+                                      <option key={acc.id} value={acc.id}>
+                                        {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+                            ) : (
+                              <>
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                  {/* Memo */}
+                                  <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
+                                    <input
+                                      type="text"
+                                      value={editTxNote}
+                                      onChange={(e) => setEditTxNote(e.target.value)}
+                                      className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none"
+                                    />
+                                  </div>
+                                  {/* Category */}
+                                  <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
+                                    <select
+                                      value={editTxCategoryId || ''}
+                                      onChange={(e) => setEditTxCategoryId(parseInt(e.target.value) || null)}
+                                      className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                    >
+                                      <option value="">Select Category</option>
+                                      {categories.filter(c => c.type === t.type).map((c) => (
+                                        <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-1">
+                                  {/* Linked Account (Optional) */}
+                                  {accounts.length > 0 && (
+                                    <div>
+                                      <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Card / Account (Optional)</label>
+                                      <select
+                                        value={editTxAccountId || ''}
+                                        onChange={(e) => setEditTxAccountId(e.target.value || null)}
+                                        className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                      >
+                                        <option value="">Do Not Link</option>
+                                        {accounts.map((acc) => (
+                                          <option key={acc.id} value={acc.id}>
+                                            {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                          </option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  )}
+
+                                  {/* Linked Goal (Optional) */}
+                                  {spendingPlans.length > 0 && (
+                                    <div>
+                                      <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
+                                      <select
+                                        value={editTxSpendingPlanId || ''}
+                                        onChange={(e) => setEditTxSpendingPlanId(e.target.value || null)}
+                                        className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                      >
+                                        <option value="">Do Not Link</option>
+                                        {spendingPlans.map((plan) => (
+                                          <option key={plan.id} value={plan.id}>{plan.product_name}</option>
+                                        ))}
+                                      </select>
+                                    </div>
+                                  )}
+                                </div>
+                              </>
+                            )}
+
+                            {/* Note / Memo field when it IS a transfer */}
+                            {t.type === 'transfer' && (
+                              <div className="mt-1">
                                 <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
                                 <input
                                   type="text"
                                   value={editTxNote}
                                   onChange={(e) => setEditTxNote(e.target.value)}
                                   className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none"
+                                  placeholder="E.g., Monthly savings transfer"
                                 />
-                              </div>
-                              {/* Category */}
-                              <div>
-                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
-                                <select
-                                  value={editTxCategoryId || ''}
-                                  onChange={(e) => setEditTxCategoryId(parseInt(e.target.value) || null)}
-                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
-                                >
-                                  <option value="">Select Category</option>
-                                  {categories.filter(c => c.type === t.type).map((c) => (
-                                    <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
-                                  ))}
-                                </select>
-                              </div>
-                            </div>
-
-                            {spendingPlans.length > 0 && (
-                              <div className="grid grid-cols-1 mt-1">
-                                <div>
-                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
-                                  <select
-                                    value={editTxSpendingPlanId || ''}
-                                    onChange={(e) => setEditTxSpendingPlanId(e.target.value || null)}
-                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
-                                  >
-                                    <option value="">Do Not Link</option>
-                                    {spendingPlans.map((plan) => (
-                                      <option key={plan.id} value={plan.id}>{plan.product_name}</option>
-                                    ))}
-                                  </select>
-                                </div>
                               </div>
                             )}
 
@@ -913,9 +1069,36 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                             <div>
                               <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
                               <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
-                                <span>{t.category_name || t.type}</span>
+                                {t.type === 'transfer' ? (
+                                  (() => {
+                                    const fromAcc = accounts.find(a => a.id === t.account_id);
+                                    const toAcc = accounts.find(a => a.id === t.to_account_id);
+                                    return (
+                                      <span className="text-secondary font-bold flex items-center gap-1 normal-case">
+                                        <span className="font-extrabold uppercase text-[10px] text-on-surface-variant mr-1">Transfer</span>
+                                        {fromAcc?.name || 'Unknown'}
+                                        <span className="material-symbols-outlined text-[12px] font-black text-secondary">arrow_forward</span>
+                                        {toAcc?.name || 'Unknown'}
+                                      </span>
+                                    );
+                                  })()
+                                ) : (
+                                  <span>{t.category_name || t.type}</span>
+                                )}
                                 <span className="opacity-40">•</span>
                                 <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short' })}</span>
+                                {t.type !== 'transfer' && t.account_id && (() => {
+                                  const account = accounts.find(a => a.id === t.account_id);
+                                  return account ? (
+                                    <>
+                                      <span className="opacity-40">•</span>
+                                      <span className="text-primary font-bold flex items-center gap-0.5 normal-case px-1.5 py-0.5 rounded border border-outline-variant/35 bg-surface-container-low" title="This transaction is linked to a bank card or cash account.">
+                                        <span className="material-symbols-outlined text-[11px] font-black">credit_card</span>
+                                        {account.name}
+                                      </span>
+                                    </>
+                                  ) : null;
+                                })()}
                                 {t.spending_plan_id && (() => {
                                   const plan = spendingPlans.find(p => p.id === t.spending_plan_id);
                                   return plan ? (
@@ -934,8 +1117,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                           
                           <div className="flex items-center gap-4">
                             <div className="text-right">
-                              <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
-                                {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                              <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : t.type === 'transfer' ? 'text-secondary' : 'text-rose-500'}`}>
+                                {t.type === 'income' ? '+' : t.type === 'savings' ? '' : t.type === 'transfer' ? '🔄 ' : '-'}{formatCurrency(t.amount)}
                               </p>
                             </div>
                             
@@ -1784,7 +1967,10 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         <QuickTransactionModal
           user_id={profile.id}
           isOpen={txModalOpen}
-          onClose={() => setTxModalOpen(false)}
+          onClose={handleCloseTxModal}
+          defaultType={txModalDefaultType}
+          defaultAccountId={txModalDefaultAccountId}
+          defaultToAccountId={txModalDefaultToAccountId}
         />
       )}
       {budgetModalOpen && (

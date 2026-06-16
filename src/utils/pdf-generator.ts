@@ -127,7 +127,7 @@ export interface StatementPdfData {
     date: string;
     note?: string | null;
     category_name?: string | null;
-    type: 'expense' | 'income' | 'savings';
+    type: 'expense' | 'income' | 'savings' | 'transfer';
     amount: number;
   }>;
   startingBalance: number;
@@ -210,7 +210,7 @@ export async function generateStatementPDF(data: StatementPdfData) {
     new Date(t.date).toLocaleDateString(),
     t.note || t.category_name || 'Uncategorized',
     t.type.toUpperCase(),
-    t.type === 'income' ? `+${formatVal(t.amount)}` : t.type === 'expense' ? `-${formatVal(t.amount)}` : formatVal(t.amount)
+    t.type === 'income' ? `+${formatVal(t.amount)}` : t.type === 'expense' ? `-${formatVal(t.amount)}` : t.type === 'transfer' ? `🔄 ${formatVal(t.amount)}` : formatVal(t.amount)
   ]);
 
   autoTable(doc, {

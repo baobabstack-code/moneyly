@@ -15,7 +15,7 @@ export default function HistoryView() {
   const accounts = useFinanceStore(state => state.accounts);
 
   const [search, setSearch] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings'>('all');
+  const [filterType, setFilterType] = useState<'all' | 'income' | 'expense' | 'savings' | 'transfer'>('all');
   const [filterCategory, setFilterCategory] = useState<string>('all');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
@@ -28,6 +28,7 @@ export default function HistoryView() {
   const [editDate, setEditDate] = useState('');
   const [editSpendingPlanId, setEditSpendingPlanId] = useState<string | null>(null);
   const [editAccountId, setEditAccountId] = useState<string | null>(null);
+  const [editToAccountId, setEditToAccountId] = useState<string | null>(null);
   const spendingPlans = useFinanceStore(state => state.spendingPlans);
 
   const currencySymbol = useMemo(() => {
@@ -77,23 +78,39 @@ export default function HistoryView() {
     setEditDate(new Date(t.date).toISOString().substring(0, 10));
     setEditSpendingPlanId(t.spending_plan_id || null);
     setEditAccountId(t.account_id || null);
+    setEditToAccountId(t.to_account_id || null);
   };
 
   const handleSaveEdit = async (id: string) => {
     const amountNum = parseFloat(editAmount);
     if (isNaN(amountNum) || amountNum <= 0) return;
 
+    const tx = transactions.find(t => t.id === id);
+    const isTransfer = tx?.type === 'transfer';
+
+    if (isTransfer) {
+      if (!editAccountId || !editToAccountId) {
+        alert("Please select both source and destination accounts for the transfer.");
+        return;
+      }
+      if (editAccountId === editToAccountId) {
+        alert("From and To accounts must be different.");
+        return;
+      }
+    }
+
     const selectedCategory = categories.find(c => c.id === editCategoryId);
 
     await updateTransactionLocal(id, {
       amount: amountNum,
       note: editNote.trim() || null,
-      category_id: editCategoryId,
-      category_name: selectedCategory?.name || null,
-      category_emoji: selectedCategory?.emoji || null,
+      category_id: isTransfer ? null : editCategoryId,
+      category_name: isTransfer ? 'Transfer' : (selectedCategory?.name || null),
+      category_emoji: isTransfer ? '🔄' : (selectedCategory?.emoji || null),
       date: new Date(editDate).toISOString(),
-      spending_plan_id: editSpendingPlanId || null,
+      spending_plan_id: isTransfer ? null : (editSpendingPlanId || null),
       account_id: editAccountId || null,
+      to_account_id: isTransfer ? editToAccountId : null,
     });
 
     setEditingId(null);
@@ -227,7 +244,7 @@ export default function HistoryView() {
               <div className="space-y-1.5">
                 <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant/80">Transaction Type</label>
                 <div className="grid grid-cols-2 gap-1.5 bg-surface-container-low p-1 rounded-2xl border border-outline-variant/40">
-                  {(['all', 'income', 'expense', 'savings'] as const).map((type) => (
+                  {(['all', 'income', 'expense', 'savings', 'transfer'] as const).map((type) => (
                     <button
                       key={type}
                       onClick={() => setFilterType(type)}
@@ -235,7 +252,7 @@ export default function HistoryView() {
                         filterType === type
                           ? 'bg-secondary text-on-secondary shadow-md'
                           : 'text-on-surface-variant hover:text-primary'
-                      }`}
+                      } ${type === 'all' ? 'col-span-2' : ''}`}
                     >
                       {type}
                     </button>
@@ -326,66 +343,120 @@ export default function HistoryView() {
                             </div>
                           </div>
 
-                          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                            {/* Memo */}
-                            <div>
+                          {/* Transfer Accounts */}
+                          {t.type === 'transfer' ? (
+                            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">From Account / Card</label>
+                                <select
+                                  value={editAccountId || ''}
+                                  onChange={(e) => setEditAccountId(e.target.value || null)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                >
+                                  <option value="">Select From Account</option>
+                                  {accounts.map((acc) => (
+                                    <option key={acc.id} value={acc.id}>
+                                      {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div>
+                                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">To Account / Card</label>
+                                <select
+                                  value={editToAccountId || ''}
+                                  onChange={(e) => setEditToAccountId(e.target.value || null)}
+                                  className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold focus:outline-none"
+                                >
+                                  <option value="">Select To Account</option>
+                                  {accounts.map((acc) => (
+                                    <option key={acc.id} value={acc.id}>
+                                      {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                {/* Memo */}
+                                <div>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
+                                  <input
+                                    type="text"
+                                    value={editNote}
+                                    onChange={(e) => setEditNote(e.target.value)}
+                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
+                                  />
+                                </div>
+                                {/* Category */}
+                                <div>
+                                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
+                                  <select
+                                    value={editCategoryId || ''}
+                                    onChange={(e) => setEditCategoryId(parseInt(e.target.value) || null)}
+                                    className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                                  >
+                                    <option value="">Select Category</option>
+                                    {categories.filter(c => c.type === t.type).map((c) => (
+                                      <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                                    ))}
+                                  </select>
+                                </div>
+                              </div>
+
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 mt-1">
+                                {/* Linked Card / Account */}
+                                {accounts.length > 0 && (
+                                  <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Card / Account (Optional)</label>
+                                    <select
+                                      value={editAccountId || ''}
+                                      onChange={(e) => setEditAccountId(e.target.value || null)}
+                                      className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                                    >
+                                      <option value="">Do Not Link</option>
+                                      {accounts.map((acc) => (
+                                        <option key={acc.id} value={acc.id}>
+                                          {acc.name} ({acc.type}) — {formatCurrency(acc.balance)}
+                                        </option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+
+                                {/* Linked Goal / Milestone */}
+                                {spendingPlans.length > 0 && (
+                                  <div>
+                                    <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
+                                    <select
+                                      value={editSpendingPlanId || ''}
+                                      onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
+                                      className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
+                                    >
+                                      <option value="">Do Not Link</option>
+                                      {spendingPlans.map((plan) => (
+                                        <option key={plan.id} value={plan.id}>{plan.product_name}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          )}
+
+                          {/* Note / Memo field when it IS a transfer */}
+                          {t.type === 'transfer' && (
+                            <div className="mt-1">
                               <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Note / Memo</label>
                               <input
                                 type="text"
                                 value={editNote}
                                 onChange={(e) => setEditNote(e.target.value)}
-                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary"
+                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2 text-sm text-primary focus:outline-none"
+                                placeholder="E.g., Monthly savings transfer"
                               />
-                            </div>
-                            {/* Category */}
-                            <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Category</label>
-                              <select
-                                value={editCategoryId || ''}
-                                onChange={(e) => setEditCategoryId(parseInt(e.target.value) || null)}
-                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
-                              >
-                                <option value="">Select Category</option>
-                                {categories.filter(c => c.type === t.type).map((c) => (
-                                  <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
-                                ))}
-                              </select>
-                            </div>
-                          </div>
-
-                          {/* Card / Account Link */}
-                          {accounts.length > 0 && (
-                            <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Card / Account (Optional)</label>
-                              <select
-                                value={editAccountId || ''}
-                                onChange={(e) => setEditAccountId(e.target.value || null)}
-                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
-                              >
-                                <option value="">Do Not Link</option>
-                                {accounts.map((acc) => (
-                                  <option key={acc.id} value={acc.id}>
-                                    {acc.name} ({acc.type}) — {currencySymbol}{acc.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
-                          )}
-
-                          {/* Spending Plan Link */}
-                          {spendingPlans.length > 0 && (
-                            <div>
-                              <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">Linked Goal / Milestone (Optional)</label>
-                              <select
-                                value={editSpendingPlanId || ''}
-                                onChange={(e) => setEditSpendingPlanId(e.target.value || null)}
-                                className="mt-1.5 w-full rounded-xl border border-outline-variant bg-surface px-3 py-2.5 text-sm text-primary font-bold"
-                              >
-                                <option value="">Do Not Link</option>
-                                {spendingPlans.map((plan) => (
-                                  <option key={plan.id} value={plan.id}>{plan.product_name}</option>
-                                ))}
-                              </select>
                             </div>
                           )}
 
@@ -418,10 +489,25 @@ export default function HistoryView() {
                           <div>
                             <p className="text-sm font-bold text-primary">{t.note || t.category_name || 'Uncategorized'}</p>
                             <div className="flex flex-wrap items-center gap-2 mt-0.5 text-[10px] text-on-surface-variant font-semibold uppercase tracking-wider">
-                              <span>{t.category_name || t.type}</span>
+                              {t.type === 'transfer' ? (
+                                (() => {
+                                  const fromAcc = accounts.find(a => a.id === t.account_id);
+                                  const toAcc = accounts.find(a => a.id === t.to_account_id);
+                                  return (
+                                    <span className="text-secondary font-bold flex items-center gap-1 normal-case">
+                                      <span className="font-extrabold uppercase text-[10px] text-on-surface-variant mr-1">Transfer</span>
+                                      {fromAcc?.name || 'Unknown'}
+                                      <span className="material-symbols-outlined text-[12px] font-black text-secondary">arrow_forward</span>
+                                      {toAcc?.name || 'Unknown'}
+                                    </span>
+                                  );
+                                })()
+                              ) : (
+                                <span>{t.category_name || t.type}</span>
+                              )}
                               <span className="opacity-40">•</span>
                               <span>{new Date(t.date).toLocaleDateString([], { day: 'numeric', month: 'short', year: 'numeric' })}</span>
-                              {t.account_id && (() => {
+                              {t.type !== 'transfer' && t.account_id && (() => {
                                 const account = accounts.find(a => a.id === t.account_id);
                                 return account ? (
                                   <>
@@ -451,8 +537,8 @@ export default function HistoryView() {
 
                         <div className="flex items-center gap-4">
                           <div className="text-right">
-                            <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : 'text-rose-500'}`}>
-                              {t.type === 'income' ? '+' : t.type === 'savings' ? '' : '-'}{formatCurrency(t.amount)}
+                            <p className={`text-sm font-black ${t.type === 'income' ? 'text-emerald-500' : t.type === 'savings' ? 'text-blue-500' : t.type === 'transfer' ? 'text-secondary' : 'text-rose-500'}`}>
+                              {t.type === 'income' ? '+' : t.type === 'savings' ? '' : t.type === 'transfer' ? '🔄 ' : '-'}{formatCurrency(t.amount)}
                             </p>
                           </div>
                           

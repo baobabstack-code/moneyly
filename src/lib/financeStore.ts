@@ -5,7 +5,7 @@ export interface Transaction {
   id: string;
   user_id: string;
   amount: number;
-  type: 'expense' | 'income' | 'savings';
+  type: 'expense' | 'income' | 'savings' | 'transfer';
   category_id?: number | null;
   category_name?: string | null;
   category_emoji?: string | null;
@@ -14,6 +14,7 @@ export interface Transaction {
   created_at?: string;
   spending_plan_id?: string | null;
   account_id?: string | null;
+  to_account_id?: string | null;
 }
 
 export interface Account {
@@ -285,12 +286,29 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmt = parseFloat(newTx.amount as any) || 0;
             let newBal = currentBal;
             if (targetAcc.type === 'credit') {
-              // Expense on a credit card increases the debt balance; income/savings decreases it
-              newBal = newTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+              // Expense or transfer-out on a credit card increases the debt balance; income/savings/transfer-in decreases it
+              newBal = (newTx.type === 'expense' || newTx.type === 'transfer') ? currentBal + txAmt : currentBal - txAmt;
             } else {
-              newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+              newBal = (newTx.type === 'expense' || newTx.type === 'transfer') ? currentBal - txAmt : currentBal + txAmt;
             }
             await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
+          }
+        }
+
+        // Adjust transfer destination account balance
+        if (newTx.type === 'transfer' && newTx.to_account_id) {
+          const accs = get().accounts; // Read again to get updated balance
+          const destAcc = accs.find(a => a.id === newTx.to_account_id);
+          if (destAcc) {
+            const currentBal = parseFloat(destAcc.balance as any) || 0;
+            const txAmt = parseFloat(newTx.amount as any) || 0;
+            let newBal = currentBal;
+            if (destAcc.type === 'credit') {
+              newBal = currentBal - txAmt;
+            } else {
+              newBal = currentBal + txAmt;
+            }
+            await get().updateAccountLocal(destAcc.id, { balance: newBal }, skipSync);
           }
         }
 
@@ -352,12 +370,28 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmt = parseFloat(tx.amount as any) || 0;
             let revertedBal = currentBal;
             if (targetAcc.type === 'credit') {
-              // Revert credit balance: expense decreases debt; income/savings increases it
-              revertedBal = tx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+              revertedBal = (tx.type === 'expense' || tx.type === 'transfer') ? currentBal - txAmt : currentBal + txAmt;
             } else {
-              revertedBal = tx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+              revertedBal = (tx.type === 'expense' || tx.type === 'transfer') ? currentBal + txAmt : currentBal - txAmt;
             }
             await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
+          }
+        }
+
+        // Revert transfer destination account balance
+        if (tx && tx.type === 'transfer' && tx.to_account_id) {
+          const accs = get().accounts;
+          const destAcc = accs.find(a => a.id === tx.to_account_id);
+          if (destAcc) {
+            const currentBal = parseFloat(destAcc.balance as any) || 0;
+            const txAmt = parseFloat(tx.amount as any) || 0;
+            let revertedBal = currentBal;
+            if (destAcc.type === 'credit') {
+              revertedBal = currentBal + txAmt;
+            } else {
+              revertedBal = currentBal - txAmt;
+            }
+            await get().updateAccountLocal(destAcc.id, { balance: revertedBal }, skipSync);
           }
         }
 
@@ -438,11 +472,28 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmt = parseFloat(oldTx.amount as any) || 0;
             let revertedBal = currentBal;
             if (targetAcc.type === 'credit') {
-              revertedBal = oldTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+              revertedBal = (oldTx.type === 'expense' || oldTx.type === 'transfer') ? currentBal - txAmt : currentBal + txAmt;
             } else {
-              revertedBal = oldTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+              revertedBal = (oldTx.type === 'expense' || oldTx.type === 'transfer') ? currentBal + txAmt : currentBal - txAmt;
             }
             await get().updateAccountLocal(targetAcc.id, { balance: revertedBal }, skipSync);
+          }
+        }
+
+        // Revert old transfer destination balance
+        if (oldTx.type === 'transfer' && oldTx.to_account_id) {
+          const accs = get().accounts;
+          const destAcc = accs.find(a => a.id === oldTx.to_account_id);
+          if (destAcc) {
+            const currentBal = parseFloat(destAcc.balance as any) || 0;
+            const txAmt = parseFloat(oldTx.amount as any) || 0;
+            let revertedBal = currentBal;
+            if (destAcc.type === 'credit') {
+              revertedBal = currentBal + txAmt;
+            } else {
+              revertedBal = currentBal - txAmt;
+            }
+            await get().updateAccountLocal(destAcc.id, { balance: revertedBal }, skipSync);
           }
         }
 
@@ -455,11 +506,28 @@ export const useFinanceStore = create<FinanceState>()(
             const txAmt = parseFloat(newTx.amount as any) || 0;
             let newBal = currentBal;
             if (targetAcc.type === 'credit') {
-              newBal = newTx.type === 'expense' ? currentBal + txAmt : currentBal - txAmt;
+              newBal = (newTx.type === 'expense' || newTx.type === 'transfer') ? currentBal + txAmt : currentBal - txAmt;
             } else {
-              newBal = newTx.type === 'expense' ? currentBal - txAmt : currentBal + txAmt;
+              newBal = (newTx.type === 'expense' || newTx.type === 'transfer') ? currentBal - txAmt : currentBal + txAmt;
             }
             await get().updateAccountLocal(targetAcc.id, { balance: newBal }, skipSync);
+          }
+        }
+
+        // Apply new transfer destination balance
+        if (newTx.type === 'transfer' && newTx.to_account_id) {
+          const accs = get().accounts; // Read again to get updated balances
+          const destAcc = accs.find(a => a.id === newTx.to_account_id);
+          if (destAcc) {
+            const currentBal = parseFloat(destAcc.balance as any) || 0;
+            const txAmt = parseFloat(newTx.amount as any) || 0;
+            let newBal = currentBal;
+            if (destAcc.type === 'credit') {
+              newBal = currentBal - txAmt;
+            } else {
+              newBal = currentBal + txAmt;
+            }
+            await get().updateAccountLocal(destAcc.id, { balance: newBal }, skipSync);
           }
         }
 
