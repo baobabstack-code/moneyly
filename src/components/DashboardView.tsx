@@ -292,6 +292,20 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     };
   }, [transactions, startingBalance, accounts]);
 
+  const totalIndependentSavings = stats.totalIndependentSavings;
+
+  const totalSavings = useMemo(() => {
+    if (accounts.length > 0) {
+      return accounts.filter(acc => acc.type === 'savings').reduce((sum, acc) => sum + (parseFloat(acc.balance as any) || 0), 0);
+    }
+    const activePlans = spendingPlans.filter((plan) => plan.status !== 'paused');
+    const savedForGoals = activePlans.reduce((sum, plan) => {
+      const val = typeof plan.saved_amount === 'number' ? plan.saved_amount : parseFloat(plan.saved_amount || '0');
+      return sum + (val || 0);
+    }, 0);
+    return savedForGoals + totalIndependentSavings;
+  }, [accounts, spendingPlans, totalIndependentSavings]);
+
   // Compute spending plans metrics
   const money = useMemo(() => {
     const activePlans = spendingPlans.filter((plan) => plan.status !== 'paused');
@@ -307,9 +321,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       return sum + (val || 0);
     }, 0);
 
-    const totalSavingsVal = savedForGoals + stats.totalIndependentSavings;
-    const remainingToFund = Math.max(0, plannedSpend - totalSavingsVal);
-    const savingsProgress = plannedSpend > 0 ? Math.min(100, Math.round((totalSavingsVal / plannedSpend) * 100)) : 0;
+    const remainingToFund = Math.max(0, plannedSpend - totalSavings);
+    const savingsProgress = plannedSpend > 0 ? Math.min(100, Math.round((totalSavings / plannedSpend) * 100)) : 0;
 
     return {
       activePlans,
@@ -319,12 +332,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       remainingToFund,
       savingsProgress,
     };
-  }, [spendingPlans, stats.totalIndependentSavings]);
-
-  const totalIndependentSavings = stats.totalIndependentSavings;
-  const totalSavings = accounts.length > 0
-    ? accounts.filter(acc => acc.type === 'savings').reduce((sum, acc) => sum + (parseFloat(acc.balance as any) || 0), 0)
-    : money.savedForGoals + totalIndependentSavings;
+  }, [spendingPlans, totalSavings]);
 
   // Compute budgets and current spending
   const dailyBudget = useFinanceStore(state => state.dailyBudget);
