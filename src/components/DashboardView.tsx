@@ -558,6 +558,120 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           </p>
         </div>
 
+        {/* Horizontal Cards & Accounts Carousel */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-xl font-black text-primary">My Cards & Accounts</h2>
+              <p className="text-xs text-on-surface-variant font-medium">Swipe horizontally to manage your cash nodes</p>
+            </div>
+            <button
+              onClick={() => handleOpenAccountModal()}
+              className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
+              title="Add new account or card"
+            >
+              <span className="material-symbols-outlined text-sm font-black">add</span>
+              Add Card
+            </button>
+          </div>
+
+          {accounts.length === 0 ? (
+            <div 
+              onClick={() => handleOpenAccountModal()}
+              className="rounded-2xl border border-dashed border-outline-variant/60 bg-surface/30 hover:bg-surface/50 p-6 text-center cursor-pointer transition-all duration-300 flex flex-col items-center justify-center min-h-[120px]"
+            >
+              <span className="material-symbols-outlined mb-2 text-3xl text-on-surface-variant/45">credit_card</span>
+              <p className="font-bold text-on-surface text-sm">No accounts or cards configured</p>
+              <p className="mt-1 text-xs text-on-surface-variant">Click here to add your first checking, savings, or credit card.</p>
+            </div>
+          ) : (
+            <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x -mx-6 px-6 lg:mx-0 lg:px-0">
+              {accounts.map((acc) => {
+                const cardThemeMap: Record<string, { bg: string, text: string, shadow: string, border: string }> = {
+                  blue: { 
+                    bg: 'bg-gradient-to-br from-blue-600/90 to-cyan-500/90', 
+                    text: 'text-white', 
+                    shadow: 'shadow-blue-500/10',
+                    border: 'border-blue-400/30'
+                  },
+                  green: { 
+                    bg: 'bg-gradient-to-br from-emerald-600/90 to-teal-500/90', 
+                    text: 'text-white', 
+                    shadow: 'shadow-emerald-500/10',
+                    border: 'border-emerald-400/30'
+                  },
+                  purple: { 
+                    bg: 'bg-gradient-to-br from-purple-600/90 to-pink-500/90', 
+                    text: 'text-white', 
+                    shadow: 'shadow-purple-500/10',
+                    border: 'border-purple-400/30'
+                  },
+                  orange: { 
+                    bg: 'bg-gradient-to-br from-amber-600/90 to-orange-500/90', 
+                    text: 'text-white', 
+                    shadow: 'shadow-orange-500/10',
+                    border: 'border-orange-400/30'
+                  },
+                  red: { 
+                    bg: 'bg-gradient-to-br from-rose-600/90 to-red-500/90', 
+                    text: 'text-white', 
+                    shadow: 'shadow-rose-500/10',
+                    border: 'border-rose-400/30'
+                  }
+                };
+
+                const theme = cardThemeMap[acc.color] || cardThemeMap.blue;
+                const typeIconMap: Record<string, string> = {
+                  checking: 'payments',
+                  savings: 'savings',
+                  credit: 'credit_card',
+                  cash: 'account_balance_wallet'
+                };
+
+                return (
+                  <div 
+                    key={acc.id}
+                    onClick={() => handleOpenAccountModal(acc)}
+                    className={`relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border ${theme.border} ${theme.bg} ${theme.text} shadow-lg ${theme.shadow} transition-all duration-300 hover:scale-[1.02] cursor-pointer group overflow-hidden snap-start`}
+                  >
+                    <div className="absolute right-0 bottom-0 translate-x-1/4 translate-y-1/4 h-24 w-24 rounded-full bg-white/5 pointer-events-none group-hover:scale-110 transition-transform duration-500" />
+                    <div className="absolute left-0 top-0 -translate-x-1/4 -translate-y-1/4 h-16 w-16 rounded-full bg-white/5 pointer-events-none" />
+
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="text-[9px] uppercase tracking-widest opacity-75 font-black">{acc.type}</p>
+                        <h4 className="font-extrabold text-sm tracking-tight mt-0.5 truncate max-w-[180px]">{acc.name}</h4>
+                      </div>
+                      <span className="material-symbols-outlined text-lg opacity-85">
+                        {typeIconMap[acc.type] || 'credit_card'}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 flex justify-between items-end">
+                      <div>
+                        <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
+                        <p className="text-lg font-black tracking-tight mt-0.5">{formatCurrency(acc.balance)}</p>
+                      </div>
+                      <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
+                        <span className="material-symbols-outlined text-xs text-amber-200 opacity-60">grid_3x3</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Add Card horizontal card placeholder */}
+              <div 
+                onClick={() => handleOpenAccountModal()}
+                className="relative w-72 sm:w-80 shrink-0 rounded-2xl p-5 border-2 border-dashed border-outline-variant/60 bg-surface/30 hover:bg-surface/50 hover:border-secondary/50 text-on-surface-variant hover:text-primary transition-all duration-300 flex flex-col items-center justify-center cursor-pointer snap-start min-h-[140px] group"
+              >
+                <span className="material-symbols-outlined text-3xl mb-1 text-on-surface-variant/45 group-hover:scale-110 transition-transform">add_circle</span>
+                <span className="text-xs font-bold">Link New Card</span>
+              </div>
+            </div>
+          )}
+        </div>
+
         {/* Dashboard Stat Grid */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
           {/* Net Worth */}
