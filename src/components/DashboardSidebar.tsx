@@ -45,7 +45,7 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
       <aside className="hidden lg:flex flex-col w-64 bg-surface border-r border-outline-variant h-[calc(100vh-64px)] sticky top-16 shrink-0 overflow-y-auto">
 
         {/* User info */}
-        <div className="p-6 border-b border-outline-variant/30" title="Signed in account">
+        <div className="px-4 py-5 border-b border-outline-variant/30" title="Signed in account">
           <div className="flex items-center gap-3">
             {initialUser?.avatarUrl ? (
               <img src={initialUser.avatarUrl} alt="Avatar" className="w-10 h-10 rounded-xl object-cover border border-outline-variant" />

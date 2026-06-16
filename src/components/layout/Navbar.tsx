@@ -128,23 +128,7 @@ export default function Navbar({ initialUser }: NavbarProps) {
                   }
                 </span>
               </div>
-              <div className="hidden sm:flex flex-col items-end">
-                <span className="text-[10px] font-bold text-on-surface-variant/60 uppercase tracking-widest">Account</span>
-                <span className="text-xs font-bold text-on-surface max-w-[120px] truncate">
-                  {displayEmail}
-                </span>
-              </div>
-              {avatarUrl ? (
-                <img
-                  src={avatarUrl}
-                  alt="Profile"
-                  className="w-9 h-9 rounded-xl border border-outline-variant object-cover shadow-sm"
-                />
-              ) : (
-                <div className="w-9 h-9 rounded-xl bg-surface-container-highest border border-outline-variant flex items-center justify-center text-on-surface-variant">
-                  <span className="material-symbols-outlined text-xl">account_circle</span>
-                </div>
-              )}
+
               {pathname !== '/dashboard' && (
                 <Link
                   href="/dashboard"
