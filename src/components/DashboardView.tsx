@@ -94,6 +94,24 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountBalance, setAccountBalance] = useState('');
   const [accountColor, setAccountColor] = useState('blue');
   const [walletProvider, setWalletProvider] = useState<string>('');
+  const [hideCardBalances, setHideCardBalances] = useState(false);
+
+  useEffect(() => {
+    const val = typeof window !== 'undefined' ? localStorage.getItem('moneyly_hide_card_balances') : null;
+    if (val === 'true') {
+      setHideCardBalances(true);
+    }
+  }, []);
+
+  const toggleHideCardBalances = () => {
+    setHideCardBalances(prev => {
+      const next = !prev;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('moneyly_hide_card_balances', String(next));
+      }
+      return next;
+    });
+  };
 
   const handleProviderChange = (prov: string) => {
     setWalletProvider(prov);
@@ -652,14 +670,27 @@ export default function DashboardView({ email, displayName, profile, initialSpen
               <h2 className="text-xl font-black text-primary">My Cards & Accounts</h2>
               <p className="text-xs text-on-surface-variant font-medium">Swipe horizontally to manage your cash nodes</p>
             </div>
-            <button
-              onClick={() => handleOpenAccountModal()}
-              className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
-              title="Add new account or card"
-            >
-              <span className="material-symbols-outlined text-sm font-black">add</span>
-              Add Card
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={toggleHideCardBalances}
+                className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
+                title={hideCardBalances ? "Show card balances" : "Hide card balances"}
+              >
+                <span className="material-symbols-outlined text-sm">
+                  {hideCardBalances ? 'visibility' : 'visibility_off'}
+                </span>
+                {hideCardBalances ? 'Show' : 'Hide'}
+              </button>
+              <button
+                onClick={() => handleOpenAccountModal()}
+                className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
+                title="Add new account or card"
+              >
+                <span className="material-symbols-outlined text-sm font-black">add</span>
+                Add Card
+              </button>
+            </div>
           </div>
 
           {accounts.length === 0 ? (
@@ -741,7 +772,9 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                       <div className="mt-4 flex justify-between items-end">
                         <div>
                           <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
-                          <p className="text-base font-black tracking-tight mt-0.5">{formatCurrency(acc.balance)}</p>
+                          <p className="text-base font-black tracking-tight mt-0.5">
+                            {hideCardBalances ? '••••' : formatCurrency(acc.balance)}
+                          </p>
                         </div>
                         <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
                           <span className="material-symbols-outlined text-xs text-amber-200 opacity-60">grid_3x3</span>
