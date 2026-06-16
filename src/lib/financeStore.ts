@@ -20,7 +20,7 @@ export interface Account {
   id: string;
   user_id: string;
   name: string;
-  type: 'checking' | 'savings' | 'credit' | 'cash';
+  type: 'checking' | 'savings' | 'credit' | 'cash' | 'mobile';
   balance: number;
   color: string;
   created_at?: string;

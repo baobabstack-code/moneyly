@@ -67,7 +67,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [accountName, setAccountName] = useState('');
-  const [accountType, setAccountType] = useState<'checking' | 'savings' | 'credit' | 'cash'>('checking');
+  const [accountType, setAccountType] = useState<'checking' | 'savings' | 'credit' | 'cash' | 'mobile'>('checking');
   const [accountBalance, setAccountBalance] = useState('');
   const [accountColor, setAccountColor] = useState('blue');
 
@@ -582,7 +582,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
             >
               <span className="material-symbols-outlined mb-2 text-3xl text-on-surface-variant/45">credit_card</span>
               <p className="font-bold text-on-surface text-sm">No accounts or cards configured</p>
-              <p className="mt-1 text-xs text-on-surface-variant">Click here to add your first checking, savings, or credit card.</p>
+              <p className="mt-1 text-xs text-on-surface-variant">Click here to add your first checking, savings, credit card, or mobile wallet.</p>
             </div>
           ) : (
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide snap-x -mx-6 px-6 lg:mx-0 lg:px-0">
@@ -625,7 +625,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   checking: 'payments',
                   savings: 'savings',
                   credit: 'credit_card',
-                  cash: 'account_balance_wallet'
+                  cash: 'account_balance_wallet',
+                  mobile: 'phone_android'
                 };
 
                 return (
@@ -1846,6 +1847,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   <option value="savings">Savings Vault</option>
                   <option value="credit">Credit Card</option>
                   <option value="cash">Physical Cash / Wallet</option>
+                  <option value="mobile">Mobile Wallet (e.g. EcoCash, M-Pesa)</option>
                 </select>
               </div>
 
