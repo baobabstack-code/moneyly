@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
+import GlobalFAB from "@/components/GlobalFAB";
 import { createClient } from "@/utils/supabase/server";
 import { isProfileComplete, type UserProfile } from "@/lib/profile";
 import { IMPERSONATE_COOKIE, parseImpersonationCookie } from "@/lib/impersonate";
@@ -68,6 +69,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         </main>
       </div>
       <MobileBottomNav />
+      <GlobalFAB />
     </div>
   );
 }

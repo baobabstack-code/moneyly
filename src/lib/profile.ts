@@ -18,6 +18,10 @@ export interface UserProfile {
   daily_budget?: number | null;
   weekly_budget?: number | null;
   monthly_budget?: number | null;
+  starting_balance?: number | null;
+  currency?: string | null;
+  accent_color?: string | null;
+  onboarded?: boolean | null;
   
   // ROLE
   role: string;

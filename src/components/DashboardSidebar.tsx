@@ -100,18 +100,23 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
             <p className="text-[10px] font-bold text-on-surface-variant/40 uppercase tracking-widest">Settings</p>
           </div>
 
-          <button
-            type="button"
-            onClick={() => setEditSection("personal")}
-            title="Update your profile settings"
-            aria-label="Update your profile settings"
-            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-left text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+          <Link
+            href="/dashboard/settings"
+            title="Update your preferences and settings"
+            aria-label="Update your preferences and settings"
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group text-left ${
+              pathname === "/dashboard/settings"
+                ? "bg-secondary/10 text-secondary font-bold border border-secondary/20"
+                : "text-on-surface-variant hover:text-primary hover:bg-surface-container-low"
+            }`}
           >
-            <span className="material-symbols-outlined text-[20px] transition-transform duration-200 group-hover:scale-110">
+            <span className={`material-symbols-outlined text-[20px] transition-transform duration-200 ${
+              pathname === "/dashboard/settings" ? "icon-filled text-secondary" : "group-hover:scale-110"
+            }`}>
               settings
             </span>
-            <span className="text-sm">Profile Settings</span>
-          </button>
+            <span className="text-sm">Settings</span>
+          </Link>
         </nav>
 
         {/* Sign out */}

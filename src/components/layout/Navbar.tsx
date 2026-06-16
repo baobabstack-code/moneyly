@@ -140,14 +140,13 @@ export default function Navbar({ initialUser }: NavbarProps) {
                   Dashboard
                 </Link>
               )}
-              <button
-                type="button"
-                onClick={() => setEditSection("personal")}
+              <Link
+                href="/dashboard/settings"
                 className="bg-surface-container-highest text-on-surface p-2 rounded-xl font-bold border border-outline-variant hover:bg-surface-container transition-all text-xs flex items-center justify-center"
-                title="Profile Settings"
+                title="Settings"
               >
                 <span className="material-symbols-outlined text-[18px]">settings</span>
-              </button>
+              </Link>
               <button
                 type="button"
                 onClick={handleLogout}
