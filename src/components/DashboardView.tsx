@@ -100,7 +100,8 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountModalOpen, setAccountModalOpen] = useState(false);
   const [editingAccount, setEditingAccount] = useState<Account | null>(null);
   const [accountName, setAccountName] = useState('');
-  const [accountType, setAccountType] = useState<'checking' | 'savings' | 'credit' | 'cash' | 'mobile'>('checking');
+  const [accountType, setAccountType] = useState<string>('checking');
+  const [customAccountType, setCustomAccountType] = useState('');
   const [accountBalance, setAccountBalance] = useState('');
   const [accountColor, setAccountColor] = useState('blue');
   const [walletProvider, setWalletProvider] = useState<string>('');
@@ -192,7 +193,13 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     if (acc) {
       setEditingAccount(acc);
       setAccountName(acc.name);
-      setAccountType(acc.type);
+      if (!['checking', 'savings', 'credit', 'cash', 'mobile'].includes(acc.type)) {
+        setAccountType('custom');
+        setCustomAccountType(acc.type);
+      } else {
+        setAccountType(acc.type);
+        setCustomAccountType('');
+      }
       setAccountBalance(acc.balance.toString());
       setAccountColor(acc.color);
       setWalletProvider(acc.provider || '');
@@ -200,6 +207,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       setEditingAccount(null);
       setAccountName('');
       setAccountType('checking');
+      setCustomAccountType('');
       setAccountBalance('');
       setAccountColor('blue');
       setWalletProvider('');
@@ -211,20 +219,21 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     e.preventDefault();
     if (!accountName.trim()) return;
     const balanceNum = parseFloat(accountBalance) || 0;
+    const finalType = accountType === 'custom' ? customAccountType.trim() : accountType;
 
     if (editingAccount) {
       await updateAccountLocal(editingAccount.id, {
         name: accountName.trim(),
-        type: accountType,
+        type: finalType,
         balance: balanceNum,
         color: accountColor,
         provider: accountType === 'mobile' ? (walletProvider || null) : null,
       });
     } else {
       await addAccountLocal({
-        user_id: profile?.id || '',
+        user_id: profile!.id,
         name: accountName.trim(),
-        type: accountType,
+        type: finalType,
         balance: balanceNum,
         color: accountColor,
         provider: accountType === 'mobile' ? (walletProvider || null) : null,
@@ -2173,15 +2182,32 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                   required
                   className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
                   value={accountType}
-                  onChange={(e) => setAccountType(e.target.value as any)}
+                  onChange={(e) => setAccountType(e.target.value)}
                 >
                   <option value="checking">Checking / Debit</option>
                   <option value="savings">Savings Vault</option>
                   <option value="credit">Credit Card</option>
                   <option value="cash">Physical Cash / Wallet</option>
                   <option value="mobile">Mobile Wallet (e.g. EcoCash, M-Pesa)</option>
+                  <option value="custom">Custom Account Type...</option>
                 </select>
               </div>
+
+              {accountType === 'custom' && (
+                <div className="animate-in slide-in-from-top-3 duration-250">
+                  <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/85 block mb-1">
+                    Custom Type Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Investment, Loan, Crypto..."
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-bold"
+                    value={customAccountType}
+                    onChange={(e) => setCustomAccountType(e.target.value)}
+                  />
+                </div>
+              )}
 
               {accountType === 'mobile' && (
                 <div className="animate-in slide-in-from-top-3 duration-250">

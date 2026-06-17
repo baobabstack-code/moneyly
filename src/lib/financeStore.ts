@@ -21,7 +21,7 @@ export interface Account {
   id: string;
   user_id: string;
   name: string;
-  type: 'checking' | 'savings' | 'credit' | 'cash' | 'mobile';
+  type: string; // 'checking' | 'savings' | 'credit' | 'cash' | 'mobile' | string;
   balance: number;
   color: string;
   created_at?: string;
