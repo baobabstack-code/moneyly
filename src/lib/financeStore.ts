@@ -135,6 +135,9 @@ export interface FinanceState {
   lastLogDate: string | null;
   badges: Badge[];
 
+  setGamification: (currentStreak: number, longestStreak: number, lastLogDate: string | null) => void;
+  setBadges: (badges: Badge[]) => void;
+
   setAccentColor: (color: "green" | "purple" | "blue" | "orange") => void;
   setCurrency: (currency: string) => void;
   setOnboarded: (onboarded: boolean) => void;
@@ -164,7 +167,8 @@ export interface FinanceState {
   addRecurringBillLocal: (bill: Omit<RecurringBill, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
   updateRecurringBillLocal: (id: string, updates: Partial<RecurringBill>, skipSync?: boolean) => Promise<void>;
   deleteRecurringBillLocal: (id: string, skipSync?: boolean) => Promise<void>;
-  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number }) => Promise<void>;
+  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number; current_streak?: number; longest_streak?: number; last_log_date?: string }) => Promise<void>;
+  syncBadgesLocal: (badges: Badge[]) => Promise<void>;
 
   /** Actions */
   resetStore: () => void;
@@ -237,6 +241,8 @@ export const useFinanceStore = create<FinanceState>()(
       setSpendingPlans: (spendingPlans) => set({ spendingPlans }),
       setAccounts: (accounts) => set({ accounts }),
       setRecurringBills: (recurringBills) => set({ recurringBills }),
+      setGamification: (currentStreak, longestStreak, lastLogDate) => set({ currentStreak, longestStreak, lastLogDate }),
+      setBadges: (badges) => set({ badges }),
 
       syncOfflineData: async () => {
         const state = get();
@@ -334,12 +340,51 @@ export const useFinanceStore = create<FinanceState>()(
             }
           }
 
-          return {
-            transactions: [newTx, ...state.transactions],
+          const updatedTx = [newTx, ...state.transactions];
+
+          set({
+            transactions: updatedTx,
             currentStreak,
             longestStreak,
             lastLogDate
+          });
+
+          // Sync gamification state to profile automatically
+          get().updateProfilePreferences({
+            current_streak: currentStreak,
+            longest_streak: longestStreak,
+            last_log_date: lastLogDate
+          });
+          
+          // Re-evaluate achievements
+          const { currentStreak: newStreak, transactions: newTransactions, badges } = get();
+          const newBadges: Badge[] = [];
+          const existingBadgeIds = new Set(badges.map(b => b.id));
+
+          const awardBadge = (id: string, name: string, description: string, icon: string) => {
+            if (!existingBadgeIds.has(id)) {
+              newBadges.push({ id, name, description, icon, unlocked_at: new Date().toISOString() });
+            }
           };
+
+          if (newTransactions.length >= 1) awardBadge('first_tx', 'First Step', 'Logged your very first transaction', '🌱');
+          if (newTransactions.length >= 10) awardBadge('tx_10', 'Getting Serious', 'Logged 10 transactions', '🏃');
+          if (newTransactions.length >= 50) awardBadge('tx_50', 'Money Master', 'Logged 50 transactions', '👑');
+          
+          if (newStreak >= 3) awardBadge('streak_3', 'On Fire', '3-day logging streak', '🔥');
+          if (newStreak >= 7) awardBadge('streak_7', 'Week Warrior', '7-day logging streak', '⚔️');
+          if (newStreak >= 30) awardBadge('streak_30', 'Unstoppable', '30-day logging streak', '🚀');
+
+          if (newTx.type === 'savings' && parseFloat(newTx.amount as any) >= 100) awardBadge('big_saver', 'Big Saver', 'Saved $100 or more at once', '💰');
+
+          if (newBadges.length > 0) {
+            set({ badges: [...badges, ...newBadges] });
+            get().syncBadgesLocal(newBadges);
+            get().triggerConfetti();
+            newBadges.forEach(b => get().addNotification(`Unlocked Badge: ${b.icon} ${b.name}!`, 'success'));
+          }
+
+          return { transactions: updatedTx };
         });
         
         if (newTx.spending_plan_id && (newTx.type === 'savings' || newTx.type === 'income')) {
@@ -386,34 +431,6 @@ export const useFinanceStore = create<FinanceState>()(
             }
             await get().updateAccountLocal(destAcc.id, { balance: newBal }, skipSync);
           }
-        }
-
-        // Badge Unlocking Logic
-        const state = get();
-        const { currentStreak, transactions, badges } = state;
-        const newBadges: Badge[] = [];
-        const existingBadgeIds = new Set(badges.map(b => b.id));
-
-        const awardBadge = (id: string, name: string, description: string, icon: string) => {
-          if (!existingBadgeIds.has(id)) {
-            newBadges.push({ id, name, description, icon, unlocked_at: new Date().toISOString() });
-          }
-        };
-
-        if (transactions.length >= 1) awardBadge('first_tx', 'First Step', 'Logged your very first transaction', '🌱');
-        if (transactions.length >= 10) awardBadge('tx_10', 'Getting Serious', 'Logged 10 transactions', '🏃');
-        if (transactions.length >= 50) awardBadge('tx_50', 'Money Master', 'Logged 50 transactions', '👑');
-        
-        if (currentStreak >= 3) awardBadge('streak_3', 'On Fire', '3-day logging streak', '🔥');
-        if (currentStreak >= 7) awardBadge('streak_7', 'Week Warrior', '7-day logging streak', '⚔️');
-        if (currentStreak >= 30) awardBadge('streak_30', 'Unstoppable', '30-day logging streak', '🚀');
-
-        if (newTx.type === 'savings' && parseFloat(newTx.amount as any) >= 100) awardBadge('big_saver', 'Big Saver', 'Saved $100 or more at once', '💰');
-
-        if (newBadges.length > 0) {
-          set((s) => ({ badges: [...s.badges, ...newBadges] }));
-          state.triggerConfetti();
-          newBadges.forEach(b => state.addNotification(`Unlocked Badge: ${b.icon} ${b.name}!`, 'success'));
         }
 
         get().addNotification(
@@ -954,11 +971,14 @@ export const useFinanceStore = create<FinanceState>()(
         set((state) => ({
           startingBalance: updates.starting_balance !== undefined ? updates.starting_balance : state.startingBalance,
           currency: updates.currency !== undefined ? updates.currency : state.currency,
-          accentColor: (updates.accent_color !== undefined ? updates.accent_color : state.accentColor) as any,
+          accentColor: updates.accent_color !== undefined ? updates.accent_color as any : state.accentColor,
           onboarded: updates.onboarded !== undefined ? updates.onboarded : state.onboarded,
           dailyBudget: updates.daily_budget !== undefined ? updates.daily_budget : state.dailyBudget,
           weeklyBudget: updates.weekly_budget !== undefined ? updates.weekly_budget : state.weeklyBudget,
           monthlyBudget: updates.monthly_budget !== undefined ? updates.monthly_budget : state.monthlyBudget,
+          currentStreak: updates.current_streak !== undefined ? updates.current_streak : state.currentStreak,
+          longestStreak: updates.longest_streak !== undefined ? updates.longest_streak : state.longestStreak,
+          lastLogDate: updates.last_log_date !== undefined ? updates.last_log_date : state.lastLogDate,
         }));
         
         let synced = false;
@@ -993,6 +1013,36 @@ export const useFinanceStore = create<FinanceState>()(
               }));
             }
           }
+        }
+      },
+
+      syncBadgesLocal: async (newBadges) => {
+        if (typeof window !== "undefined" && navigator.onLine && process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          const { createClient } = await import("@/utils/supabase/client");
+          const supabase = createClient();
+          if (supabase) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user?.id) {
+              const rows = newBadges.map(b => ({
+                user_id: session.user.id,
+                badge_id: b.id,
+                unlocked_at: b.unlocked_at
+              }));
+              await supabase.from('user_badges').insert(rows).select();
+            }
+          }
+        } else {
+          set((state) => ({
+            pendingMutations: [
+              ...state.pendingMutations,
+              {
+                id: Math.random().toString(36).substring(7),
+                type: 'UPDATE_PROFILE',
+                payload: { type: 'SYNC_BADGES', badges: newBadges },
+                timestamp: Date.now()
+              }
+            ]
+          }));
         }
       },
 

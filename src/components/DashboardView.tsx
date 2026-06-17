@@ -10,6 +10,8 @@ import BudgetEditModal from "./BudgetEditModal";
 import { createClient } from "@/utils/supabase/client";
 import CalendarWidget from "./CalendarWidget";
 import AchievementsWidget from "./AchievementsWidget";
+import AnalyticsWidget from "./AnalyticsWidget";
+import BillsManagerModal from "./BillsManagerModal";
 
 interface Props {
   email: string;
@@ -25,6 +27,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [expandedPlan, setExpandedPlan] = useState<string | null>(null);
   const [hoveredBar, setHoveredBar] = useState<number | null>(null);
   const [budgetModalOpen, setBudgetModalOpen] = useState(false);
+  const [billsModalOpen, setBillsModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
   const [txModalOpen, setTxModalOpen] = useState(false);
   const [txModalDefaultType, setTxModalDefaultType] = useState<'expense' | 'income' | 'savings' | 'transfer' | undefined>(undefined);
@@ -65,7 +68,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const setCategories = useFinanceStore(state => state.setCategories);
   const updateProfilePreferences = useFinanceStore(state => state.updateProfilePreferences);
   const transactions = useFinanceStore(state => state.transactions);
+  const setGamification = useFinanceStore(state => state.setGamification);
+  const setBadges = useFinanceStore(state => state.setBadges);
   const categories = useFinanceStore(state => state.categories);
+  const recurringBills = useFinanceStore(state => state.recurringBills);
+  const setRecurringBills = useFinanceStore(state => state.setRecurringBills);
   const accentColor = useFinanceStore(state => state.accentColor);
   const currencyCode = useFinanceStore(state => state.currency);
   const onboarded = useFinanceStore(state => state.onboarded);
@@ -258,6 +265,11 @@ export default function DashboardView({ email, displayName, profile, initialSpen
       setDailyBudget(parseFloat((profile as any).daily_budget) || 0);
       setWeeklyBudget(parseFloat((profile as any).weekly_budget) || 0);
       setMonthlyBudget(parseFloat((profile as any).monthly_budget) || 0);
+      
+      const currentStreak = parseInt((profile as any).current_streak) || 0;
+      const longestStreak = parseInt((profile as any).longest_streak) || 0;
+      const lastLogDate = (profile as any).last_log_date || null;
+      setGamification(currentStreak, longestStreak, lastLogDate);
     }
 
     // Seeding store's spendingPlans from props if empty
@@ -283,6 +295,40 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         const { data: accs } = await supabase.from('accounts').select('*').order('created_at', { ascending: true });
         if (accs) setAccounts(accs);
 
+        const { data: bills } = await supabase.from('recurring_bills').select('*').order('next_due_date', { ascending: true });
+        if (bills) setRecurringBills(bills);
+
+        const { data: badgesData } = await supabase.from('user_badges').select('*');
+        if (badgesData) {
+          const badges = badgesData.map((b: any) => ({
+            id: b.badge_id,
+            name: b.badge_id, // We'll map nice names in the UI if needed
+            description: '',
+            icon: '',
+            unlocked_at: b.unlocked_at
+          }));
+          // Merge with local to preserve names/icons, or we can just rely on local state entirely for metadata.
+          // For now, let's let the store merge them if we wanted to, but the store `awardBadge` logic handles the metadata anyway.
+          // Let's just set the metadata directly here since we know the mappings:
+          const metaMap: any = {
+            'first_tx': { name: 'First Step', desc: 'Logged your very first transaction', icon: '🌱' },
+            'tx_10': { name: 'Getting Serious', desc: 'Logged 10 transactions', icon: '🏃' },
+            'tx_50': { name: 'Money Master', desc: 'Logged 50 transactions', icon: '👑' },
+            'streak_3': { name: 'On Fire', desc: '3-day logging streak', icon: '🔥' },
+            'streak_7': { name: 'Week Warrior', desc: '7-day logging streak', icon: '⚔️' },
+            'streak_30': { name: 'Unstoppable', desc: '30-day logging streak', icon: '🚀' },
+            'big_saver': { name: 'Big Saver', desc: 'Saved $100 or more at once', icon: '💰' }
+          };
+          
+          setBadges(badgesData.map((b: any) => ({
+            id: b.badge_id,
+            name: metaMap[b.badge_id]?.name || b.badge_id,
+            description: metaMap[b.badge_id]?.desc || '',
+            icon: metaMap[b.badge_id]?.icon || '🏆',
+            unlocked_at: b.unlocked_at
+          })));
+        }
+
         await syncOfflineData();
       }
     };
@@ -296,7 +342,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
     return () => {
       window.removeEventListener('online', handleOnline);
     };
-  }, [profile, initialSpendingPlans, spendingPlans, setSpendingPlans, setAccounts, setCategories, setTransactions]);
+  }, [profile, initialSpendingPlans, spendingPlans, setSpendingPlans, setAccounts, setCategories, setTransactions, setGamification, setBadges, setRecurringBills]);
 
   const currencySymbol = useMemo(() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
@@ -977,6 +1023,36 @@ export default function DashboardView({ email, displayName, profile, initialSpen
           ))}
         </div>
 
+        {/* Upcoming Bills Alert */}
+        {recurringBills.filter(b => b.is_active && new Date(b.next_due_date).getTime() <= new Date().getTime() + 3 * 24 * 60 * 60 * 1000).length > 0 && (
+          <div className="mb-6 p-4 rounded-3xl bg-rose-500/10 border border-rose-500/20 flex flex-col sm:flex-row sm:items-center gap-4 animate-in fade-in slide-in-from-bottom-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-rose-500/20 text-rose-500 flex items-center justify-center flex-shrink-0 animate-pulse">
+                <span className="material-symbols-outlined font-bold">event_busy</span>
+              </div>
+              <div>
+                <h3 className="font-bold text-rose-400">Upcoming Bills Due</h3>
+                <p className="text-xs text-rose-400/80 mt-0.5">You have {recurringBills.filter(b => b.is_active && new Date(b.next_due_date).getTime() <= new Date().getTime() + 3 * 24 * 60 * 60 * 1000).length} bill(s) due in the next 3 days.</p>
+              </div>
+            </div>
+            <div className="sm:ml-auto flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="flex -space-x-2">
+                {recurringBills.filter(b => b.is_active && new Date(b.next_due_date).getTime() <= new Date().getTime() + 3 * 24 * 60 * 60 * 1000).slice(0, 3).map(b => (
+                  <div key={b.id} className="w-8 h-8 rounded-full bg-surface border-2 border-surface flex items-center justify-center text-xs shadow-sm" title={b.name}>
+                    {b.category_emoji || '🧾'}
+                  </div>
+                ))}
+              </div>
+              <button 
+                onClick={() => setBillsModalOpen(true)}
+                className="text-xs font-bold bg-surface text-rose-500 px-3 py-1.5 rounded-lg shadow-sm hover:bg-rose-50 transition-colors whitespace-nowrap"
+              >
+                Manage Bills
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Active Tab View */}
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           
@@ -1584,98 +1660,12 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
             {activeTab === 'analyze' && (
               <div className="space-y-6">
-                {/* 1. Net Worth Trend SVG Line Chart */}
-                <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6" title="Cumulative progression of starting balance plus all incomes minus all expenses over the last 30 days.">
-                  <div>
-                    <h2 className="text-xl font-black text-primary">Net Worth Trend</h2>
-                    <p className="text-xs text-on-surface-variant font-medium">30-day cumulative net worth progression</p>
-                  </div>
-                  <div className="relative h-48 w-full bg-slate-950/15 rounded-2xl p-4 border border-outline-variant/30 flex items-center justify-center">
-                    <svg className="w-full h-full" viewBox="0 0 500 180" preserveAspectRatio="none">
-                      <defs>
-                        <linearGradient id="netWorthGrad" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="var(--color-secondary)" stopOpacity="0.35" />
-                          <stop offset="100%" stopColor="var(--color-secondary)" stopOpacity="0.0" />
-                        </linearGradient>
-                      </defs>
-                      
-                      {/* Grid Lines */}
-                      {gridLines.map((line, idx) => (
-                        <g key={idx}>
-                          <line
-                            x1="20"
-                            y1={line.y}
-                            x2="480"
-                            y2={line.y}
-                            stroke="var(--color-outline-variant)"
-                            strokeWidth="1"
-                            strokeDasharray="4 4"
-                            opacity="0.25"
-                          />
-                          <text
-                            x="22"
-                            y={line.y - 4}
-                            fill="var(--color-on-surface-variant)"
-                            fontSize="8"
-                            opacity="0.4"
-                            fontWeight="bold"
-                          >
-                            {formatCurrency(line.val)}
-                          </text>
-                        </g>
-                      ))}
-                      
-                      {/* Area under curve */}
-                      {areaPath && (
-                        <path d={areaPath} fill="url(#netWorthGrad)" />
-                      )}
-                      
-                      {/* Line */}
-                      {linePath && (
-                        <path
-                          d={linePath}
-                          fill="none"
-                          stroke="var(--color-secondary)"
-                          strokeWidth="3.5"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          style={{ filter: "drop-shadow(0 0 4px var(--color-secondary-glow))" }}
-                        />
-                      )}
-                      
-                      {/* Points */}
-                      {chartPoints.map((p, idx) => (
-                        <circle
-                          key={idx}
-                          cx={p.x}
-                          cy={p.y}
-                          r={hoveredPoint?.date.getTime() === p.date.getTime() ? 5.5 : 2.5}
-                          fill="var(--color-secondary)"
-                          stroke="var(--color-surface)"
-                          strokeWidth={hoveredPoint?.date.getTime() === p.date.getTime() ? 1.5 : 0.5}
-                          className="transition-all duration-150 cursor-pointer"
-                          onMouseEnter={() => setHoveredPoint(p)}
-                          onMouseLeave={() => setHoveredPoint(null)}
-                        />
-                      ))}
-                    </svg>
-                    
-                    {/* Hover Tooltip */}
-                    {hoveredPoint && (
-                      <div 
-                        className="absolute bg-slate-900 border border-outline-variant/65 rounded-xl px-2.5 py-1.5 text-xs text-on-surface shadow-xl pointer-events-none z-10"
-                        style={{ 
-                          left: `${(hoveredPoint.x / 500) * 100}%`, 
-                          top: `${(hoveredPoint.y / 180) * 100 - 32}%`, 
-                          transform: 'translate(-50%, -50%)' 
-                        }}
-                      >
-                        <p className="text-[8px] uppercase tracking-wider text-on-surface-variant/70 font-bold">{hoveredPoint.date.toLocaleDateString([], { month: 'short', day: 'numeric' })}</p>
-                        <p className="text-xs font-black text-primary">{formatCurrency(hoveredPoint.balance)}</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
+                {/* 1. Analytics Widget (Area & Doughnut Charts) */}
+                <AnalyticsWidget 
+                  transactions={transactions} 
+                  categories={categories} 
+                  accentColor={accentColor} 
+                />
 
                 {/* 2. Category Budgets Tracker */}
                 <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-6" title="Set specific monthly spending caps for individual categories to manage targets dynamically.">
@@ -2126,6 +2116,13 @@ export default function DashboardView({ email, displayName, profile, initialSpen
         <BudgetEditModal
           isOpen={budgetModalOpen}
           onClose={() => setBudgetModalOpen(false)}
+        />
+      )}
+      {billsModalOpen && profile?.id && (
+        <BillsManagerModal
+          isOpen={billsModalOpen}
+          onClose={() => setBillsModalOpen(false)}
+          user_id={profile.id}
         />
       )}
       {accountModalOpen && (
