@@ -105,7 +105,7 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   const [accountBalance, setAccountBalance] = useState('');
   const [accountColor, setAccountColor] = useState('blue');
   const [walletProvider, setWalletProvider] = useState<string>('');
-  const [hideCardBalances, setHideCardBalances] = useState(false);
+  const [hideCardBalances, setHideCardBalances] = useState<Record<string, boolean>>({});
 
   // Multiplayer Shared Wallets State
   const [inviteEmail, setInviteEmail] = useState('');
@@ -154,17 +154,19 @@ export default function DashboardView({ email, displayName, profile, initialSpen
   };
 
   useEffect(() => {
-    const val = typeof window !== 'undefined' ? localStorage.getItem('moneyly_hide_card_balances') : null;
-    if (val === 'true') {
-      setHideCardBalances(true);
+    const val = typeof window !== 'undefined' ? localStorage.getItem('moneyly_hide_card_balances_map') : null;
+    if (val) {
+      try {
+        setHideCardBalances(JSON.parse(val));
+      } catch (e) {}
     }
   }, []);
 
-  const toggleHideCardBalances = () => {
+  const toggleHideCardBalances = (accountId: string) => {
     setHideCardBalances(prev => {
-      const next = !prev;
+      const next = { ...prev, [accountId]: !prev[accountId] };
       if (typeof window !== 'undefined') {
-        localStorage.setItem('moneyly_hide_card_balances', String(next));
+        localStorage.setItem('moneyly_hide_card_balances_map', JSON.stringify(next));
       }
       return next;
     });
@@ -876,19 +878,19 @@ export default function DashboardView({ email, displayName, profile, initialSpen
                               type="button"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                toggleHideCardBalances();
+                                toggleHideCardBalances(acc.id);
                               }}
                               className="rounded-lg bg-black/20 hover:bg-black/40 border border-white/10 px-2 py-0.5 flex items-center gap-1 transition-all shadow-sm"
-                              title={hideCardBalances ? "Show card balances" : "Hide card balances"}
+                              title={hideCardBalances[acc.id] ? "Show card balances" : "Hide card balances"}
                             >
                               <span className="material-symbols-outlined text-[10px]">
-                                {hideCardBalances ? 'visibility' : 'visibility_off'}
+                                {hideCardBalances[acc.id] ? 'visibility' : 'visibility_off'}
                               </span>
-                              <span className="text-[9px] font-bold tracking-wide">{hideCardBalances ? 'Show' : 'Hide'}</span>
+                              <span className="text-[9px] font-bold tracking-wide">{hideCardBalances[acc.id] ? 'Show' : 'Hide'}</span>
                             </button>
                           </div>
                           <p className="text-base font-black tracking-tight">
-                            {hideCardBalances ? '••••' : formatCurrency(acc.balance)}
+                            {hideCardBalances[acc.id] ? '••••' : formatCurrency(acc.balance)}
                           </p>
                         </div>
                         <div className="flex h-5 w-7 items-center justify-center rounded bg-amber-400/25 border border-amber-300/30">
