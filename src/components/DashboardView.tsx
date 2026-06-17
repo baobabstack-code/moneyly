@@ -776,17 +776,6 @@ export default function DashboardView({ email, displayName, profile, initialSpen
             </div>
             <div className="flex items-center gap-2">
               <button
-                type="button"
-                onClick={toggleHideCardBalances}
-                className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
-                title={hideCardBalances ? "Show card balances" : "Hide card balances"}
-              >
-                <span className="material-symbols-outlined text-sm">
-                  {hideCardBalances ? 'visibility' : 'visibility_off'}
-                </span>
-                {hideCardBalances ? 'Show' : 'Hide'}
-              </button>
-              <button
                 onClick={() => handleOpenAccountModal()}
                 className="rounded-xl border border-outline-variant px-3 py-1.5 text-xs font-bold text-on-surface hover:bg-surface-container transition-all flex items-center gap-1.5"
                 title="Add new account or card"
@@ -881,8 +870,24 @@ export default function DashboardView({ email, displayName, profile, initialSpen
 
                       <div className="mt-4 flex justify-between items-end">
                         <div>
-                          <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
-                          <p className="text-base font-black tracking-tight mt-0.5">
+                          <div className="flex items-center gap-2 mb-0.5">
+                            <p className="text-[8px] opacity-75 uppercase font-bold tracking-wider">Current Balance</p>
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleHideCardBalances();
+                              }}
+                              className="rounded-lg bg-black/20 hover:bg-black/40 border border-white/10 px-2 py-0.5 flex items-center gap-1 transition-all shadow-sm"
+                              title={hideCardBalances ? "Show card balances" : "Hide card balances"}
+                            >
+                              <span className="material-symbols-outlined text-[10px]">
+                                {hideCardBalances ? 'visibility' : 'visibility_off'}
+                              </span>
+                              <span className="text-[9px] font-bold tracking-wide">{hideCardBalances ? 'Show' : 'Hide'}</span>
+                            </button>
+                          </div>
+                          <p className="text-base font-black tracking-tight">
                             {hideCardBalances ? '••••' : formatCurrency(acc.balance)}
                           </p>
                         </div>
