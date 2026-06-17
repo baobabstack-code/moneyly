@@ -76,7 +76,6 @@ export default function SettingsClient({ profile, userId, email }: Props) {
           account_id,
           status,
           created_at,
-          inviter:inviter_id(first_name, full_name, email),
           account:account_id(name)
         `)
         .eq('invitee_email', email)
@@ -607,7 +606,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                           {inv.account?.name || 'Shared Wallet'}
                         </p>
                         <p className="text-xs text-on-surface-variant mt-0.5">
-                          Invited by <span className="font-semibold text-on-surface">{inv.inviter?.first_name || inv.inviter?.email || 'Someone'}</span>
+                          You have been invited to this shared wallet.
                         </p>
                       </div>
                       <div className="flex gap-2">
