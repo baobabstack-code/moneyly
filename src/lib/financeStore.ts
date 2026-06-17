@@ -54,6 +54,14 @@ export interface RecurringBill {
   created_at?: string;
 }
 
+export interface Badge {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  unlocked_at: string;
+}
+
 export interface PendingMutation {
   id: string;
   type: 'CREATE_TRANSACTION' | 'DELETE_TRANSACTION' | 'UPDATE_TRANSACTION' | 'CREATE_CATEGORY' | 'UPDATE_PROFILE' | 'CREATE_SPENDING_PLAN' | 'UPDATE_CATEGORY' | 'DELETE_SPENDING_PLAN' | 'UPDATE_SPENDING_PLAN' | 'CREATE_ACCOUNT' | 'UPDATE_ACCOUNT' | 'DELETE_ACCOUNT' | 'CREATE_RECURRING_BILL' | 'UPDATE_RECURRING_BILL' | 'DELETE_RECURRING_BILL';
@@ -120,6 +128,12 @@ export interface FinanceState {
   accounts: Account[];
   recurringBills: RecurringBill[];
   pendingMutations: PendingMutation[];
+  
+  // Gamification & Achievements
+  currentStreak: number;
+  longestStreak: number;
+  lastLogDate: string | null;
+  badges: Badge[];
 
   setAccentColor: (color: "green" | "purple" | "blue" | "orange") => void;
   setCurrency: (currency: string) => void;
@@ -181,6 +195,10 @@ const initialState = {
   accounts: [],
   recurringBills: [],
   pendingMutations: [],
+  currentStreak: 0,
+  longestStreak: 0,
+  lastLogDate: null,
+  badges: [],
 };
 
 export const useFinanceStore = create<FinanceState>()(
@@ -295,9 +313,34 @@ export const useFinanceStore = create<FinanceState>()(
         const txId = transaction.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2) + Date.now().toString(36));
         const newTx = { ...transaction, id: txId } as Transaction;
         
-        set((state) => ({
-          transactions: [newTx, ...state.transactions],
-        }));
+        set((state) => {
+          // Streak Logic
+          const todayStr = new Date().toISOString().split('T')[0];
+          let { currentStreak, longestStreak, lastLogDate } = state;
+          
+          if (lastLogDate !== todayStr) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const yesterdayStr = yesterday.toISOString().split('T')[0];
+            
+            if (lastLogDate === yesterdayStr) {
+              currentStreak += 1;
+            } else {
+              currentStreak = 1; // reset streak or start first streak
+            }
+            lastLogDate = todayStr;
+            if (currentStreak > longestStreak) {
+              longestStreak = currentStreak;
+            }
+          }
+
+          return {
+            transactions: [newTx, ...state.transactions],
+            currentStreak,
+            longestStreak,
+            lastLogDate
+          };
+        });
         
         if (newTx.spending_plan_id && (newTx.type === 'savings' || newTx.type === 'income')) {
           const plans = get().spendingPlans;
@@ -343,6 +386,34 @@ export const useFinanceStore = create<FinanceState>()(
             }
             await get().updateAccountLocal(destAcc.id, { balance: newBal }, skipSync);
           }
+        }
+
+        // Badge Unlocking Logic
+        const state = get();
+        const { currentStreak, transactions, badges } = state;
+        const newBadges: Badge[] = [];
+        const existingBadgeIds = new Set(badges.map(b => b.id));
+
+        const awardBadge = (id: string, name: string, description: string, icon: string) => {
+          if (!existingBadgeIds.has(id)) {
+            newBadges.push({ id, name, description, icon, unlocked_at: new Date().toISOString() });
+          }
+        };
+
+        if (transactions.length >= 1) awardBadge('first_tx', 'First Step', 'Logged your very first transaction', '🌱');
+        if (transactions.length >= 10) awardBadge('tx_10', 'Getting Serious', 'Logged 10 transactions', '🏃');
+        if (transactions.length >= 50) awardBadge('tx_50', 'Money Master', 'Logged 50 transactions', '👑');
+        
+        if (currentStreak >= 3) awardBadge('streak_3', 'On Fire', '3-day logging streak', '🔥');
+        if (currentStreak >= 7) awardBadge('streak_7', 'Week Warrior', '7-day logging streak', '⚔️');
+        if (currentStreak >= 30) awardBadge('streak_30', 'Unstoppable', '30-day logging streak', '🚀');
+
+        if (newTx.type === 'savings' && parseFloat(newTx.amount as any) >= 100) awardBadge('big_saver', 'Big Saver', 'Saved $100 or more at once', '💰');
+
+        if (newBadges.length > 0) {
+          set((s) => ({ badges: [...s.badges, ...newBadges] }));
+          state.triggerConfetti();
+          newBadges.forEach(b => state.addNotification(`Unlocked Badge: ${b.icon} ${b.name}!`, 'success'));
         }
 
         get().addNotification(
