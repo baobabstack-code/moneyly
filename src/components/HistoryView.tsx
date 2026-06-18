@@ -134,17 +134,17 @@ export default function HistoryView() {
         const { createClient } = await import("@/utils/supabase/client");
         const supabase = createClient();
         if (supabase) {
-          const { data: { session } } = await supabase.auth.getSession();
-          if (session?.user) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (user) {
             const { data: profile } = await supabase
               .from('profiles')
               .select('full_name, first_name')
-              .eq('id', session.user.id)
+              .eq('id', user.id)
               .single();
             if (profile) {
-              customerName = profile.first_name || profile.full_name || session.user.email || "Moneyly User";
+              customerName = profile.first_name || profile.full_name || user.email || "Moneyly User";
             } else {
-              customerName = session.user.email || "Moneyly User";
+              customerName = user.email || "Moneyly User";
             }
           }
         }

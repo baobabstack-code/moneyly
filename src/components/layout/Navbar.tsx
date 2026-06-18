@@ -51,7 +51,8 @@ export default function Navbar({ initialUser }: NavbarProps) {
     if (!supabase) return;
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event: any, session: any) => {
-        const currentUser = session?.user ?? null;
+        // Warning fix: get securely validated user instead of trusting session directly
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
         setUser(currentUser);
         if (currentUser) {
           const profileData = await getMyProfile();

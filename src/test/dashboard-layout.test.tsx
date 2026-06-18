@@ -5,7 +5,7 @@ const single = jest.fn();
 const eq = jest.fn(() => ({ single }));
 const select = jest.fn(() => ({ eq }));
 const from = jest.fn(() => ({ select }));
-const getSession = jest.fn();
+const getUser = jest.fn();
 
 jest.mock('next/headers', () => ({
   cookies: jest.fn().mockResolvedValue({
@@ -20,7 +20,7 @@ jest.mock('next/navigation', () => ({
 
 jest.mock('../utils/supabase/server', () => ({
   createClient: jest.fn(() => Promise.resolve({
-    auth: { getSession },
+    auth: { getUser },
     from,
   })),
 }));
@@ -63,16 +63,8 @@ const completeProfile = {
 describe('DashboardLayout sidebar gating', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    getSession.mockResolvedValue({
-      data: {
-        session: {
-          user: {
-            id: 'user-1',
-            email: 'john@example.com',
-            user_metadata: {},
-          },
-        },
-      },
+    getUser.mockResolvedValue({
+      data: { user: { id: 'test-user-id', email: 'test@example.com' } },
     });
   });
 

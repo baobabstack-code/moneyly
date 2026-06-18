@@ -10,22 +10,22 @@ export default async function ProfileSetupPage() {
   if (!supabase) {
     redirect("/login");
   }
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
   const { data } = await supabase
     .from("profiles")
     .select("*")
-    .eq("id", session.user.id)
+    .eq("id", user.id)
     .single();
 
   return (
     <ProfileSetupClient
       initialProfile={(data as UserProfile | null) || null}
-      initialUserId={session.user.id}
+      initialUserId={user.id}
     />
   );
 }

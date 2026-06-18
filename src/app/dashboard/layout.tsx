@@ -16,9 +16,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
   if (!supabase) {
     redirect("/login");
   }
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
@@ -28,7 +28,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const isImpersonating = Boolean(impersonation?.targetUserId);
 
   // Determine whose profile to display
-  const viewUserId = isImpersonating ? impersonation!.targetUserId : session?.user?.id;
+  const viewUserId = isImpersonating ? impersonation!.targetUserId : user?.id;
 
   const profileResult = viewUserId
     ? await supabase
@@ -52,10 +52,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
         displayName: impersonation!.targetName,
         avatarUrl: undefined,
       }
-    : session?.user ? {
-        email: session.user.email!,
-        displayName: session.user.user_metadata?.full_name || session.user.email!,
-        avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+    : user ? {
+        email: user.email!,
+        displayName: user.user_metadata?.full_name || user.email!,
+        avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
       } : null;
 
   const profileComplete = profile ? isProfileComplete(profile) : false;

@@ -13,10 +13,10 @@ export default function GlobalFAB() {
   useEffect(() => {
     const supabase = createClient();
     if (supabase) {
-      supabase.auth.getSession().then((res: any) => {
-        const session = res?.data?.session;
-        if (session?.user) {
-          setUserId(session.user.id);
+      supabase.auth.getUser().then((res: any) => {
+        const user = res?.data?.user;
+        if (user) {
+          setUserId(user.id);
         }
       });
     }

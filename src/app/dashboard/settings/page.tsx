@@ -11,16 +11,16 @@ export default async function SettingsPage() {
   if (!supabase) {
     redirect('/login');
   }
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect('/login');
   }
 
   const cookieStore = await cookies();
   const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value);
   const isImpersonating = Boolean(impersonation?.targetUserId);
-  const viewUserId = impersonation?.targetUserId ?? session.user.id;
+  const viewUserId = impersonation?.targetUserId ?? user.id;
 
   // Fetch impersonated (or real) user's profile
   const { data: profile } = await supabase
@@ -33,7 +33,7 @@ export default async function SettingsPage() {
     <SettingsClient
       profile={profile}
       userId={viewUserId}
-      email={isImpersonating ? impersonation!.targetName : session.user.email!}
+      email={isImpersonating ? impersonation!.targetName : user.email!}
     />
   );
 }

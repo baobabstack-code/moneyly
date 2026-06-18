@@ -16,9 +16,9 @@ export default async function CustomerLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { user } } = await supabase.auth.getUser();
 
-  if (!session?.user) {
+  if (!user) {
     redirect("/login");
   }
 
@@ -28,7 +28,7 @@ export default async function CustomerLayout({
   const isImpersonating = Boolean(impersonation?.targetUserId);
 
   // Determine whose profile to display
-  const viewUserId = isImpersonating ? impersonation!.targetUserId : session.user.id;
+  const viewUserId = isImpersonating ? impersonation!.targetUserId : user.id;
 
   const { data } = await supabase
     .from("profiles")
@@ -56,9 +56,9 @@ export default async function CustomerLayout({
         avatarUrl: undefined,
       }
     : {
-        email: session.user.email!,
-        displayName: session.user.user_metadata?.full_name || session.user.email!,
-        avatarUrl: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture,
+        email: user.email!,
+        displayName: user.user_metadata?.full_name || user.email!,
+        avatarUrl: user.user_metadata?.avatar_url || user.user_metadata?.picture,
       };
 
   const profileComplete = isProfileComplete(profile);

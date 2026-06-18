@@ -48,8 +48,8 @@ export function isProfileComplete(profile: UserProfile | null): boolean {
 export async function getMyProfile(): Promise<UserProfile | null> {
   const supabase = createClient();
   if (!supabase) return null;
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) return null;
 
@@ -74,8 +74,8 @@ export async function getMyProfile(): Promise<UserProfile | null> {
 export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfile | null> {
   const supabase = createClient();
   if (!supabase) return null;
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
+  const { data: { user } } = await supabase.auth.getUser();
+  const userId = user?.id;
 
   if (!userId) return null;
 

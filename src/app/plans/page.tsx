@@ -13,9 +13,9 @@ export default async function PlansPage() {
   if (!supabase) {
     redirect('/login')
   }
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     redirect('/login')
   }
 
@@ -23,12 +23,12 @@ export default async function PlansPage() {
     supabase
       .from('profiles')
       .select('*')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single(),
     supabase
       .from('spending_plans')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', user.id)
       .order('created_at', { ascending: false }),
   ])
 
@@ -36,15 +36,15 @@ export default async function PlansPage() {
   const spendingPlans = plansResult.data || []
   const profileComplete = profile ? isProfileComplete(profile) : false
   const initialUser = {
-    email: session.user.email!,
+    email: user.email!,
     displayName:
       profile?.full_name ||
-      session.user.user_metadata?.full_name ||
-      session.user.email!,
+      user.user_metadata?.full_name ||
+      user.email!,
     avatarUrl:
       profile?.avatar_url ||
-      session.user.user_metadata?.avatar_url ||
-      session.user.user_metadata?.picture,
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture,
   }
 
   return (

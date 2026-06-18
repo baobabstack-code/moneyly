@@ -12,23 +12,23 @@ export default async function DashboardPage() {
   if (!supabase) {
     redirect('/login')
   }
-  const { data: { session } } = await supabase.auth.getSession()
+  const { data: { user } } = await supabase.auth.getUser()
 
-  if (!session?.user) {
+  if (!user) {
     redirect('/login')
   }
 
   const cookieStore = await cookies()
   const impersonation = parseImpersonationCookie(cookieStore.get(IMPERSONATE_COOKIE)?.value)
   const isImpersonating = Boolean(impersonation?.targetUserId)
-  const viewUserId = impersonation?.targetUserId ?? session.user.id
+  const viewUserId = impersonation?.targetUserId ?? user.id
 
   // Only redirect admins/super_admins when NOT impersonating
   if (!isImpersonating) {
     const { data: roleRow } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single()
 
     if (roleRow?.role === 'super_admin') redirect('/super-admin')
@@ -55,14 +55,14 @@ export default async function DashboardPage() {
     profile?.first_name ||
     profile?.full_name?.split(' ')[0] ||
     impersonation?.targetName ||
-    session.user.email?.split('@')[0] ||
+    user.email?.split('@')[0] ||
     'there'
 
   const profileComplete = profile ? isProfileComplete(profile) : false
 
   return (
     <DashboardView
-      email={isImpersonating ? (impersonation!.targetName) : session.user.email!}
+      email={isImpersonating ? (impersonation!.targetName) : user.email!}
       displayName={displayName}
       profile={profile}
       initialSpendingPlans={spendingPlans}

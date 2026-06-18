@@ -986,9 +986,9 @@ export const useFinanceStore = create<FinanceState>()(
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
           if (supabase) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.id) {
-              const { error } = await supabase.from('profiles').update(updates).eq('id', session.user.id);
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.id) {
+              const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
               if (!error) synced = true;
             }
           }
@@ -998,15 +998,15 @@ export const useFinanceStore = create<FinanceState>()(
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
           if (supabase) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.id) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.id) {
               set((state) => ({
                 pendingMutations: [
                   ...state.pendingMutations,
                   {
                     id: Math.random().toString(36).substring(7),
                     type: 'UPDATE_PROFILE',
-                    payload: { id: session.user.id, updates },
+                    payload: { id: user.id, updates },
                     timestamp: Date.now()
                   }
                 ]
@@ -1021,10 +1021,10 @@ export const useFinanceStore = create<FinanceState>()(
           const { createClient } = await import("@/utils/supabase/client");
           const supabase = createClient();
           if (supabase) {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session?.user?.id) {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (user?.id) {
               const rows = newBadges.map(b => ({
-                user_id: session.user.id,
+                user_id: user.id,
                 badge_id: b.id,
                 unlocked_at: b.unlocked_at
               }));

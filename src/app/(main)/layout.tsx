@@ -11,27 +11,27 @@ export default async function MainLayout({
   children: React.ReactNode;
 }) {
   const supabase = await createClient();
-  const session = supabase ? (await supabase.auth.getSession()).data.session : null;
+  const user = supabase ? (await supabase.auth.getUser()).data.user : null;
 
-  const profileResult = (session?.user && supabase)
+  const profileResult = (user && supabase)
     ? await supabase
         .from("profiles")
         .select("*")
-        .eq("id", session.user.id)
+        .eq("id", user.id)
         .single()
     : null;
 
   const profile = (profileResult?.data as UserProfile | null) || null;
-  const initialUser = session?.user ? {
-    email: session.user.email!,
+  const initialUser = user ? {
+    email: user.email!,
     displayName:
       profile?.full_name ||
-      session.user.user_metadata?.full_name ||
-      session.user.email!,
+      user.user_metadata?.full_name ||
+      user.email!,
     avatarUrl:
       profile?.avatar_url ||
-      session.user.user_metadata?.avatar_url ||
-      session.user.user_metadata?.picture,
+      user.user_metadata?.avatar_url ||
+      user.user_metadata?.picture,
   } : null;
 
   return (
