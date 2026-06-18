@@ -54,17 +54,17 @@ export function PWAInstallButton() {
   return (
     <button
       onClick={handleInstallClick}
-      className="flex items-center gap-3 px-8 py-4 bg-surface border-2 border-outline-variant text-on-surface font-bold rounded-2xl hover:border-secondary hover:bg-surface-container transition-all shadow-xl active:scale-95 group relative overflow-hidden"
+      className="flex items-center gap-3 px-8 py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-700 transition-all shadow-[0_0_20px_rgba(37,99,235,0.4)] active:scale-95 group relative overflow-hidden"
     >
-      <div className="absolute inset-0 bg-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-      <span className="material-symbols-outlined text-secondary text-2xl group-hover:scale-110 transition-transform">
+      <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+      <span className="material-symbols-outlined text-white text-2xl group-hover:scale-110 transition-transform">
         {installPrompt ? "install_mobile" : "download_for_offline"}
       </span>
       <div className="flex flex-col items-start leading-none">
         <span className="text-sm uppercase tracking-[0.1em] mb-1">
           {installPrompt ? "Install App" : "Download App"}
         </span>
-        <span className="text-[10px] text-on-surface-variant font-medium">Native money workspace</span>
+        <span className="text-[10px] text-white/80 font-medium">Native money workspace</span>
       </div>
     </button>
   );

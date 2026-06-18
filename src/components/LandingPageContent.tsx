@@ -19,6 +19,9 @@ export default function LandingPageContent() {
       >
         <div className="mx-auto flex min-h-[calc(100vh-10rem)] max-w-7xl flex-col justify-between">
           <div className="max-w-3xl">
+            <div className="mb-6 inline-flex animate-fade-in-up">
+              <PWAInstallButton />
+            </div>
             <p className="mb-5 text-xs font-bold uppercase tracking-widest text-white/70">Moneyly Personal Money Manager</p>
             <h1 className="font-h1 text-h1 leading-tight text-white">
               Know where your money is going before it goes.
@@ -41,10 +44,6 @@ export default function LandingPageContent() {
                 Plan a Purchase
                 <span className="material-symbols-outlined text-lg">playlist_add</span>
               </Link>
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-4">
-              <PWAInstallButton />
-              <p className="text-xs font-bold uppercase tracking-widest text-white/60">Installable money workspace</p>
             </div>
           </div>
 
