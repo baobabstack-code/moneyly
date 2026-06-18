@@ -52,19 +52,24 @@ export async function POST(req: Request) {
 
     const result = await model.generateContent({
       contents: [{ role: 'user', parts: [{ text: prompt }, ...audioParts] }],
-      // Request audio modality back (if supported by SDK and model)
-      // If the SDK throws on responseModalities, we will fallback in the catch block.
-      // But starting from gemini-1.5, audio modality is supported.
-      // Currently, text is always returned as well in the Candidate.
+      generationConfig: {
+        // Explicitly request audio response for speech-to-speech
+        // @ts-ignore - The SDK types might not be fully up to date for responseModalities yet
+        responseModalities: ["AUDIO"],
+        speechConfig: {
+          voiceConfig: {
+            prebuiltVoiceConfig: {
+              voiceName: "Aoede",
+            },
+          },
+        },
+      },
     });
 
     const response = await result.response;
     const text = response.text();
     
-    // We can also extract the intent via a second LLM call, or instruct the model 
-    // to return JSON. However, since the user asked for audio-to-audio, we just 
-    // get the conversational response back. For now, we return the text to the client.
-    // If the response contains audio parts (inlineData), we would extract them here.
+    // Extract the audio part returned directly by Gemini for speech-to-speech
     let responseAudioBase64 = null;
     if (response.candidates && response.candidates[0]?.content?.parts) {
        const audioPart = response.candidates[0].content.parts.find(p => p.inlineData && p.inlineData.mimeType.startsWith('audio/'));
