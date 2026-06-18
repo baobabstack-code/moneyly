@@ -32,6 +32,15 @@ export async function POST(req: Request) {
       );
     }
 
+    if (audioFile.size < 1000) {
+      // Audio is too short or empty (e.g. < 0.01 seconds)
+      return NextResponse.json({
+        replyText: "I didn't quite catch that.",
+        audioBase64: null,
+        action: null
+      });
+    }
+
     const prompt = `
       You are Moneyly's AI Voice Assistant. You help the user manage their personal finances.
       You will receive an audio recording of the user speaking. Listen to it and respond conversationally.
@@ -161,12 +170,8 @@ export async function POST(req: Request) {
           break;
         } catch (error: any) {
           lastError = error;
-          if (error?.status === 503 || error?.status === 429 || error?.message?.includes('503')) {
-            console.warn(`${modelConfig.name} is unavailable (${error?.status}). Trying next fallback model...`);
-            continue;
-          } else {
-            break;
-          }
+          console.warn(`${modelConfig.name} failed (${error?.status || error?.message}). Trying next fallback model...`);
+          continue;
         }
       }
     }
