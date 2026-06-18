@@ -16,10 +16,10 @@ export function SuperAdminMobileNav() {
 
   const handleSignOut = async () => {
     const supabase = createClient()
+    window.location.href = '/'
     if (supabase) {
-      await supabase.auth.signOut()
+      supabase.auth.signOut().catch(console.error)
     }
-    router.push('/')
   }
 
   return (

@@ -28,8 +28,10 @@ export default function SuperAdminSidebar({ user }: Props) {
 
   const handleSignOut = async () => {
     const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
+    window.location.href = "/";
+    if (supabase) {
+      supabase.auth.signOut().catch(console.error);
+    }
   };
 
   const isActive = (item: { href: string; exact: boolean }) =>

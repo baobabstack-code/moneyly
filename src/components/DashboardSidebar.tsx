@@ -34,10 +34,10 @@ export default function DashboardSidebar({ initialUser, profileComplete = true, 
 
   const handleSignOut = async () => {
     const supabase = createClient();
+    window.location.href = "/"; // Eager redirect to homepage
     if (supabase) {
-      await supabase.auth.signOut();
+      supabase.auth.signOut().catch(console.error);
     }
-    router.push("/");
   };
 
   return (

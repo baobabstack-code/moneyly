@@ -5,10 +5,10 @@ import { createClient } from '@/utils/supabase/client'
 export default function SignOutButton() {
   async function handleSignOut() {
     const supabase = createClient()
+    window.location.href = '/' // Eagerly redirect to homepage
     if (supabase) {
-      await supabase.auth.signOut()
+      supabase.auth.signOut().catch(console.error)
     }
-    window.location.href = '/login'
   }
 
   return (
