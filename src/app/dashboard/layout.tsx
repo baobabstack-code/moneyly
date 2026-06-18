@@ -5,6 +5,7 @@ import DashboardSidebar from "@/components/DashboardSidebar";
 import MobileBottomNav from "@/components/MobileBottomNav";
 import ImpersonationBanner from "@/components/ImpersonationBanner";
 import GlobalFAB from "@/components/GlobalFAB";
+import VoiceAssistant from "@/components/VoiceAssistant";
 import RealtimeSyncProvider from "@/components/RealtimeSyncProvider";
 import { createClient } from "@/utils/supabase/server";
 import { isProfileComplete, type UserProfile } from "@/lib/profile";
@@ -71,6 +72,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </div>
       <MobileBottomNav />
       <GlobalFAB />
+      <VoiceAssistant />
       <RealtimeSyncProvider userId={viewUserId} />
     </div>
   );
