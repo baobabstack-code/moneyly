@@ -54,14 +54,26 @@ export default function SettingsClient({ profile, userId, email }: Props) {
     reminder_email_enabled: profile?.reminder_email_enabled ?? true,
     reminder_sms_enabled: profile?.reminder_sms_enabled ?? false,
     phone_number: profile?.phone_number || '',
+    tts_voice: useFinanceStore.getState().ttsVoice || '',
   });
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
+  // Available voices
+  const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
 
   // Invitations State
   const [invitations, setInvitations] = useState<any[]>([]);
   const [loadingInvites, setLoadingInvites] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      const loadVoices = () => setVoices(window.speechSynthesis.getVoices());
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   useEffect(() => {
     async function fetchInvites() {
@@ -166,6 +178,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
         daily_budget: parseFloat(form.daily_budget) || 0,
         weekly_budget: parseFloat(form.weekly_budget) || 0,
         monthly_budget: parseFloat(form.monthly_budget) || 0,
+        tts_voice: form.tts_voice,
       });
 
       addNotification('Settings saved successfully!', 'success');
@@ -489,6 +502,25 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                     {CURRENCIES.map(curr => (
                       <option key={curr.code} value={curr.code}>
                         {curr.code} ({curr.symbol}) — {curr.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label htmlFor="tts_voice" className="block text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-1.5">
+                    Assistant Voice
+                  </label>
+                  <select
+                    id="tts_voice"
+                    value={form.tts_voice}
+                    onChange={e => handleFieldChange('tts_voice', e.target.value)}
+                    className="w-full px-4 py-3 rounded-xl border border-outline-variant bg-surface-container-low text-on-surface focus:outline-none focus:ring-2 focus:ring-secondary/30 transition-all font-semibold"
+                  >
+                    <option value="">System Default</option>
+                    {voices.map(voice => (
+                      <option key={voice.name} value={voice.name}>
+                        {voice.name} ({voice.lang})
                       </option>
                     ))}
                   </select>

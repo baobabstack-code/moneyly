@@ -93,7 +93,16 @@ export default function VoiceAssistant() {
     if (!text || !('speechSynthesis' in window)) return;
     window.speechSynthesis.cancel(); // Cancel any ongoing speech
     const utterance = new SpeechSynthesisUtterance(text);
-    // You can customize voice here if needed
+    
+    const ttsVoice = useFinanceStore.getState().ttsVoice;
+    if (ttsVoice) {
+      const voices = window.speechSynthesis.getVoices();
+      const selectedVoice = voices.find(v => v.name === ttsVoice);
+      if (selectedVoice) {
+        utterance.voice = selectedVoice;
+      }
+    }
+
     window.speechSynthesis.speak(utterance);
   };
 

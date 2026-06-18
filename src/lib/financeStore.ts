@@ -117,6 +117,7 @@ export interface FinanceState {
   // NEW PERSONAL FINANCE FEATURES
   accentColor: "green" | "purple" | "blue" | "orange";
   currency: string;
+  ttsVoice: string;
   onboarded: boolean;
   startingBalance: number;
   dailyBudget: number;
@@ -167,7 +168,7 @@ export interface FinanceState {
   addRecurringBillLocal: (bill: Omit<RecurringBill, "id" | "created_at"> & { id?: string; created_at?: string }, skipSync?: boolean) => Promise<void>;
   updateRecurringBillLocal: (id: string, updates: Partial<RecurringBill>, skipSync?: boolean) => Promise<void>;
   deleteRecurringBillLocal: (id: string, skipSync?: boolean) => Promise<void>;
-  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number; current_streak?: number; longest_streak?: number; last_log_date?: string }) => Promise<void>;
+  updateProfilePreferences: (updates: { starting_balance?: number; currency?: string; tts_voice?: string; accent_color?: string; onboarded?: boolean; daily_budget?: number; weekly_budget?: number; monthly_budget?: number; current_streak?: number; longest_streak?: number; last_log_date?: string }) => Promise<void>;
   syncBadgesLocal: (badges: Badge[]) => Promise<void>;
 
   /** Actions */
@@ -188,6 +189,7 @@ const initialState = {
   fileUrl: "",
   accentColor: "green" as const,
   currency: "USD",
+  ttsVoice: "",
   onboarded: false,
   startingBalance: 0,
   dailyBudget: 0,
@@ -971,6 +973,7 @@ export const useFinanceStore = create<FinanceState>()(
         set((state) => ({
           startingBalance: updates.starting_balance !== undefined ? updates.starting_balance : state.startingBalance,
           currency: updates.currency !== undefined ? updates.currency : state.currency,
+          ttsVoice: updates.tts_voice !== undefined ? updates.tts_voice : state.ttsVoice,
           accentColor: updates.accent_color !== undefined ? updates.accent_color as any : state.accentColor,
           onboarded: updates.onboarded !== undefined ? updates.onboarded : state.onboarded,
           dailyBudget: updates.daily_budget !== undefined ? updates.daily_budget : state.dailyBudget,
