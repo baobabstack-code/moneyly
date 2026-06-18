@@ -54,6 +54,7 @@ describe('ProfileSetupClient save', () => {
       last_name: 'Doe',
       username: 'johndoe',
       monthly_income: '5000',
+      reminder_email_enabled: true,
     });
     expect(push).toHaveBeenCalledWith('/dashboard');
   });
