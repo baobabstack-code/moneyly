@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 
 // Initialize API clients
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -9,11 +10,14 @@ const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 const groqApiKey = process.env.GROQ_API_KEY;
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
+const xaiApiKey = process.env.XAI_API_KEY;
+const xai = xaiApiKey ? new OpenAI({ apiKey: xaiApiKey, baseURL: 'https://api.x.ai/v1' }) : null;
+
 export async function POST(req: Request) {
   try {
-    if (!genAI && !groq) {
+    if (!genAI && !groq && !xai) {
       return NextResponse.json(
-        { error: 'No AI API keys are configured (neither GEMINI_API_KEY nor GROQ_API_KEY).' },
+        { error: 'No AI API keys are configured (neither XAI_API_KEY, GROQ_API_KEY, nor GEMINI_API_KEY).' },
         { status: 500 }
       );
     }
@@ -41,8 +45,31 @@ export async function POST(req: Request) {
 
     let text = '';
 
-    // Prioritize Groq if available
-    if (groq) {
+    // Priority 1: xAI
+    if (xai) {
+      try {
+        const chatCompletion = await xai.chat.completions.create({
+          messages: [
+            {
+              role: "user",
+              content: [
+                { type: "text", text: prompt },
+                { type: "image_url", image_url: { url: `data:${mimeType || 'image/jpeg'};base64,${imageBase64}` } }
+              ]
+            }
+          ],
+          model: "grok-vision-beta",
+          temperature: 0,
+        });
+        text = chatCompletion.choices[0]?.message?.content || '';
+      } catch (xaiError: any) {
+        console.warn('xAI receipt parsing failed, falling back to Groq/Gemini if available', xaiError);
+        if (!groq && !genAI) throw xaiError;
+      }
+    }
+
+    // Priority 2: Groq if xAI failed or unavailable
+    if (!text && groq) {
       try {
         const chatCompletion = await groq.chat.completions.create({
           messages: [

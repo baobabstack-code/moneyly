@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 import Groq from 'groq-sdk';
+import OpenAI from 'openai';
 
 // Initialize API clients
 const geminiApiKey = process.env.GEMINI_API_KEY;
@@ -9,9 +10,12 @@ const genAI = geminiApiKey ? new GoogleGenerativeAI(geminiApiKey) : null;
 const groqApiKey = process.env.GROQ_API_KEY;
 const groq = groqApiKey ? new Groq({ apiKey: groqApiKey }) : null;
 
+const xaiApiKey = process.env.XAI_API_KEY;
+const xai = xaiApiKey ? new OpenAI({ apiKey: xaiApiKey, baseURL: 'https://api.x.ai/v1' }) : null;
+
 export async function POST(req: Request) {
   try {
-    if (!genAI && !groq) {
+    if (!genAI && !groq && !xai) {
       return NextResponse.json(
         { error: 'No AI API keys are configured.' },
         { status: 500 }
@@ -39,36 +43,64 @@ export async function POST(req: Request) {
     let success = false;
     let lastError: any = null;
 
-    // Prioritize Groq if available
+    // STT: Try Groq first
+    let userText = '';
     if (groq) {
       try {
-        // Groq STT using Whisper
-        const file = new File([audioFile], "audio.webm", { type: audioFile.type || 'audio/webm' });
+        const arrayBuffer = await audioFile.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        const file = await OpenAI.toFile(buffer, "audio.webm", { type: audioFile.type || 'audio/webm' });
         const transcription = await groq.audio.transcriptions.create({
           file,
           model: "whisper-large-v3-turbo",
         });
-
-        const userText = transcription.text;
-
-        // Groq LLM generation
-        const chatCompletion = await groq.chat.completions.create({
-          messages: [
-            { role: "system", content: prompt },
-            { role: "user", content: userText }
-          ],
-          model: "llama-3.3-70b-versatile",
-        });
-
-        text = chatCompletion.choices[0]?.message?.content || "I didn't quite catch that.";
-        success = true;
-      } catch (groqError: any) {
-        console.warn('Groq voice processing failed, falling back to Gemini if available', groqError);
-        lastError = groqError;
+        userText = transcription.text;
+      } catch (sttError: any) {
+        console.warn('Groq STT failed:', sttError);
+        lastError = sttError;
       }
     }
 
-    // Fallback to Gemini
+    // If we successfully transcribed text, try LLMs (xAI -> Groq)
+    if (userText) {
+      // Priority 1: xAI LLM
+      if (xai) {
+        try {
+          const chatCompletion = await xai.chat.completions.create({
+            messages: [
+              { role: "system", content: prompt },
+              { role: "user", content: userText }
+            ],
+            model: "grok-4.3",
+          });
+          text = chatCompletion.choices[0]?.message?.content || "I didn't quite catch that.";
+          success = true;
+        } catch (xaiError: any) {
+          console.warn('xAI voice LLM failed, falling back to Groq if available', xaiError);
+          lastError = xaiError;
+        }
+      }
+
+      // Priority 2: Groq LLM
+      if (!success && groq) {
+        try {
+          const chatCompletion = await groq.chat.completions.create({
+            messages: [
+              { role: "system", content: prompt },
+              { role: "user", content: userText }
+            ],
+            model: "llama-3.3-70b-versatile",
+          });
+          text = chatCompletion.choices[0]?.message?.content || "I didn't quite catch that.";
+          success = true;
+        } catch (groqError: any) {
+          console.warn('Groq voice LLM failed', groqError);
+          lastError = groqError;
+        }
+      }
+    }
+
+    // Fallback to Gemini if text-based LLMs failed or STT failed
     if (!success && genAI) {
       const arrayBuffer = await audioFile.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
@@ -85,10 +117,10 @@ export async function POST(req: Request) {
       ];
 
       const modelsToTry = [
-        { name: 'gemini-3.5-flash', supportsAudioOut: true },
-        { name: 'gemini-3.5-pro', supportsAudioOut: true },
-        { name: 'gemini-1.5-pro', supportsAudioOut: false },
-        { name: 'gemini-1.5-flash', supportsAudioOut: false }
+        { name: 'gemini-3.1-flash-live-preview', supportsAudioOut: true },
+        { name: 'gemini-3.5-flash', supportsAudioOut: false },
+        { name: 'gemini-3.1-pro-preview', supportsAudioOut: false },
+        { name: 'gemini-flash-latest', supportsAudioOut: false }
       ];
 
       for (const modelConfig of modelsToTry) {
