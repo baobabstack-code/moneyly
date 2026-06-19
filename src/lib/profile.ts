@@ -21,6 +21,7 @@ export interface UserProfile {
   starting_balance?: number | null;
   currency?: string | null;
   accent_color?: string | null;
+  tts_voice?: string | null;
   onboarded?: boolean | null;
   
   // ROLE

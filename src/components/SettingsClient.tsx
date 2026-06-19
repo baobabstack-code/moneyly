@@ -57,7 +57,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
     tts_voice: useFinanceStore.getState().ttsVoice || '',
   });
 
-  const [saving, setSaving] = useState(false);
+  const [savingSection, setSavingSection] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   
   // Available voices
@@ -140,14 +140,14 @@ export default function SettingsClient({ profile, userId, email }: Props) {
     setForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = async (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent, section: string) => {
     e.preventDefault();
     if (!form.first_name.trim()) {
       setError('First name is required.');
       return;
     }
 
-    setSaving(true);
+    setSavingSection(section);
     setError(null);
 
     try {
@@ -165,6 +165,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
         monthly_budget: parseFloat(form.monthly_budget) || 0,
         accent_color: form.accent_color,
         currency: form.currency,
+        tts_voice: form.tts_voice,
       });
 
       if (!updated) {
@@ -188,7 +189,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
       setError('Failed to update settings. Please try again.');
       addNotification('Failed to update settings.', 'error');
     } finally {
-      setSaving(false);
+      setSavingSection(null);
     }
   };
 
@@ -275,15 +276,16 @@ export default function SettingsClient({ profile, userId, email }: Props) {
           </div>
         )}
 
-        <form onSubmit={handleSave} className="space-y-6">
+        <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Card 1: Profile Info */}
-            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-                <span className="material-symbols-outlined text-secondary font-black">person</span>
-                <h2 className="text-lg font-black text-primary">Profile Information</h2>
-              </div>
+            <form onSubmit={(e) => handleSave(e, 'profile')} className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+                  <span className="material-symbols-outlined text-secondary font-black">person</span>
+                  <h2 className="text-lg font-black text-primary">Profile Information</h2>
+                </div>
 
               <div className="space-y-3.5">
                 <div>
@@ -356,14 +358,28 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                   />
                 </div>
               </div>
-            </div>
+
+              </div>
+              
+              <div className="pt-2 border-t border-outline-variant/20 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={savingSection === 'profile'}
+                  className="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-bold text-xs shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {savingSection === 'profile' ? 'Saving...' : 'Save Profile'}
+                  <span className="material-symbols-outlined text-[14px]">done</span>
+                </button>
+              </div>
+            </form>
 
             {/* Card 2: Financial Limits */}
-            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-                <span className="material-symbols-outlined text-secondary font-black">payments</span>
-                <h2 className="text-lg font-black text-primary">Financial Planning</h2>
-              </div>
+            <form onSubmit={(e) => handleSave(e, 'finance')} className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+                  <span className="material-symbols-outlined text-secondary font-black">payments</span>
+                  <h2 className="text-lg font-black text-primary">Financial Planning</h2>
+                </div>
 
               <div className="space-y-3.5">
                 <div>
@@ -450,14 +466,28 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                   </div>
                 </div>
               </div>
-            </div>
+
+              </div>
+              
+              <div className="pt-2 border-t border-outline-variant/20 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={savingSection === 'finance'}
+                  className="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-bold text-xs shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {savingSection === 'finance' ? 'Saving...' : 'Save Finances'}
+                  <span className="material-symbols-outlined text-[14px]">done</span>
+                </button>
+              </div>
+            </form>
 
             {/* Card 3: App Customization */}
-            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-                <span className="material-symbols-outlined text-secondary font-black">palette</span>
-                <h2 className="text-lg font-black text-primary">App Customization</h2>
-              </div>
+            <form onSubmit={(e) => handleSave(e, 'app')} className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+                  <span className="material-symbols-outlined text-secondary font-black">palette</span>
+                  <h2 className="text-lg font-black text-primary">App Customization</h2>
+                </div>
 
               <div className="space-y-4">
                 <div>
@@ -526,14 +556,28 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                   </select>
                 </div>
               </div>
-            </div>
+
+              </div>
+              
+              <div className="pt-2 border-t border-outline-variant/20 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={savingSection === 'app'}
+                  className="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-bold text-xs shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {savingSection === 'app' ? 'Saving...' : 'Save Customizations'}
+                  <span className="material-symbols-outlined text-[14px]">done</span>
+                </button>
+              </div>
+            </form>
 
             {/* Card 4: Notifications */}
-            <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
-                <span className="material-symbols-outlined text-secondary font-black">notifications</span>
-                <h2 className="text-lg font-black text-primary">Notification Preferences</h2>
-              </div>
+            <form onSubmit={(e) => handleSave(e, 'notifications')} className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm flex flex-col justify-between space-y-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 border-b border-outline-variant/30 pb-3">
+                  <span className="material-symbols-outlined text-secondary font-black">notifications</span>
+                  <h2 className="text-lg font-black text-primary">Notification Preferences</h2>
+                </div>
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-4 rounded-2xl border border-outline-variant bg-surface-container-low/40 p-4 transition-all">
@@ -605,7 +649,20 @@ export default function SettingsClient({ profile, userId, email }: Props) {
                   </span>
                 </div>
               </div>
-            </div>
+
+              </div>
+              
+              <div className="pt-2 border-t border-outline-variant/20 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={savingSection === 'notifications'}
+                  className="px-5 py-2.5 rounded-xl bg-secondary text-on-secondary font-bold text-xs shadow-md transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                >
+                  {savingSection === 'notifications' ? 'Saving...' : 'Save Notifications'}
+                  <span className="material-symbols-outlined text-[14px]">done</span>
+                </button>
+              </div>
+            </form>
 
             {/* Card: Wallet Invitations */}
             <div className="rounded-3xl border border-outline-variant bg-surface p-6 shadow-sm space-y-4 md:col-span-2">
@@ -704,26 +761,7 @@ export default function SettingsClient({ profile, userId, email }: Props) {
             </div>
 
           </div>
-
-          {/* Form Actions */}
-          <div className="flex justify-end gap-3 pt-4 border-t border-outline-variant/30">
-            <button
-              type="button"
-              onClick={() => router.push('/dashboard')}
-              className="px-6 py-3.5 rounded-xl border border-outline-variant text-on-surface-variant font-bold text-sm hover:bg-surface-container transition-all active:scale-95"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-8 py-3.5 rounded-xl bg-secondary text-on-secondary font-bold text-sm shadow-lg shadow-secondary/20 transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-              {saving ? 'Saving...' : 'Save Settings'}
-              <span className="material-symbols-outlined text-sm">done</span>
-            </button>
-          </div>
-        </form>
+        </div>
       </div>
     </div>
   );
