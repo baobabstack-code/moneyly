@@ -95,6 +95,27 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
   const [editPlanSaved, setEditPlanSaved] = useState('');
   const [editPlanTenure, setEditPlanTenure] = useState('');
   const [editPlanStatus, setEditPlanStatus] = useState('active');
+  const [editPlanCustomFields, setEditPlanCustomFields] = useState<Record<string, string>>({});
+  const [newEditFieldName, setNewEditFieldName] = useState("");
+  const [newEditFieldValue, setNewEditFieldValue] = useState("");
+
+  const handleAddEditCustomField = () => {
+    if (!newEditFieldName.trim() || !newEditFieldValue.trim()) return;
+    setEditPlanCustomFields(prev => ({
+      ...prev,
+      [newEditFieldName.trim()]: newEditFieldValue.trim()
+    }));
+    setNewEditFieldName("");
+    setNewEditFieldValue("");
+  };
+
+  const handleRemoveEditCustomField = (key: string) => {
+    setEditPlanCustomFields(prev => {
+      const updated = { ...prev };
+      delete updated[key];
+      return updated;
+    });
+  };
 
   const handleStartEdit = (plan: SpendingPlan) => {
     setEditingPlanId(plan.id);
@@ -103,6 +124,9 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
     setEditPlanSaved(plan.saved_amount.toString());
     setEditPlanTenure(plan.tenure_months.toString());
     setEditPlanStatus(plan.status);
+    setEditPlanCustomFields(plan.custom_fields || {});
+    setNewEditFieldName("");
+    setNewEditFieldValue("");
   };
 
   const handleSaveEdit = async (id: string) => {
@@ -120,6 +144,7 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
       saved_amount: savedNum,
       tenure_months: tenureNum,
       status: editPlanStatus,
+      custom_fields: editPlanCustomFields,
     });
 
     setEditingPlanId(null);
@@ -318,6 +343,58 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                         </div>
                       </div>
 
+                      {/* Edit Custom Fields Section */}
+                      <div className="border-t border-outline-variant/30 pt-3">
+                        <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant block mb-2">Custom Attributes</label>
+                        
+                        {Object.keys(editPlanCustomFields).length > 0 && (
+                          <div className="space-y-1.5 mb-3">
+                            {Object.entries(editPlanCustomFields).map(([key, value]) => (
+                              <div key={key} className="flex items-center justify-between bg-surface-container-low border border-outline-variant/40 rounded-lg px-3 py-1.5 text-xs">
+                                <span className="font-semibold text-primary">{key}: <span className="font-normal text-on-surface">{value}</span></span>
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveEditCustomField(key)}
+                                  className="text-error hover:text-error/80 flex items-center justify-center p-0.5"
+                                  title="Remove field"
+                                >
+                                  <span className="material-symbols-outlined text-base">delete</span>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="flex gap-2 items-end">
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="Key (e.g. Priority)"
+                              value={newEditFieldName}
+                              onChange={(e) => setNewEditFieldName(e.target.value)}
+                              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-2 py-1.5 text-xs font-medium text-primary"
+                            />
+                          </div>
+                          <div className="flex-1">
+                            <input
+                              type="text"
+                              placeholder="Value (e.g. High)"
+                              value={newEditFieldValue}
+                              onChange={(e) => setNewEditFieldValue(e.target.value)}
+                              className="w-full rounded-lg border border-outline-variant bg-surface-container-low px-2 py-1.5 text-xs font-medium text-primary"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleAddEditCustomField}
+                            disabled={!newEditFieldName.trim() || !newEditFieldValue.trim()}
+                            className="px-3 py-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary text-xs font-bold rounded-lg transition-all h-[32px] flex items-center gap-1 disabled:opacity-40 disabled:pointer-events-none"
+                          >
+                            <span className="material-symbols-outlined text-xs">add</span> Add
+                          </button>
+                        </div>
+                      </div>
+
                       <div className="flex justify-end gap-2 pt-2 border-t border-outline-variant/30">
                         <button
                           type="button"
@@ -419,6 +496,23 @@ export default function PlansView({ initialSpendingPlans, profileComplete }: Pla
                             </div>
                           ))}
                         </div>
+
+                        {plan.custom_fields && Object.keys(plan.custom_fields).length > 0 && (
+                          <div className="border-t border-outline-variant/30 pt-4 mt-5">
+                            <h4 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80 mb-3 flex items-center gap-1.5">
+                              <span className="material-symbols-outlined text-sm font-black">table_rows</span>
+                              Custom Attributes
+                            </h4>
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 bg-surface p-4 rounded-2xl border border-outline-variant/20">
+                              {Object.entries(plan.custom_fields).map(([key, value]) => (
+                                <div key={key}>
+                                  <p className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">{key}</p>
+                                  <div className="mt-1 text-sm font-bold text-on-surface wrap-break-word">{value}</div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
 
                         {/* Linked Transactions Section */}
                         <div className="border-t border-outline-variant/30 pt-4 mt-5">

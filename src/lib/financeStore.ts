@@ -81,6 +81,7 @@ export interface SpendingPlan {
   saved_amount: number;
   tenure_months: number;
   file_url?: string | null;
+  custom_fields?: Record<string, string> | null;
 }
 
 /**
@@ -107,6 +108,7 @@ export interface FinanceState {
     plannedCost: string;
     savedAmount: string;
     tenureMonths: string;
+    customFields: Record<string, string>;
   };
   setPurchaseDetails: (details: Partial<FinanceState["purchaseDetails"]>) => void;
 
@@ -185,6 +187,7 @@ const initialState = {
     plannedCost: "",
     savedAmount: "",
     tenureMonths: "",
+    customFields: {},
   },
   fileUrl: "",
   accentColor: "green" as const,
@@ -1119,6 +1122,7 @@ export const useFinanceStore = create<FinanceState>()(
           plannedCost: "",
           savedAmount: "",
           tenureMonths: "",
+          customFields: {},
         },
         fileUrl: ""
       }),

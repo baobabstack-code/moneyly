@@ -57,6 +57,7 @@ export default function SummaryPage() {
         saved_amount:     savedAmount,
         tenure_months:    tenureMonths,
         file_url:         fileUrl || null,
+        custom_fields:    purchaseDetails.customFields || null,
       });
 
       // Generate PDF with simplified personal finance details
@@ -119,6 +120,13 @@ export default function SummaryPage() {
         { label: "Estimated Monthly Commitment", value: `${currencySymbol}${monthlyCommitment.toFixed(2)}` },
       ],
     },
+    ...(purchaseDetails.customFields && Object.keys(purchaseDetails.customFields).length > 0 ? [{
+      title: "Custom Attributes",
+      data: Object.entries(purchaseDetails.customFields).map(([key, value]) => ({
+        label: key,
+        value: value,
+      })),
+    }] : []),
     ...(fileUrl ? [{
       title: "Supporting Files",
       data: [

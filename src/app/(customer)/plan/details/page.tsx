@@ -2,10 +2,31 @@
 
 import { useFinanceStore } from "@/lib/financeStore";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function PurchaseDetailsPage() {
   const router = useRouter();
   const { purchaseDetails, setPurchaseDetails, currency } = useFinanceStore();
+
+  const [newFieldName, setNewFieldName] = useState("");
+  const [newFieldValue, setNewFieldValue] = useState("");
+
+  const handleAddCustomField = () => {
+    if (!newFieldName.trim() || !newFieldValue.trim()) return;
+    const updated = {
+      ...(purchaseDetails.customFields || {}),
+      [newFieldName.trim()]: newFieldValue.trim()
+    };
+    setPurchaseDetails({ customFields: updated });
+    setNewFieldName("");
+    setNewFieldValue("");
+  };
+
+  const handleRemoveCustomField = (key: string) => {
+    const updated = { ...(purchaseDetails.customFields || {}) };
+    delete updated[key];
+    setPurchaseDetails({ customFields: updated });
+  };
 
   const currencySymbol = (() => {
     const map: Record<string, string> = { USD: '$', EUR: '€', GBP: '£', ZWL: 'Z$', CAD: 'C$' };
@@ -128,6 +149,65 @@ export default function PurchaseDetailsPage() {
             {plannedCost > 0 && savedAmount > plannedCost && (
               <p className="text-red-500 text-xs mt-1">Saved amount exceeds planned cost</p>
             )}
+          </div>
+        </div>
+
+        {/* Custom Fields Section */}
+        <div className="border-t border-outline-variant/30 pt-6">
+          <h3 className="text-sm font-bold uppercase tracking-wider text-primary mb-3">Additional Custom Fields</h3>
+          <p className="text-xs text-on-surface-variant mb-4">
+            Add custom attributes to this goal (e.g. "Priority", "Category Tag") without code changes.
+          </p>
+
+          {/* Render existing custom fields */}
+          {purchaseDetails.customFields && Object.keys(purchaseDetails.customFields).length > 0 && (
+            <div className="space-y-2 mb-4">
+              {Object.entries(purchaseDetails.customFields).map(([key, value]) => (
+                <div key={key} className="flex items-center justify-between bg-surface-container-low border border-outline-variant/60 rounded-xl px-4 py-2 text-sm">
+                  <span className="font-semibold text-primary">{key}: <span className="font-normal text-on-surface">{value}</span></span>
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveCustomField(key)}
+                    className="text-error hover:text-error/80 flex items-center justify-center p-1"
+                    title="Remove field"
+                  >
+                    <span className="material-symbols-outlined text-lg">delete</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Form to add a new custom field */}
+          <div className="flex flex-col sm:flex-row gap-3 items-end">
+            <div className="flex-1 w-full">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/80 ml-1 block mb-1">Field Name</label>
+              <input
+                type="text"
+                placeholder="e.g. Priority"
+                value={newFieldName}
+                onChange={(e) => setNewFieldName(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low text-xs font-bold"
+              />
+            </div>
+            <div className="flex-1 w-full">
+              <label className="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/80 ml-1 block mb-1">Field Value</label>
+              <input
+                type="text"
+                placeholder="e.g. High"
+                value={newFieldValue}
+                onChange={(e) => setNewFieldValue(e.target.value)}
+                className="w-full px-3 py-2 rounded-lg border border-outline-variant bg-surface-container-low text-xs font-bold"
+              />
+            </div>
+            <button
+              type="button"
+              onClick={handleAddCustomField}
+              disabled={!newFieldName.trim() || !newFieldValue.trim()}
+              className="px-4 py-2 bg-secondary/15 hover:bg-secondary/25 text-secondary text-xs font-bold rounded-lg transition-all h-[36px] flex items-center gap-1.5 disabled:opacity-40 disabled:pointer-events-none"
+            >
+              <span className="material-symbols-outlined text-sm">add</span> Add Field
+            </button>
           </div>
         </div>
 
