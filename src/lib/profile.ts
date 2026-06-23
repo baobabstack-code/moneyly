@@ -78,26 +78,55 @@ export async function saveProfile(data: Partial<UserProfile>): Promise<UserProfi
   const { data: { user } } = await supabase.auth.getUser();
   const userId = user?.id;
 
-  if (!userId) return null;
-
-  const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
-
-  // Run auth metadata update and DB upsert in parallel
-  const [, { data: updated, error }] = await Promise.all([
-    supabase.auth.updateUser({
-      data: { full_name: fullName, first_name: data.first_name, last_name: data.last_name },
-    }),
-    supabase
-      .from('profiles')
-      .upsert({ id: userId, full_name: fullName, ...data })
-      .select()
-      .single(),
-  ]);
-
-  if (error) {
-    console.error('Error saving profile:', error);
+  if (!userId) {
+    console.warn('[saveProfile] No authenticated user ID found');
     return null;
   }
 
-  return updated as UserProfile;
+  const fullName = [data.first_name, data.last_name].filter(Boolean).join(' ') || null;
+
+  try {
+    // 1. Update auth user metadata
+    const { error: authError } = await supabase.auth.updateUser({
+      data: { full_name: fullName, first_name: data.first_name, last_name: data.last_name },
+    });
+    if (authError) {
+      console.error('[saveProfile] auth.updateUser warning/error:', authError);
+    }
+
+    // 2. Safely Update or Insert the database profiles row
+    const { data: existing } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    let result;
+    if (existing) {
+      result = await supabase
+        .from('profiles')
+        .update({ full_name: fullName, ...data })
+        .eq('id', userId)
+        .select()
+        .single();
+    } else {
+      result = await supabase
+        .from('profiles')
+        .insert({ id: userId, full_name: fullName, ...data })
+        .select()
+        .single();
+    }
+
+    const { data: updated, error: dbError } = result;
+
+    if (dbError) {
+      console.error('[saveProfile] profiles save failed:', dbError);
+      return null;
+    }
+
+    return updated as UserProfile;
+  } catch (err) {
+    console.error('[saveProfile] unexpected error:', err);
+    return null;
+  }
 }
