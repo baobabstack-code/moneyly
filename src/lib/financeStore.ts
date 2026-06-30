@@ -15,6 +15,7 @@ export interface Transaction {
   spending_plan_id?: string | null;
   account_id?: string | null;
   to_account_id?: string | null;
+  custom_fields?: Record<string, string> | null;
 }
 
 export interface Account {

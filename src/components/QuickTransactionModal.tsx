@@ -49,6 +49,28 @@ export default function QuickTransactionModal({
   const [isScanning, setIsScanning] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [customFields, setCustomFields] = useState<Record<string, string>>({});
+  const [newFieldName, setNewFieldName] = useState('');
+  const [newFieldValue, setNewFieldValue] = useState('');
+
+  const handleAddCustomField = () => {
+    if (!newFieldName.trim() || !newFieldValue.trim()) return;
+    setCustomFields(prev => ({
+      ...prev,
+      [newFieldName.trim()]: newFieldValue.trim()
+    }));
+    setNewFieldName('');
+    setNewFieldValue('');
+  };
+
+  const handleRemoveCustomField = (key: string) => {
+    setCustomFields(prev => {
+      const updated = { ...prev };
+      delete updated[key];
+      return updated;
+    });
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -173,6 +195,7 @@ export default function QuickTransactionModal({
       spending_plan_id: type === 'transfer' ? null : (selectedPlanId || null),
       account_id: selectedAccountId || null,
       to_account_id: type === 'transfer' ? selectedToAccountId : null,
+      custom_fields: Object.keys(customFields).length > 0 ? customFields : null,
     });
 
     // Reset and close
@@ -182,6 +205,7 @@ export default function QuickTransactionModal({
     setSelectedAccountId(accounts[0]?.id || null);
     setSelectedToAccountId(accounts[1]?.id || null);
     setDate(getLocalDateString());
+    setCustomFields({});
     onClose();
   };
 
@@ -395,6 +419,57 @@ export default function QuickTransactionModal({
                 onChange={(e) => setNote(e.target.value)}
                 className="mt-2 w-full rounded-xl border border-outline-variant bg-surface-container-low px-3 py-2 text-sm text-primary focus:outline-none focus:border-secondary"
               />
+            </div>
+          </div>
+
+          {/* Dynamic Custom Fields */}
+          <div className="border-t border-outline-variant/30 pt-4">
+            <label className="text-xs font-bold uppercase tracking-wider text-on-surface-variant/80">Custom Fields</label>
+            
+            {Object.keys(customFields).length > 0 && (
+              <div className="space-y-1.5 mt-2 mb-3">
+                {Object.entries(customFields).map(([key, value]) => (
+                  <div key={key} className="flex items-center justify-between bg-surface-container-low border border-outline-variant/40 rounded-xl px-3 py-1.5 text-xs">
+                    <span className="font-semibold text-primary">{key}: <span className="font-normal text-on-surface">{value}</span></span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveCustomField(key)}
+                      className="text-error hover:text-error/80 flex items-center justify-center p-0.5"
+                    >
+                      <span className="material-symbols-outlined text-base">delete</span>
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="flex gap-2 items-end mt-2">
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Key (e.g. Tax)"
+                  value={newFieldName}
+                  onChange={(e) => setNewFieldName(e.target.value)}
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-2 py-1.5 text-xs font-semibold text-primary"
+                />
+              </div>
+              <div className="flex-1">
+                <input
+                  type="text"
+                  placeholder="Value (e.g. Deductible)"
+                  value={newFieldValue}
+                  onChange={(e) => setNewFieldValue(e.target.value)}
+                  className="w-full rounded-xl border border-outline-variant bg-surface-container-low px-2 py-1.5 text-xs font-semibold text-primary"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={handleAddCustomField}
+                disabled={!newFieldName.trim() || !newFieldValue.trim()}
+                className="px-3 py-1.5 bg-secondary/15 hover:bg-secondary/25 text-secondary text-xs font-bold rounded-xl transition-all h-[32px] flex items-center gap-1 disabled:opacity-40"
+              >
+                <span className="material-symbols-outlined text-xs">add</span> Add
+              </button>
             </div>
           </div>
 

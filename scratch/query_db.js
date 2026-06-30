@@ -12,13 +12,9 @@ const client = new Client({
 async function main() {
   await client.connect();
   try {
-    const plansRes = await client.query('SELECT id, reference, product_name, planned_cost, saved_amount, status FROM spending_plans;');
-    console.log('--- SPENDING PLANS ---');
-    console.log(plansRes.rows);
-
-    const txsRes = await client.query('SELECT id, amount, type, note, category_name, spending_plan_id FROM transactions;');
-    console.log('--- TRANSACTIONS ---');
-    console.log(txsRes.rows);
+    const profilesRes = await client.query('SELECT * FROM profiles;');
+    console.log('--- PROFILES ---');
+    console.log(profilesRes.rows);
   } catch (err) {
     console.error(err);
   } finally {
