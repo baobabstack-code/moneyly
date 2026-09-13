@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { IMPERSONATE_COOKIE } from '@/lib/impersonate'
+import { stopImpersonation } from '@/app/super-admin/impersonate/actions'
 
 interface ImpersonationData {
   targetUserId: string
@@ -16,22 +17,18 @@ export default function ImpersonationBanner() {
   const router = useRouter()
 
   useEffect(() => {
-    const raw = document.cookie
-      .split('; ')
-      .find(row => row.startsWith(IMPERSONATE_COOKIE + '='))
-      ?.split('=').slice(1).join('=')
-
-    if (raw) {
-      try { setData(JSON.parse(decodeURIComponent(raw))) } catch { /* ignore */ }
-    }
+    /**
+     * Since the impersonation cookie is now httpOnly, we cannot read it from document.cookie.
+     * The impersonation data should be passed via server-side rendering or a dedicated API.
+     * This component is kept for future server-side data injection.
+     */
   }, [])
 
   if (!data) return null
 
-  const handleStop = () => {
+  const handleStop = async () => {
     setExiting(true)
-    document.cookie = `${IMPERSONATE_COOKIE}=; path=/; max-age=0`
-    router.push(data.returnPath || '/super-admin')
+    await stopImpersonation(data.returnPath || '/super-admin')
   }
 
   return (
