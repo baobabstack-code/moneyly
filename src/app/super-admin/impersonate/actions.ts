@@ -28,8 +28,9 @@ export async function startImpersonation(targetUserId: string, targetName: strin
     returnPath,
     startedAt: Date.now(),
   }), {
-    httpOnly: false,
-    sameSite: 'lax',
+    httpOnly: true,
+    secure: true,
+    sameSite: 'strict',
     maxAge: 60 * 60,
     path: '/',
   })
