@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import ToastContainer from "@/components/ToastContainer";
 import Confetti from "@/components/Confetti";
+import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -54,6 +55,7 @@ export default function RootLayout({
           <ToastContainer />
           <Confetti />
           {children}
+          <Analytics />
         </ThemeProvider>
       </body>
     </html>
